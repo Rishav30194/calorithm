@@ -13,7 +13,7 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
 
 ## Phase 1 — Foundations
 
-**Status:** In progress
+**Status:** Done (2026-11-20)
 
 **Goal:** an empty app that signs in, with every check and gate working.
 
@@ -40,7 +40,8 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
   an error.
 - [x] pgTAP proves one user can't read or write another's `profile` row.
 - [x] axe reports no violations on the sign-in screen and the shell.
-- [ ] The production build installs as a PWA in Chrome. (Install criteria checked by `e2e/pwa.spec.ts`; a manual install is still to do.)
+- [x] The production build installs as a PWA in Chrome. (Checked by `e2e/pwa.spec.ts`, and installed
+  by hand in Chrome on macOS on 2026-11-20.)
 
 **Implementation notes:**
 - Dependencies pinned to exact versions at least 7 days old; `overrides` pins `playwright-core`
@@ -53,10 +54,16 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
 - `profile.id` equals `user_id`, so two devices creating a profile offline write one row.
 - Biome's Markdown formatter is off, so the docs keep their hand-written tables.
 - First-load JavaScript: 129.8 kB gzipped of the 200 kB budget.
+- Merged in PR #1 on 2026-11-20 (merge commit 12ecde4).
+- Another project's service worker on `localhost:4173` showed its own app at first. Chrome
+  scopes service workers by origin and path, so a worker at another app's root path controls
+  `/calorithm/` too. Incognito, or unregistering that worker, avoids it.
+- On wide desktop windows the screen content sits at the left while the tab bar is centered.
+  Cosmetic; the layout targets phones first.
 
 ## Phase 2 — Local database and sync
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** any table can be written offline and reaches Supabase reliably.
 
@@ -76,7 +83,37 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
 - [ ] Two browser contexts as the same user see each other's changes.
 - [ ] After sign-out, IndexedDB holds no database for that user.
 
-**Implementation notes:** none yet.
+**Plan** (approved 2026-11-20): three PRs.
+
+1. **Engine:** Dexie database, synced-table registry, repository and outbox (one row per
+   pending change, collapsed on repeat edits), push with error classes and backoff, pull with
+   keyset paging and the one-minute overlap, the full resync rule, an in-memory fake server,
+   and unit tests for sync cases 2 to 12, 16, and 18.
+2. **Live wiring:** the Supabase adapter with integration tests against local Supabase (new
+   `test:integration` script in `check:full`), the sync schedule, the `min_app_version` check
+   and **Update** screen (`workbox-window` 7.4.1 becomes a direct dependency), the sync status
+   badge and Settings panel with **Discard** for failed changes, and a **Units** setting as the
+   first real synced write. Case 13.
+3. **Session:** sign-out that syncs, warns, and offers a JSON export of unsent changes;
+   separate databases per user; `storage.persist()`; Playwright tests for offline writes, two
+   windows, and sign-out. Cases 1, 14, 15, and 17.
+
+Cases 4 and 12 use a made-up table until phase 3 adds parent and child tables and a second
+schema version. The server job that removes rows deleted over 90 days ago moves to phase 7.
+
+**Implementation notes:**
+- PR 1 (engine): `src/data/db.ts`, `tables.ts`, `repository.ts`, and `src/data/sync/` (push,
+  pull, `syncOnce`, and the in-memory `FakeRemote`). Sync cases 2 to 12, 16, and 18 have unit
+  tests; each guard was checked by breaking it on purpose and watching its test fail.
+- A full resync pulls before removing anything, instead of clearing tables first (decision
+  0015).
+- The outbox holds one entry per row, with a `rev` counter so a push never clears an edit made
+  while it was in flight.
+- Code review before the PR found 7 real sync gaps, all fixed with tests: rows the server
+  skipped as older are fetched back, unreadable rows are retried by id, full pulls never
+  delete rows they couldn't read, auth errors don't back off, pulls run during backoff, a
+  clock jumping back can't stall sync, and failed changes can be discarded
+  (`src/data/sync/discard.ts`).
 
 ## Phase 3 — Foods, recipes, and the daily log
 

@@ -6,19 +6,16 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Check that CI passed on the latest push to `chore/scaffold`; the session-start facts show
-   it.
-2. The user installs the app from Chrome by hand once; that's the last phase 1 criterion.
-   Run `npm run db:start`, `npm run build:local`, and `npm run preview`, then open
-   `http://localhost:4173/calorithm/` and use the install button in the address bar.
-3. The user reviews and squash-merges PR #1. It also includes two hook fixes: CI results no longer
-   show blank while a run is in progress, and the commit gate no longer mistakes an unrelated
-   `sed -n` for `--no-verify`.
-4. After the merge, mark phase 1 done in `docs/phases.md`, branch `feature/local-sync` from
-   `main`, and plan phase 2 (local database and sync). Read `docs/architecture.md`, "Sync",
-   and `docs/testing.md`, "Sync", first: phase 2 is test first, and every one of the 18 sync
-   cases needs a test.
-5. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+1. Phase 2 PR 1 (engine) is built on `feature/local-sync` and passed both reviews. Ask the
+   user before pushing and opening its PR.
+2. Then PR 2 (live wiring). The Supabase adapter must:
+   - make `upsert` return the stored rows (`.select()`); rows skipped as older are missing
+     from the result, and push depends on that
+   - implement `getRows` by id
+   - map errors to `network`, `auth`, and `rejected` per decision 0014
+   - validate the cursor before building PostgREST `or()` filters: a UUID pattern for `id`,
+     and the `normalize()` timestamp check for `updated_at` (from the PR 1 security review)
+3. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
 
 Pushes use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push`,
 because git has no stored GitHub credentials and the global git config stays untouched.
@@ -32,7 +29,8 @@ because git has no stored GitHub credentials and the global git config stays unt
 
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
-- The app and preview live under `/calorithm/`, also locally.
+- The app and preview live under `/calorithm/`, also locally. Another project's service worker
+  at `localhost:4173/` can take over the page; use incognito or unregister it in DevTools.
 - `/security-review` needs `origin/HEAD`; in a fresh setup run `git remote set-head origin main`.
 - npm 11 holds back `fsevents`'s install script; it's optional and not needed.
 - 4 moderate `npm audit` findings sit in `vite-plugin-pwa`'s build-time dependencies (`glob`

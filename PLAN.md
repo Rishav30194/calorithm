@@ -76,8 +76,9 @@ syncs the first person's data. Sign-out syncs first; if unsent changes remain, i
 they'll be lost and offers an export before going ahead.
 
 **Long-offline devices.** Soft-deleted rows are removed for good after 90 days. A device whose
-last pull is older than that pushes its outbox, clears its local tables, and pulls everything,
-so it can't keep rows whose deletion it never saw.
+last pull is older than that pushes its outbox, pulls every row, and then removes local rows
+the server no longer has, except rows with an unsent change. Nothing is removed before the
+pull succeeds, so an offline device never shows an empty app.
 
 **Schema versions.** A phone can stay offline for weeks and still hold outbox rows in an old
 shape. To handle that:
