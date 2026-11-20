@@ -4,7 +4,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import type { Database } from '../database.types'
 import type { ProfileRow } from '../tables'
 import type { Remote } from './remote'
-import { createSupabaseRemote } from './supabaseRemote'
+import { createSupabaseRemote, fetchMinAppVersion } from './supabaseRemote'
 import { normalizeTimestamp } from './timestamps'
 
 // Runs against local Supabase through `npm run test:integration`, as the synthetic seed user.
@@ -178,5 +178,19 @@ describe('createSupabaseRemote', () => {
     const result = await remote.getRows('app_config', ['x'])
 
     expect(result).toMatchObject({ ok: false, error: { kind: 'rejected', code: 'unknown_table' } })
+  })
+})
+
+describe('fetchMinAppVersion', () => {
+  it('reads the minimum app version, even signed out', async () => {
+    expect(await fetchMinAppVersion(client)).toEqual({ ok: true, value: '0.0.0' })
+    expect(await fetchMinAppVersion(newClient())).toEqual({ ok: true, value: '0.0.0' })
+  })
+
+  it('classes an unreachable server as a network error', async () => {
+    expect(await fetchMinAppVersion(newClient('http://127.0.0.1:9'))).toMatchObject({
+      ok: false,
+      error: { kind: 'network' },
+    })
   })
 })

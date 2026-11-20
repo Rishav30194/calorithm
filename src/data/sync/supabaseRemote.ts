@@ -100,3 +100,18 @@ export const createSupabaseRemote = (
     },
   }
 }
+
+// app_config is readable signed out, so an outdated app can tell before sign-in.
+export const fetchMinAppVersion = async (
+  client: SupabaseClient<Database>,
+): Promise<RemoteResult<string>> => {
+  const { data, error, status } = await client
+    .from('app_config')
+    .select('min_app_version')
+    .eq('id', 1)
+    .maybeSingle()
+    .retry(false)
+  if (error) return { ok: false, error: errorFor(status, error) }
+  // No row means no minimum: never lock the app out over a missing setting.
+  return { ok: true, value: data?.min_app_version ?? '0.0.0' }
+}
