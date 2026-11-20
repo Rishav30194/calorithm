@@ -6,8 +6,8 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Check that the CI run for the last push (8936860, docs only) passed; the session-start
-   facts show it.
+1. Check that CI passed on the latest push to `chore/scaffold`; the session-start facts show
+   it.
 2. The user installs the app from Chrome by hand once; that's the last phase 1 criterion.
    Run `npm run db:start`, `npm run build:local`, and `npm run preview`, then open
    `http://localhost:4173/calorithm/` and use the install button in the address bar.
