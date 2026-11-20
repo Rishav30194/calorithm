@@ -13,7 +13,7 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
 
 ## Phase 1 — Foundations
 
-**Status:** In progress
+**Status:** Done (2026-11-20)
 
 **Goal:** an empty app that signs in, with every check and gate working.
 
@@ -40,7 +40,8 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
   an error.
 - [x] pgTAP proves one user can't read or write another's `profile` row.
 - [x] axe reports no violations on the sign-in screen and the shell.
-- [ ] The production build installs as a PWA in Chrome. (Install criteria checked by `e2e/pwa.spec.ts`; a manual install is still to do.)
+- [x] The production build installs as a PWA in Chrome. (Checked by `e2e/pwa.spec.ts`, and installed
+  by hand in Chrome on macOS on 2026-11-20.)
 
 **Implementation notes:**
 - Dependencies pinned to exact versions at least 7 days old; `overrides` pins `playwright-core`
@@ -53,6 +54,12 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
 - `profile.id` equals `user_id`, so two devices creating a profile offline write one row.
 - Biome's Markdown formatter is off, so the docs keep their hand-written tables.
 - First-load JavaScript: 129.8 kB gzipped of the 200 kB budget.
+- Merged in PR #1 on 2026-11-20 (merge commit 12ecde4).
+- Another project's service worker on `localhost:4173` showed its own app at first. Chrome
+  scopes service workers by origin and path, so a worker at another app's root path controls
+  `/calorithm/` too. Incognito, or unregistering that worker, avoids it.
+- On wide desktop windows the screen content sits at the left while the tab bar is centered.
+  Cosmetic; the layout targets phones first.
 
 ## Phase 2 — Local database and sync
 
