@@ -69,4 +69,18 @@ describe('formatAgo', () => {
   it('treats a time in the future as now', () => {
     expect(formatAgo(-5 * minute, 'en-GB')).toBe('now')
   })
+
+  it('always formats, and never shows a larger number for a shorter time in the same unit', () => {
+    fc.assert(
+      fc.property(fc.integer({ min: -minute, max: 400 * 24 * 60 * minute }), (elapsed) => {
+        const text = formatAgo(elapsed, 'en-GB')
+        expect(text.length).toBeGreaterThan(0)
+        const [count] = text.split(' ')
+        const shorter = formatAgo(Math.max(0, elapsed - minute), 'en-GB').split(' ')
+        if (text.endsWith(' ago') && shorter.at(-2) === text.split(' ').at(-2)) {
+          expect(Number(shorter[0])).toBeLessThanOrEqual(Number(count))
+        }
+      }),
+    )
+  })
 })

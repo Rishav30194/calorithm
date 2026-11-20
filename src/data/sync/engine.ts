@@ -62,6 +62,7 @@ export const createEngine = (deps: EngineDeps): Engine => {
   let stopped = false
   let requiredMinimum: string | null = null
   let cancelTimer: (() => void) | undefined
+  let dueAt = Number.POSITIVE_INFINITY
   let current: Promise<void> = Promise.resolve()
   const timers = deps.timers ?? globalTimers
 
@@ -70,12 +71,19 @@ export const createEngine = (deps: EngineDeps): Engine => {
   const cancel = () => {
     cancelTimer?.()
     cancelTimer = undefined
+    dueAt = Number.POSITIVE_INFINITY
   }
 
+  // Keeps whichever run is due first, so a stream of writes can't keep postponing sync and a
+  // write never pushes a backoff retry later.
   const schedule = (ms: number) => {
+    const at = now() + ms
+    if (at >= dueAt) return
     cancel()
+    dueAt = at
     cancelTimer = timers.set(() => {
       cancelTimer = undefined
+      dueAt = Number.POSITIVE_INFINITY
       void run()
     }, ms)
   }

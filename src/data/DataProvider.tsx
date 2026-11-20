@@ -6,14 +6,13 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react'
 
 import { refreshSession } from './auth'
 import { dbNameFor, LocalDb } from './db'
 import type { Env } from './env'
-import { readProfile, setUnits, type Units } from './profile'
+import { readProfile, type SetUnitsResult, setUnits, type Units } from './profile'
 import { getClient } from './supabase'
 import { type DiscardOutcome, discardFailed } from './sync/discard'
 import { createEngine, type Engine, type SyncStatus } from './sync/engine'
@@ -21,12 +20,9 @@ import type { SyncContext } from './sync/push'
 import { createSupabaseRemote, fetchMinAppVersion } from './sync/supabaseRemote'
 import { syncedTables } from './tables'
 
-type DataContextValue = {
-  userId: string
-  ctx: SyncContext
-  status: SyncStatus
-  engine: () => Engine | null
-}
+type Session = { ctx: SyncContext; engine: Engine }
+
+type DataContextValue = Session & { userId: string; status: SyncStatus }
 
 const DataContext = createContext<DataContextValue | null>(null)
 
@@ -41,32 +37,33 @@ const useData = (): DataContextValue => {
 export const DataProvider = ({
   env,
   userId,
+  loading,
   children,
 }: {
   env: Env
   userId: string
+  loading: ReactNode
   children: ReactNode
 }) => {
+  const [session, setSession] = useState<Session | null>(null)
   const [status, setStatus] = useState<SyncStatus>({
     state: 'idle',
     lastSyncedAt: null,
     problem: null,
   })
-  const engineRef = useRef<Engine | null>(null)
   const client = getClient(env)
-  const db = useMemo(() => new LocalDb(dbNameFor(userId)), [userId])
-  const ctx = useMemo<SyncContext>(
-    () => ({
+
+  // The database and engine are made and closed in one effect, so each run of the effect
+  // (React runs it twice in development) cleans up exactly what it opened.
+  useEffect(() => {
+    const db = new LocalDb(dbNameFor(userId))
+    const ctx: SyncContext = {
       db,
       remote: createSupabaseRemote(client),
       tables: syncedTables,
       clock: () => new Date(),
       random: Math.random,
-    }),
-    [db, client],
-  )
-
-  useEffect(() => {
+    }
     const engine = createEngine({
       ctx,
       appVersion: __APP_VERSION__,
@@ -74,28 +71,30 @@ export const DataProvider = ({
       refreshSession: () => refreshSession(client),
       onStatus: setStatus,
     })
-    engineRef.current = engine
     const online = () => engine.request('online')
     const visible = () => {
       if (document.visibilityState === 'visible') engine.request('visible')
     }
     window.addEventListener('online', online)
     document.addEventListener('visibilitychange', visible)
+    setSession({ ctx, engine })
     engine.request('start')
+
     return () => {
       window.removeEventListener('online', online)
       document.removeEventListener('visibilitychange', visible)
       engine.stop()
-      engineRef.current = null
+      setSession(null)
+      // A sync already running finishes before its database closes.
+      void engine.whenIdle().then(() => db.close())
     }
-  }, [ctx, client])
-
-  useEffect(() => () => db.close(), [db])
+  }, [userId, client])
 
   const value = useMemo(
-    () => ({ userId, ctx, status, engine: () => engineRef.current }),
-    [userId, ctx, status],
+    () => (session ? { ...session, userId, status } : null),
+    [session, userId, status],
   )
+  if (!value) return loading
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>
 }
 
@@ -122,12 +121,13 @@ export const useUnits = (): Units => {
   return profile?.units === 'imperial' ? 'imperial' : 'metric'
 }
 
-export const useSetUnits = (): ((units: Units) => Promise<void>) => {
+export const useSetUnits = (): ((units: Units) => Promise<SetUnitsResult>) => {
   const { ctx, userId, engine } = useData()
   return useCallback(
     async (units) => {
-      await setUnits(ctx.db, userId, units, ctx.clock)
-      engine()?.request('write')
+      const result = await setUnits(ctx, userId, units)
+      if (result.ok) engine.request('write')
+      return result
     },
     [ctx, userId, engine],
   )

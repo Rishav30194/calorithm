@@ -30,20 +30,21 @@ const Refused = ({
   onDiscard: Props['onDiscard']
 }) => {
   const [pending, setPending] = useState(false)
-  const [offline, setOffline] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const discard = async () => {
     setPending(true)
-    setOffline(false)
+    setError(null)
     const result = await onDiscard(change.seq)
     setPending(false)
-    setOffline(result.status !== 'done')
+    if (result.status === 'retry_later') setError(strings.sync.discardOffline)
+    if (result.status === 'needs_auth') setError(strings.sync.signedOut)
   }
   return (
     <li className="flex flex-col gap-2 rounded-lg border border-border p-3">
       <p>{strings.sync.failedReason(change.message)}</p>
-      {offline && (
+      {error && (
         <p role="alert" className="text-danger">
-          {strings.sync.discardOffline}
+          {error}
         </p>
       )}
       <button
@@ -58,6 +59,14 @@ const Refused = ({
   )
 }
 
+// "Everything is synced" only after a sync succeeded, with nothing waiting or refused.
+const allSynced = (status: SyncStatus, pending: number, failed: number): boolean =>
+  status.state === 'idle' &&
+  status.problem === null &&
+  status.lastSyncedAt !== null &&
+  pending === 0 &&
+  failed === 0
+
 export const SyncPanel = ({ status, pending, failed, now, locale, onDiscard }: Props) => {
   const problem = status.state === 'update_required' ? null : status.problem
   return (
@@ -66,11 +75,10 @@ export const SyncPanel = ({ status, pending, failed, now, locale, onDiscard }: P
         {strings.sync.title}
       </h2>
       <p>{lastSyncedLine(status, now, locale)}</p>
-      <p className="text-muted">
-        {pending > 0
-          ? strings.sync.waiting(pending)
-          : failed.length === 0 && strings.sync.allSynced}
-      </p>
+      {pending > 0 && <p className="text-muted">{strings.sync.waiting(pending)}</p>}
+      {allSynced(status, pending, failed.length) && (
+        <p className="text-muted">{strings.sync.allSynced}</p>
+      )}
       {problem === 'offline' && <p className="text-muted">{strings.sync.offline}</p>}
       {problem === 'signed_out' && <p className="text-danger">{strings.sync.signedOut}</p>}
       {failed.length > 0 && (

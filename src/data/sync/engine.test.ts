@@ -100,18 +100,47 @@ describe('createEngine', () => {
     expect(last()).toEqual({ state: 'idle', lastSyncedAt: time.now(), problem: null })
   })
 
-  it('waits a few seconds after writes, then syncs them together', async () => {
-    for (const name of ['a', 'b', 'c']) {
-      await write(name)
-      engine.request('write')
-      await advance(1_000)
-    }
+  it('waits a few seconds after a write, then syncs the writes made meanwhile together', async () => {
+    await write('a')
+    engine.request('write')
+    await advance(1_000)
+    await write('b')
+    engine.request('write')
+    await advance(1_000)
+    await write('c')
+    engine.request('write')
     expect(remote.upserts).toEqual([])
 
     await advance(WRITE_DELAY_MS)
 
     expect(remote.upserts).toHaveLength(1)
     expect(remote.rows('parent')).toHaveLength(3)
+  })
+
+  it('never lets a steady stream of writes postpone sync', async () => {
+    for (let i = 0; i < 10; i++) {
+      await write(`w${i}`)
+      engine.request('write')
+      await advance(2_000)
+    }
+
+    // Writes 2 seconds apart, each sooner than the delay, still sync along the way.
+    expect(remote.upserts.length).toBeGreaterThanOrEqual(5)
+  })
+
+  it('keeps a sooner backoff retry when a write arrives', async () => {
+    await write('a')
+    remote.offline = true
+    engine.request('start')
+    await engine.whenIdle()
+    remote.offline = false
+    // The backoff retry is due in 1 second (random = 0 gives the floor).
+    await write('b')
+    engine.request('write')
+
+    await advance(1_000)
+
+    expect(remote.rows('parent')).toHaveLength(2)
   })
 
   it('runs one sync at a time, and once more for a request made during it', async () => {

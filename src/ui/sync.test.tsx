@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { FailedChange } from '@/data/DataProvider'
+import type { SetUnitsResult } from '@/data/profile'
 import type { DiscardOutcome } from '@/data/sync/discard'
 import type { SyncStatus } from '@/data/sync/engine'
 import { strings } from '@/strings'
@@ -72,6 +73,24 @@ describe('SyncPanel', () => {
     expect(screen.getByText(strings.sync.offline)).toBeInTheDocument()
   })
 
+  it('only says everything is synced after a sync succeeded with no problem', () => {
+    const { rerender } = panel({ status: offline })
+    expect(screen.queryByText(strings.sync.allSynced)).not.toBeInTheDocument()
+
+    const neverSynced: SyncStatus = { state: 'idle', lastSyncedAt: null, problem: null }
+    rerender(
+      <SyncPanel
+        status={neverSynced}
+        pending={0}
+        failed={[]}
+        now={now}
+        locale="en-GB"
+        onDiscard={async () => ({ status: 'done' })}
+      />,
+    )
+    expect(screen.queryByText(strings.sync.allSynced)).not.toBeInTheDocument()
+  })
+
   it('lists refused changes with their reason and discards one', async () => {
     const onDiscard = vi.fn(async (): Promise<DiscardOutcome> => ({ status: 'done' }))
     panel({ failed: [refused], onDiscard })
@@ -90,17 +109,53 @@ describe('SyncPanel', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(strings.sync.discardOffline)
     expect(screen.getByRole('button', { name: strings.sync.discard })).toBeEnabled()
   })
+
+  it('says to sign in again when a discard finds the session expired', async () => {
+    panel({ failed: [refused], onDiscard: async () => ({ status: 'needs_auth' }) })
+
+    await userEvent.setup().click(screen.getByRole('button', { name: strings.sync.discard }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(strings.sync.signedOut)
+  })
 })
 
 describe('UnitsSetting', () => {
   it('shows the current units and reports a change', async () => {
-    const onChange = vi.fn(async () => {})
+    const onChange = vi.fn(async (): Promise<SetUnitsResult> => ({ ok: true }))
     render(<UnitsSetting units="metric" onChange={onChange} />)
 
     expect(screen.getByRole('radio', { name: strings.units.metric })).toBeChecked()
     await userEvent.setup().click(screen.getByRole('radio', { name: strings.units.imperial }))
 
     expect(onChange).toHaveBeenCalledWith('imperial')
+    expect(screen.getByRole('radio', { name: strings.units.imperial })).toBeChecked()
+  })
+
+  it('goes back to the saved units and explains when the change can’t be made offline', async () => {
+    render(
+      <UnitsSetting units="metric" onChange={async () => ({ ok: false, reason: 'offline' })} />,
+    )
+
+    await userEvent.setup().click(screen.getByRole('radio', { name: strings.units.imperial }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(strings.units.offline)
+    expect(screen.getByRole('radio', { name: strings.units.metric })).toBeChecked()
+  })
+
+  it('goes back to the saved units when saving fails', async () => {
+    render(
+      <UnitsSetting
+        units="metric"
+        onChange={async () => {
+          throw new Error('quota exceeded')
+        }}
+      />,
+    )
+
+    await userEvent.setup().click(screen.getByRole('radio', { name: strings.units.imperial }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(strings.units.failed)
+    expect(screen.getByRole('radio', { name: strings.units.metric })).toBeChecked()
   })
 })
 

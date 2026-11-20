@@ -41,6 +41,8 @@ export const strings = {
     legend: 'Units',
     metric: 'Metric (kg)',
     imperial: 'Imperial (lb)',
+    offline: 'Can’t change units until this device has synced once. Connect and try again.',
+    failed: 'Couldn’t save that change. Try again.',
   },
 
   sync: {
