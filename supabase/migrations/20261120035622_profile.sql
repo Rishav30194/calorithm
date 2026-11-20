@@ -37,6 +37,26 @@ comment on column public.profile.client_updated_at is
 
 create index profile_pull_idx on public.profile (user_id, updated_at, id);
 
+-- A CHECK constraint must be immutable, and current_date isn't, so a trigger enforces the
+-- upper bound on birth dates.
+create function public.profile_birth_date_not_future()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.birth_date > current_date then
+    raise exception 'birth_date % is in the future', new.birth_date
+      using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger profile_birth_date_not_future
+  before insert or update of birth_date on public.profile
+  for each row execute function public.profile_birth_date_not_future();
+
 create trigger profile_set_updated_at
   before insert or update on public.profile
   for each row execute function public.set_updated_at();

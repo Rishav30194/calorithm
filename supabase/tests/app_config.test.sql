@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(6);
+select plan(7);
 
 select ok(
   (select relrowsecurity from pg_class where oid = 'public.app_config'::regclass),
@@ -45,6 +45,13 @@ select throws_ok(
   '23514',
   null,
   'the minimum app version must be MAJOR.MINOR.PATCH'
+);
+
+update public.app_config set min_app_version = '0.0.1';
+select is(
+  (select updated_at from public.app_config),
+  now(),
+  'changing the config stamps updated_at'
 );
 
 select * from finish();

@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(18);
+select plan(19);
 
 -- Two synthetic users. Tests act as one of them by setting the JWT claims PostgREST would set.
 insert into auth.users (id, email)
@@ -141,6 +141,14 @@ select throws_ok(
   '23514',
   null,
   'an unknown sex value is rejected'
+);
+
+select throws_ok(
+  $$ update public.profile
+     set birth_date = current_date + 1, client_updated_at = '2026-11-20 00:00+00' $$,
+  '23514',
+  null,
+  'a birth date in the future is rejected'
 );
 
 select throws_ok(

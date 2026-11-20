@@ -38,6 +38,20 @@ describe('SignIn', () => {
     )
   })
 
+  it('rejects an invalid email without calling the server', async () => {
+    const onSignIn = vi.fn(async (): Promise<SignInResult> => ({ ok: true }))
+    const { container } = render(<SignIn onSignIn={onSignIn} />)
+    // Skip the browser's own email check, to prove the Zod parse stands on its own.
+    container.querySelector('form')?.setAttribute('novalidate', '')
+
+    await fill('not-an-email', 'secret-pass')
+
+    expect(onSignIn).not.toHaveBeenCalled()
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      strings.signIn.failures.invalid_input,
+    )
+  })
+
   it('disables the button while signing in', async () => {
     let finish: (result: SignInResult) => void = () => {}
     const onSignIn = vi.fn(

@@ -1,11 +1,12 @@
 export type WeightUnit = 'kg' | 'lb'
 
-const POUNDS_PER_KG = 2.204_622_621_8
+const POUNDS_PER_KG = 2.2046226218
 
-// Rounding before formatting turns -0.01 into 0 instead of "-0".
+// Rounds half away from zero, so a 0.25 kg loss and gain both show as 0.3 (Math.round alone
+// rounds -2.5 up to -2). Rounding before formatting also turns -0.01 into 0 instead of "-0".
 const clean = (value: number, decimals: number): number => {
   const factor = 10 ** decimals
-  const rounded = Math.round(value * factor) / factor
+  const rounded = (Math.sign(value) * Math.round(Math.abs(value) * factor)) / factor
   return Object.is(rounded, -0) ? 0 : rounded
 }
 

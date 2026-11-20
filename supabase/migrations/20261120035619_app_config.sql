@@ -10,6 +10,10 @@ create table public.app_config (
 comment on table public.app_config is
   'One row. min_app_version: clients below it stop syncing and must update.';
 
+create trigger app_config_set_updated_at
+  before update on public.app_config
+  for each row execute function public.set_updated_at();
+
 alter table public.app_config enable row level security;
 
 -- Readable before sign-in, so an outdated app can say so on the sign-in screen.

@@ -29,6 +29,11 @@ describe('formatWeight', () => {
     expect(formatWeight(82.5, 'lb', 'en-GB')).toBe('181.9 lb')
   })
 
+  it('rounds losses and gains of the same size to the same number', () => {
+    expect(formatWeight(0.25, 'kg', 'en-GB')).toBe('0.3 kg')
+    expect(formatWeight(-0.25, 'kg', 'en-GB')).toBe('-0.3 kg')
+  })
+
   it('never shows a negative zero', () => {
     expect(formatWeight(-0.01, 'kg', 'en-GB')).toBe('0 kg')
   })

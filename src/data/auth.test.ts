@@ -1,7 +1,32 @@
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js'
 import { describe, expect, it } from 'vitest'
 
-import { toSignInFailure } from './auth'
+import { signOut, toSignInFailure } from './auth'
+
+describe('signOut', () => {
+  it('succeeds when the server accepts', async () => {
+    const client = { auth: { signOut: async () => ({ error: null }) } }
+    expect(await signOut(client)).toEqual({ ok: true })
+  })
+
+  it('reports an error the server returns', async () => {
+    const client = {
+      auth: { signOut: async () => ({ error: new AuthRetryableFetchError('Failed to fetch', 0) }) },
+    }
+    expect(await signOut(client)).toEqual({ ok: false })
+  })
+
+  it('reports a thrown error instead of rejecting', async () => {
+    const client = {
+      auth: {
+        signOut: async (): Promise<{ error: null }> => {
+          throw new Error('subscriber failed')
+        },
+      },
+    }
+    expect(await signOut(client)).toEqual({ ok: false })
+  })
+})
 
 describe('toSignInFailure', () => {
   it('maps wrong credentials', () => {

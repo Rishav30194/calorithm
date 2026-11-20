@@ -1,4 +1,5 @@
-import { type FormEvent, useId, useState } from 'react'
+import { type SubmitEvent, useId, useState } from 'react'
+import { z } from 'zod/mini'
 
 import type { SignInFailure, SignInResult } from '@/data/auth'
 import { strings } from '@/strings'
@@ -7,18 +8,30 @@ type Props = {
   onSignIn: (email: string, password: string) => Promise<SignInResult>
 }
 
+const formSchema = z.object({
+  email: z.email(),
+  password: z.string().check(z.minLength(1)),
+})
+
+type Failure = SignInFailure | 'invalid_input'
+
 export const SignIn = ({ onSignIn }: Props) => {
   const emailId = useId()
   const passwordId = useId()
   const [pending, setPending] = useState(false)
-  const [failure, setFailure] = useState<SignInFailure | null>(null)
+  const [failure, setFailure] = useState<Failure | null>(null)
 
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
+  const submit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
+    const input = formSchema.safeParse({ email: form.get('email'), password: form.get('password') })
+    if (!input.success) {
+      setFailure('invalid_input')
+      return
+    }
     setPending(true)
     setFailure(null)
-    const result = await onSignIn(String(form.get('email')), String(form.get('password')))
+    const result = await onSignIn(input.data.email, input.data.password)
     setPending(false)
     if (!result.ok) setFailure(result.failure)
   }

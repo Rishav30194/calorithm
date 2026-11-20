@@ -35,9 +35,19 @@ export const signIn = async (
   }
 }
 
-export const signOut = async (client: Client): Promise<void> => {
-  // scope 'local' signs out this device only; other devices keep their sessions.
-  await client.auth.signOut({ scope: 'local' })
+export type SignOutResult = { ok: boolean }
+
+// Takes only what it uses, so tests pass a small fake instead of a whole client.
+type SignOutClient = { auth: Pick<Client['auth'], 'signOut'> }
+
+export const signOut = async (client: SignOutClient): Promise<SignOutResult> => {
+  try {
+    // scope 'local' signs out this device only; other devices keep their sessions.
+    const { error } = await client.auth.signOut({ scope: 'local' })
+    return { ok: error === null }
+  } catch {
+    return { ok: false }
+  }
 }
 
 export const useSession = (client: Client): SessionState => {
@@ -62,7 +72,7 @@ export const useSession = (client: Client): SessionState => {
 export type Auth = {
   session: SessionState
   signIn: (email: string, password: string) => Promise<SignInResult>
-  signOut: () => Promise<void>
+  signOut: () => Promise<SignOutResult>
 }
 
 // The interface's only way in: screens get session state and actions, never the client.

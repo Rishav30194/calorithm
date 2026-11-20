@@ -1,21 +1,27 @@
 import { useState } from 'react'
 
+import type { SignOutResult } from '@/data/auth'
 import { strings } from '@/strings'
 
 import { hrefFor, type Tab, tabs, useTab } from './routes'
 
 type Props = {
   email: string
-  onSignOut: () => Promise<void>
+  onSignOut: () => Promise<SignOutResult>
 }
 
 const ComingSoon = ({ text }: { text: string }) => <p className="text-muted">{text}</p>
 
 const Settings = ({ email, onSignOut }: Props) => {
   const [pending, setPending] = useState(false)
+  const [failed, setFailed] = useState(false)
   const signOut = async () => {
     setPending(true)
-    await onSignOut()
+    setFailed(false)
+    // On success the session listener swaps this screen out, so only failure needs handling.
+    const result = await onSignOut()
+    setPending(false)
+    setFailed(!result.ok)
   }
   return (
     <div className="flex flex-col gap-4">
@@ -23,6 +29,11 @@ const Settings = ({ email, onSignOut }: Props) => {
         <span className="text-muted">{strings.settings.signedInAs} </span>
         <span className="font-medium">{email}</span>
       </p>
+      {failed && (
+        <p role="alert" className="text-danger">
+          {strings.settings.signOutFailed}
+        </p>
+      )}
       <button
         type="button"
         onClick={signOut}

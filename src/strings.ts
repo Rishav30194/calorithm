@@ -15,6 +15,7 @@ export const strings = {
     submit: 'Sign in',
     submitting: 'Signing in…',
     failures: {
+      invalid_input: 'Enter a valid email address and your password.',
       invalid_credentials: 'That email and password don’t match. Check both and try again.',
       rate_limited: 'Too many attempts. Wait a minute, then try again.',
       network: 'Can’t reach the server. Check your connection and try again.',
@@ -40,5 +41,6 @@ export const strings = {
     signedInAs: 'Signed in as',
     signOut: 'Sign out',
     signingOut: 'Signing out…',
+    signOutFailed: 'Couldn’t sign out. Check your connection and try again.',
   },
 } as const

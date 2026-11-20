@@ -16,7 +16,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      // The app asks before it reloads into a new build, so an entry in progress is never lost.
+      // 'prompt' never reloads on its own, so an entry in progress is never lost. Until the
+      // Update available prompt arrives (phase 6), a new build waits until every app window
+      // closes.
       registerType: 'prompt',
       injectRegister: 'auto',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
