@@ -230,8 +230,45 @@ git -C "$SB" add package.json && git -C "$SB" commit -q -m scripts
 echo "notes" >"$SB/NOTES.md"
 s 0 "docs-only change" '{"stop_hook_active":false}'
 
+echo "== stop check: handover =="
+past="$(($(date +%s) - 7200))"
+old_commit() { GIT_AUTHOR_DATE="@$past" GIT_COMMITTER_DATE="@$past" git -C "$SB" commit -q -m "$1"; }
+s 0 "no handover file" '{"stop_hook_active":false}'
+echo "# Handover" >"$SB/HANDOVER.md"
+git -C "$SB" add HANDOVER.md && old_commit handover
+s 0 "handover is the latest commit" '{"stop_hook_active":false}'
+echo "work" >"$SB/work.txt"
+git -C "$SB" add work.txt && git -C "$SB" commit -q -m work
+s 2 "commit after the handover" '{"stop_hook_active":false}'
+s 0 "commit after the handover, already blocked once" '{"stop_hook_active":true}'
+echo "next step" >>"$SB/HANDOVER.md"
+s 0 "handover being edited this turn" '{"stop_hook_active":false}'
+git -C "$SB" add HANDOVER.md && old_commit "update handover"
+s 0 "handover updated after the commit" '{"stop_hook_active":false}'
+git init -q --bare "$WORK/remote.git"
+git -C "$SB" remote add origin "$WORK/remote.git"
+git -C "$SB" push -q -u origin feature/x 2>/dev/null
+s 0 "push that includes the handover" '{"stop_hook_active":false}'
+git -C "$SB" push -q origin main 2>/dev/null
+s 2 "push of commits the handover predates" '{"stop_hook_active":false}'
+
 echo "== session context =="
+expect_out() { # expect_out <label> <pattern>
+  if grep -Eq -- "$2" "$WORK/stdout.txt"; then
+    pass=$((pass + 1))
+  else
+    fail=$((fail + 1))
+    echo "FAIL [$1] output lacks /$2/ :: $(head -c 300 "$WORK/stdout.txt")"
+  fi
+}
+# Keep these cases off the network: no gh calls without a GitHub remote.
+git -C "$SB" remote remove origin
 expect 0 "session context runs" session-context.sh '{}'
+expect_out "shows the branch" 'branch feature/x'
+expect_out "shows commits ahead of main" '[0-9]+ commit\(s\) ahead of main'
+expect_out "shows a branch was never pushed" 'feature/x has never been pushed'
+expect_out "shows the handover age" 'HANDOVER.md last changed in [0-9a-f]+, 0 commit\(s\) ago'
+expect_out "shows the date" 'Today is'
 
 echo "passed=$pass failed=$fail"
 [[ "$fail" == 0 ]]

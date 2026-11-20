@@ -4,7 +4,7 @@ A calorie and protein tracker that installs on your phone and works offline. Eve
 estimates your maintenance calories from what you ate and how your weight trended, then sets
 your targets for the next week.
 
-**Status:** in development. Phase 1 (foundations) is built; see [the phase plan](docs/phases.md).
+**Status:** in development. Progress by phase is in [the phase plan](docs/phases.md).
 
 ## Features
 
@@ -70,7 +70,7 @@ must pass.
 | [docs/security.md](docs/security.md) | Threat model, privacy, and data handling |
 | [docs/ai-workflow.md](docs/ai-workflow.md) | How AI-assisted development is run and checked |
 | [CLAUDE.md](CLAUDE.md) | Rules for Claude Code in this repository |
-| [HANDOVER.md](HANDOVER.md) | Where the work stands and what comes next |
+| [HANDOVER.md](HANDOVER.md) | Next steps, open questions, and warnings for the next session |
 
 ## Health notice
 
