@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 
 import type { SignOutResult } from '@/data/auth'
 import { strings } from '@/strings'
@@ -8,11 +8,14 @@ import { hrefFor, type Tab, tabs, useTab } from './routes'
 type Props = {
   email: string
   onSignOut: () => Promise<SignOutResult>
+  // Filled by the signed-in app with live sync state; empty in tests of the shell alone.
+  badge?: ReactNode
+  settings?: ReactNode
 }
 
 const ComingSoon = ({ text }: { text: string }) => <p className="text-muted">{text}</p>
 
-const Settings = ({ email, onSignOut }: Props) => {
+const Settings = ({ email, onSignOut, settings }: Props) => {
   const [pending, setPending] = useState(false)
   const [failed, setFailed] = useState(false)
   const signOut = async () => {
@@ -24,7 +27,8 @@ const Settings = ({ email, onSignOut }: Props) => {
     setFailed(!result.ok)
   }
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
+      {settings}
       <p>
         <span className="text-muted">{strings.settings.signedInAs} </span>
         <span className="font-medium">{email}</span>
@@ -64,7 +68,10 @@ export const Shell = (props: Props) => {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="border-b border-border px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3">
-        <h1 className="text-xl font-semibold">{strings.tabs[tab]}</h1>
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-xl font-semibold">{strings.tabs[tab]}</h1>
+          {props.badge}
+        </div>
       </header>
       <main className="flex-1 px-4 py-4 pb-24">{screen(tab, props)}</main>
       <nav

@@ -18,6 +18,9 @@ export default defineConfig({
     {
       name: 'phone',
       use: { ...devices['Pixel 7'], viewport: { width: 360, height: 740 } },
+      // These tests change the seed user's profile; running them in both projects at once
+      // would race on the same row, so only the desktop project runs them.
+      testIgnore: /sync\.spec\.ts/,
     },
     {
       name: 'desktop',
