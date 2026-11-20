@@ -6,10 +6,10 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Confirm CI passes on the phase 1 PR. If it fails, fix it on `chore/scaffold`.
-2. Install the app from Chrome by hand once; with CI, that's the last phase 1 criterion.
-3. After the user squash-merges, mark phase 1 done in `docs/phases.md` and start phase 2
-   (local database and sync).
+1. The user installs the app from Chrome by hand once; that's the last phase 1 criterion.
+2. The user reviews and squash-merges the phase 1 PR.
+3. After the merge, mark phase 1 done in `docs/phases.md` and start phase 2 (local database
+   and sync).
 
 Pushes use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push`,
 because git has no stored GitHub credentials and the global git config stays untouched.

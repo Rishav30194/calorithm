@@ -35,7 +35,7 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
 - Decision record template in use.
 
 **Acceptance criteria:**
-- [ ] `npm run check:full` passes locally and in CI. (Local: passes. CI: not yet run.)
+- [x] `npm run check:full` passes locally and in CI.
 - [x] Signing in with the seeded synthetic user shows the empty shell; a wrong password shows
   an error.
 - [x] pgTAP proves one user can't read or write another's `profile` row.
