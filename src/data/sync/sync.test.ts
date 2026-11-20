@@ -137,4 +137,54 @@ describe('syncOnce', () => {
 
     expect(await syncOnce(phone)).toMatchObject({ status: 'done', resynced: false })
   })
+
+  it('corrects a local edit the server ignored as older, after the newer one was pulled', async () => {
+    const fast = device('fast-clock')
+    const slow = device('slow-clock')
+    const row = await writeRow(fast.db, parentSpec, { ...sync(), name: 'original' }, time.clock)
+    await syncOnce(fast)
+    await syncOnce(slow)
+
+    // The fast-clock device edits first; the slow one pulls that edit, then edits with a
+    // device time that reads earlier, so the server keeps the fast device's edit.
+    time.advance(5 * 60_000)
+    await writeRow(fast.db, parentSpec, { ...row, name: 'fast edit' }, time.clock)
+    await syncOnce(fast)
+    remote.advance(60_000)
+    await syncOnce(slow)
+    // Later activity moves the slow device's cursor well past the fast edit, beyond the
+    // pull overlap, so only the push can correct the slow device.
+    remote.advance(5 * 60_000)
+    await writeRow(fast.db, parentSpec, { ...sync(), name: 'later row' }, time.clock)
+    await syncOnce(fast)
+    await syncOnce(slow)
+    time.advance(-4 * 60_000)
+    await writeRow(slow.db, parentSpec, { ...row, name: 'slow edit' }, time.clock)
+    remote.advance(10 * 60_000)
+
+    await syncOnce(slow)
+
+    expect(remote.rows('parent')[0]).toMatchObject({ name: 'fast edit' })
+    expect(await nameOf(slow.db, row.id)).toBe('fast edit')
+  })
+
+  it('keeps pulling other devices’ changes while its own changes wait in backoff', async () => {
+    const phone = device('phone')
+    const laptop = device('laptop')
+    await writeRow(phone.db, parentSpec, { ...sync(), name: 'waiting' }, time.clock)
+    remote.failNextWith = { kind: 'network', code: 'network', message: 'Failed to fetch' }
+    expect((await syncOnce(phone)).status).toBe('retry_later')
+
+    const other = await writeRow(
+      laptop.db,
+      parentSpec,
+      { ...sync(), name: 'from laptop' },
+      time.clock,
+    )
+    await syncOnce(laptop)
+
+    // Still inside the phone's backoff window: nothing is pushed, but the pull still runs.
+    expect((await syncOnce(phone)).status).toBe('retry_later')
+    expect(await nameOf(phone.db, other.id)).toBe('from laptop')
+  })
 })

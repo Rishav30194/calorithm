@@ -130,7 +130,47 @@ describe('push', () => {
     remote.failNextWith = { kind: 'auth', code: 'PGRST301', message: 'JWT expired' }
 
     expect((await push(ctx)).status).toBe('needs_auth')
-    expect(await db.outbox.count()).toBe(1)
+    expect(await db.outbox.toArray()).toEqual([
+      expect.objectContaining({ attempts: 0, nextAttemptAt: 0 }),
+    ])
+
+    // After the app refreshes the session, the retry goes out at once, with no backoff.
+    expect((await push(ctx)).status).toBe('done')
+    expect(await db.outbox.count()).toBe(0)
+  })
+
+  it('ignores a backoff time left far ahead by a clock that jumped back', async () => {
+    await writeRow(db, parentSpec, { ...sync(), name: 'oats' }, time.clock)
+    const [entry] = await db.outbox.toArray()
+    await db.outbox.update(entry?.seq ?? 0, {
+      attempts: 4,
+      nextAttemptAt: time.clock().getTime() + 86_400_000,
+    })
+
+    expect((await push(ctx)).status).toBe('done')
+  })
+
+  it('stores the server’s copy when the server keeps a newer edit', async () => {
+    const id = crypto.randomUUID()
+    // Another device's edit, made later than this device's, is already on the server.
+    await remote.upsert('parent', [
+      { ...sync({ id, client_updated_at: '2026-11-20T12:00:00.000Z' }), name: 'newer elsewhere' },
+    ])
+    await writeRow(db, parentSpec, { ...sync({ id }), name: 'older here' }, time.clock)
+
+    expect(await push(ctx)).toMatchObject({ status: 'done' })
+
+    expect(await db.outbox.count()).toBe(0)
+    expect(parentSpec.parse(await db.rows('parent').get(id))?.name).toBe('newer elsewhere')
+  })
+
+  it('stores the server’s updated_at on rows it accepted', async () => {
+    const row = await writeRow(db, parentSpec, { ...sync(), name: 'oats' }, time.clock)
+
+    await push(ctx)
+
+    const local = await db.rows('parent').get(row.id)
+    expect(local?.updated_at).toBe(remote.rows('parent')[0]?.updated_at)
   })
 
   // Sync case 12.

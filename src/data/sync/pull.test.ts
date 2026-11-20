@@ -2,10 +2,20 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import type { LocalDb } from '../db'
 import { writeRow } from '../repository'
-import { pull } from './pull'
+import type { TableSpec } from '../tables'
+import { overlapStart, pull } from './pull'
 import type { SyncContext } from './push'
+import type { PullFrom } from './remote'
 import { FakeRemote } from './testing/fakeRemote'
-import { closeAll, manualClock, openDb, parentSpec, sync, userId } from './testing/fixtures'
+import {
+  childSpec,
+  closeAll,
+  manualClock,
+  openDb,
+  parentSpec,
+  sync,
+  userId,
+} from './testing/fixtures'
 
 let db: LocalDb
 let remote: FakeRemote
@@ -35,7 +45,13 @@ describe('pull', () => {
     remote.advance(1_000)
     const last = await serverWrite('b')
 
-    expect(await pull(ctx)).toEqual({ status: 'done', applied: 2, skipped: 0, invalid: 0 })
+    expect(await pull(ctx)).toEqual({
+      status: 'done',
+      applied: 2,
+      skipped: 0,
+      invalid: 0,
+      resynced: ['parent'],
+    })
 
     expect(await db.rows('parent').count()).toBe(2)
     const state = await db.sync_state.get('parent')
@@ -129,5 +145,92 @@ describe('pull', () => {
     expect(await db.rows('parent').get(id)).toMatchObject({
       deleted_at: '2026-11-20T10:05:00.000Z',
     })
+  })
+
+  it('remembers rows it can’t read and applies them once an upgraded app can', async () => {
+    await serverWrite('readable')
+    const unreadable = crypto.randomUUID()
+    // A newer app version's row: no `name` column in the shape this version expects.
+    await remote.upsert('parent', [
+      { ...sync({ id: unreadable, client_updated_at: time.clock().toISOString() }), title: 'v2' },
+    ])
+
+    expect(await pull(ctx)).toMatchObject({ applied: 1, invalid: 1 })
+    expect((await db.sync_state.get('parent'))?.unreadable).toEqual([unreadable])
+
+    // The upgraded app reads the new shape.
+    const upgraded: TableSpec = {
+      ...parentSpec,
+      parse: (raw) =>
+        parentSpec.parse(
+          typeof raw === 'object' && raw !== null ? { name: 'from v2', ...raw } : raw,
+        ),
+    }
+    await pull({ ...ctx, tables: [upgraded] })
+
+    expect(await db.rows('parent').get(unreadable)).toBeDefined()
+    expect((await db.sync_state.get('parent'))?.unreadable).toEqual([])
+  })
+
+  it('never deletes a local row in a full pull because its server copy can’t be read', async () => {
+    const id = crypto.randomUUID()
+    await db.table('parent').put({
+      ...sync({ id, client_updated_at: '2026-11-20T09:00:00.000Z' }),
+      updated_at: '2026-11-20T09:00:00.000Z',
+      name: 'local copy',
+    })
+    await remote.upsert('parent', [
+      { ...sync({ id, client_updated_at: time.clock().toISOString() }), title: 'v2' },
+    ])
+
+    await pull(ctx, { full: true })
+
+    expect(await db.rows('parent').get(id)).toBeDefined()
+  })
+
+  it('falls back to a full pull when the saved cursor can’t be read', async () => {
+    await serverWrite('a')
+    await db.sync_state.put({
+      table: 'parent',
+      cursor: { updatedAt: 'not a time', id: 'x' },
+      lastPullAt: time.clock().getTime(),
+      unreadable: [],
+    })
+
+    expect(await pull(ctx)).toMatchObject({ status: 'done', applied: 1 })
+  })
+
+  it('decides a full resync for each table on its own', async () => {
+    const both = { ...ctx, tables: [parentSpec, childSpec] }
+    await pull({ ...both, tables: [parentSpec] })
+    const requests: { table: string; from: PullFrom }[] = []
+    const pullPage = remote.pullPage.bind(remote)
+    remote.pullPage = (table, from, limit) => {
+      requests.push({ table, from })
+      return pullPage(table, from, limit)
+    }
+
+    expect(await pull(both)).toMatchObject({ status: 'done', resynced: ['child'] })
+    expect(requests.map((r) => [r.table, r.from.kind])).toEqual([
+      ['parent', 'all'],
+      ['child', 'all'],
+    ])
+  })
+})
+
+describe('overlapStart', () => {
+  it('starts a minute early from a Postgres timestamp with microseconds', () => {
+    expect(overlapStart('2026-11-20T10:00:00.123456+00:00')).toBe('2026-11-20T09:59:00.123Z')
+  })
+
+  it('reads the format variants Postgres can return', () => {
+    expect(overlapStart('2026-11-20 10:00:00.5+00')).toBe('2026-11-20T09:59:00.500Z')
+    expect(overlapStart('2026-11-20T10:00:00+0530')).toBe('2026-11-20T04:29:00.000Z')
+    expect(overlapStart('2026-11-20T10:00:00Z')).toBe('2026-11-20T09:59:00.000Z')
+  })
+
+  it('returns null for text that isn’t a timestamp', () => {
+    expect(overlapStart('not a time')).toBeNull()
+    expect(overlapStart('2026-13-40T99:00:00Z')).toBeNull()
   })
 })

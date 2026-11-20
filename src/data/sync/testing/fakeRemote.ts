@@ -86,7 +86,7 @@ export class FakeRemote implements Remote {
   async upsert(
     table: string,
     incoming: readonly Record<string, unknown>[],
-  ): Promise<RemoteResult<null>> {
+  ): Promise<RemoteResult<Record<string, unknown>[]>> {
     if (this.offline) return { ok: false, error: networkError }
     if (this.failNextWith) {
       const error = this.failNextWith
@@ -134,7 +134,17 @@ export class FakeRemote implements Remote {
       this.loseNextResponse = false
       return { ok: false, error: networkError }
     }
-    return { ok: true, value: null }
+    return { ok: true, value: written.map((row) => ({ ...row })) }
+  }
+
+  async getRows(
+    table: string,
+    ids: readonly string[],
+  ): Promise<RemoteResult<Record<string, unknown>[]>> {
+    if (this.offline) return { ok: false, error: networkError }
+    const wanted = new Set(ids)
+    const rows = this.rows(table).filter((row) => row.user_id === this.userId && wanted.has(row.id))
+    return { ok: true, value: rows.map((row) => ({ ...row })) }
   }
 
   async pullPage(

@@ -109,6 +109,11 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
   0015).
 - The outbox holds one entry per row, with a `rev` counter so a push never clears an edit made
   while it was in flight.
+- Code review before the PR found 7 real sync gaps, all fixed with tests: rows the server
+  skipped as older are fetched back, unreadable rows are retried by id, full pulls never
+  delete rows they couldn't read, auth errors don't back off, pulls run during backoff, a
+  clock jumping back can't stall sync, and failed changes can be discarded
+  (`src/data/sync/discard.ts`).
 
 ## Phase 3 — Foods, recipes, and the daily log
 

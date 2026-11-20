@@ -101,7 +101,9 @@ sequenceDiagram
   - A network error, a 5xx, or a 429 leaves the entries for later. Backoff is shared by the
     whole outbox, doubling up to 5 minutes with jitter, so a child row never goes ahead of a
     parent that's waiting.
-  - An auth error asks the app to refresh the session, then retry.
+  - An auth error asks the app to refresh the session, then retry at once, with no backoff.
+  - A backoff time more than 5 minutes ahead comes from a clock that moved back, and counts
+    as due.
   - A rejection by a constraint, policy, or foreign key is permanent. Postgres rejects a
     statement as a whole, so a rejected batch is resent one row at a time to find the bad
     rows. Those entries move to a failed state, and the app shows them to the user instead
@@ -112,7 +114,13 @@ sequenceDiagram
 For each table, the sync requests rows with `updated_at` later than the saved pull position
 minus one minute, in pages ordered by `(updated_at, id)`. The saved position is the exact
 `updated_at` string Postgres returned: JavaScript dates keep only milliseconds, and rounding
-away the microseconds would skip rows (decision 0013). Each page continues after the last
+away the microseconds would skip rows (decision 0013).
+
+- **Unreadable rows:** a row this app version can't parse, such as one written by a newer
+  version, is recorded in `sync_state.unreadable`. The cursor moves past it, so each later
+  pull fetches it again by id, and an upgraded app applies it.
+- **Pull while waiting:** a pull runs even when the push is in backoff. It never replaces a
+  row with a queued change, so other devices' changes keep arriving. Each page continues after the last
 `(updated_at, id)` pair it received, so rows sharing a timestamp across a page boundary aren't
 skipped.
 
@@ -128,8 +136,11 @@ The most recent edit wins, compared as whole rows by `client_updated_at`.
 - **On the server:** a `BEFORE UPDATE` trigger returns `NULL`, skipping the update, when the
   incoming `client_updated_at` is older than the stored one. Without it, an upsert overwrites
   unconditionally, and an old edit from a device that was offline beats a newer one.
-- **On the device:** a pulled row doesn't overwrite a local row that still has an unsent
-  outbox entry; the push settles it, and the next pull brings back the winner.
+- **On the device:** a pulled row doesn't overwrite a local row that still has a queued or
+  failed outbox entry. The upsert returns the rows the server stored, and push writes those
+  copies locally. A row missing from that result was skipped as older; its `updated_at`
+  didn't change, so no pull would ever fetch it again, and push fetches the server's copy
+  by id instead.
 - `updated_at` isn't used for conflicts: it's server time, so it records when an edit
   synced, not when it was made.
 
@@ -146,7 +157,12 @@ filter deleted rows out. A scheduled cleanup removes rows deleted more than 90 d
 A device whose last pull is older than 90 days may have missed a delete that the cleanup has
 since erased. It pushes its outbox, pulls every row, and then removes local rows the server no
 longer has, except rows with an unsent change. Nothing is removed before the pull succeeds, so
-an offline device never shows an empty app (decision 0015).
+an offline device never shows an empty app (decision 0015). The decision is made per table,
+so a table added in a later version gets a full pull without re-reading the others.
+
+Discarding a failed change fetches the server's copy of the row, or removes the row if it
+never reached the server. It needs the network, because pulls skipped the row while its
+change had failed.
 
 ### Signing out
 

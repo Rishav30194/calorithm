@@ -15,7 +15,10 @@ with the same `updated_at`, so ties are common.
 
 Store the cursor as the exact `updated_at` string Postgres returned, plus the row's `id`, and
 send it back unchanged. Use `Date` only to compute the one-minute overlap, where moving the
-start slightly earlier is harmless.
+start slightly earlier is harmless. Before parsing, rewrite the timestamp into the format the
+ECMAScript specification requires every engine to parse (`YYYY-MM-DDTHH:mm:ss.sss±HH:mm`):
+microseconds and short offsets such as `+00` are left to each engine, and Safari's handling
+of them is unverified. A cursor that still can't be read triggers a full pull.
 
 ## Alternatives
 

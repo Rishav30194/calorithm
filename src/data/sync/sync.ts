@@ -1,5 +1,3 @@
-import { needsFullResync } from '@/domain/retention'
-
 import { pull } from './pull'
 import { push, type SyncContext } from './push'
 
@@ -8,31 +6,22 @@ export type SyncOutcome =
   | { status: 'retry_later' }
   | { status: 'needs_auth' }
 
-// The oldest table's last pull; null if any table has never been pulled.
-const lastPullOf = async (ctx: SyncContext): Promise<number | null> => {
-  let oldest: number | null = Number.POSITIVE_INFINITY
-  for (const spec of ctx.tables) {
-    const at = (await ctx.db.sync_state.get(spec.name))?.lastPullAt ?? null
-    if (at === null) return null
-    oldest = Math.min(oldest, at)
-  }
-  return oldest
-}
-
-// One sync: push local changes first, then pull. Pushing first means a pull never brings back
-// an older server copy over an edit that only exists here. A device that hasn't pulled within
-// the retention window pulls everything and drops rows the server no longer has.
+// One sync: push local changes, then pull. A pull never replaces a row with a queued change,
+// so it's safe even when the push couldn't finish, and it still brings in other devices'
+// changes while this device's changes wait in backoff. A table not pulled within the
+// retention window gets a full pull that also drops rows the server no longer has.
 export const syncOnce = async (ctx: SyncContext): Promise<SyncOutcome> => {
   const pushed = await push(ctx)
-  if (pushed.status !== 'done') return { status: pushed.status }
+  // An expired session fails the pull too; the app refreshes it first.
+  if (pushed.status === 'needs_auth') return { status: 'needs_auth' }
 
-  const resync = needsFullResync(await lastPullOf(ctx), ctx.clock().getTime())
-  const pulled = await pull(ctx, { full: resync })
+  const pulled = await pull(ctx)
   if (pulled.status !== 'done') return { status: pulled.status }
+  if (pushed.status === 'retry_later') return { status: 'retry_later' }
 
   return {
     status: 'done',
-    resynced: resync,
+    resynced: pulled.resynced.length > 0,
     sent: pushed.sent,
     failed: pushed.failed,
     applied: pulled.applied,

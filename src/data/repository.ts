@@ -5,6 +5,8 @@ export type Clock = () => Date
 
 // The only way rows change locally: the row and its outbox entry are written in one
 // transaction, so a crash never leaves a change that won't sync, or an entry with no row.
+// Callers parse user input before building the draft, so a draft that doesn't fit the table
+// is a bug and throws, rather than an expected failure with a typed result.
 export const writeRow = async <Row extends SyncRow>(
   db: LocalDb,
   spec: TableSpec<Row>,

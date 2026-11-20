@@ -23,6 +23,9 @@ export type SyncState = {
   // Kept exactly as Postgres returned it: Date would drop the microseconds and skip rows.
   cursor: Cursor | null
   lastPullAt: number | null
+  // Rows the server sent in a shape this app version can't read, such as a newer version's.
+  // The cursor moves past them, so each pull fetches them again by id.
+  unreadable: string[]
 }
 
 export type SchemaVersion = { version: number; stores: Record<string, string | null> }
