@@ -6,9 +6,16 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Build phase 2 PR 1 (engine) on `feature/local-sync`, test first; the approved plan is in
-   `docs/phases.md`. Then PRs 2 and 3.
-2. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+1. Phase 2 PR 1 (engine) is built on `feature/local-sync` and passed both reviews. Ask the
+   user before pushing and opening its PR.
+2. Then PR 2 (live wiring). The Supabase adapter must:
+   - make `upsert` return the stored rows (`.select()`); rows skipped as older are missing
+     from the result, and push depends on that
+   - implement `getRows` by id
+   - map errors to `network`, `auth`, and `rejected` per decision 0014
+   - validate the cursor before building PostgREST `or()` filters: a UUID pattern for `id`,
+     and the `normalize()` timestamp check for `updated_at` (from the PR 1 security review)
+3. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
 
 Pushes use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push`,
 because git has no stored GitHub credentials and the global git config stays untouched.
