@@ -270,5 +270,43 @@ expect_out "shows a branch was never pushed" 'feature/x has never been pushed'
 expect_out "shows the handover age" 'HANDOVER.md last changed in [0-9a-f]+, 0 commit\(s\) ago'
 expect_out "shows the date" 'Today is'
 
+echo "== session context: PR and CI lines =="
+# A stand-in gh that applies the hook's own --jq filter to fixture JSON, so the filters are
+# tested without the network. The remote URL is never contacted.
+mkdir -p "$WORK/bin"
+cat >"$WORK/bin/gh" <<'STUB'
+#!/usr/bin/env bash
+sub="$1 $2"; filter="."
+while (($#)); do [[ "$1" == "--jq" ]] && { filter="$2"; shift; }; shift; done
+case "$sub" in
+  "pr view") fixture="$GH_PR_FIXTURE" ;;
+  "run list") fixture="$GH_RUN_FIXTURE" ;;
+  *) exit 1 ;;
+esac
+jq -r "$filter" <<<"$fixture"
+STUB
+chmod +x "$WORK/bin/gh"
+git -C "$SB" remote add origin https://example.invalid/calorithm.git
+ctx() { PATH="$WORK/bin:$PATH" expect 0 "$1" session-context.sh '{}'; }
+
+export GH_PR_FIXTURE='{"number":7,"state":"OPEN","url":"u","statusCheckRollup":[{"status":"IN_PROGRESS","conclusion":""}]}'
+export GH_RUN_FIXTURE='[{"workflowName":"CI","status":"in_progress","conclusion":"","headSha":"abcdef123"}]'
+ctx "session context with CI running"
+expect_out "a running check shows its status" 'checks: 1 in_progress'
+expect_out "a running CI run shows its status" 'CI on abcdef1: in_progress'
+
+export GH_PR_FIXTURE='{"number":7,"state":"OPEN","url":"u","statusCheckRollup":[{"status":"COMPLETED","conclusion":"SUCCESS"},{"state":"PENDING"}]}'
+export GH_RUN_FIXTURE='[{"workflowName":"CI","status":"completed","conclusion":"success","headSha":"abcdef123"}]'
+ctx "session context with CI finished"
+expect_out "finished and pending checks are counted" 'checks: 1 pending, 1 success'
+expect_out "a finished CI run shows its result" 'CI on abcdef1: success'
+
+export GH_PR_FIXTURE='{"number":7,"state":"OPEN","url":"u","statusCheckRollup":[]}'
+export GH_RUN_FIXTURE='[]'
+ctx "session context with no checks or runs"
+expect_out "no checks says none" 'checks: none'
+expect_out "no runs says none" 'Latest CI run on feature/x: none\.'
+unset GH_PR_FIXTURE GH_RUN_FIXTURE
+
 echo "passed=$pass failed=$fail"
 [[ "$fail" == 0 ]]

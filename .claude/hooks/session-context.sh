@@ -36,9 +36,13 @@ if g rev-parse --git-dir >/dev/null; then
   fi
 
   if g remote get-url origin >/dev/null && command -v gh >/dev/null; then
+    # GitHub reports an unfinished check's conclusion as "", which jq's // doesn't skip, so
+    # an empty conclusion falls back to the status (in_progress, queued) explicitly.
     if pr="$(cd "$root" && limited 8 gh pr view --json number,state,url,statusCheckRollup --jq '
       "#\(.number) \(.state | ascii_downcase) \(.url); checks: " +
-      ([.statusCheckRollup[]? | (.conclusion // .state // "pending") | ascii_downcase]
+      ([.statusCheckRollup[]?
+        | (if (.conclusion // "") != "" then .conclusion else (.status // .state // "pending") end)
+        | ascii_downcase]
        | if length == 0 then "none" else (group_by(.) | map("\(length) \(.[0])") | join(", ")) end)
     ' 2>&1)"; then
       echo "- PR for $branch: $pr."
@@ -49,7 +53,7 @@ if g rev-parse --git-dir >/dev/null; then
     fi
     if run="$(cd "$root" && limited 8 gh run list --branch "$branch" --limit 1 \
       --json workflowName,status,conclusion,headSha \
-      --jq '.[0] | select(.) | "\(.workflowName) on \(.headSha[0:7]): \(.conclusion // .status)"' 2>/dev/null)"; then
+      --jq '.[0] | select(.) | "\(.workflowName) on \(.headSha[0:7]): \(if (.conclusion // "") != "" then .conclusion else .status end)"' 2>/dev/null)"; then
       echo "- Latest CI run on $branch: ${run:-none}."
     else
       echo "- Latest CI run on $branch: unknown; GitHub didn't answer. Check with gh run list."
