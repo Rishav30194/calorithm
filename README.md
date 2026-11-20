@@ -4,7 +4,7 @@ A calorie and protein tracker that installs on your phone and works offline. Eve
 estimates your maintenance calories from what you ate and how your weight trended, then sets
 your targets for the next week.
 
-**Status:** planned. Development starts with phase 1; see [the phase plan](docs/phases.md).
+**Status:** in development. Phase 1 (foundations) is built; see [the phase plan](docs/phases.md).
 
 ## Features
 
@@ -30,7 +30,8 @@ your targets for the next week.
 
 ## Getting started
 
-Phase 1 creates the project. After that, you need Node.js, Docker, and Git.
+You need Node.js 26 (see `.nvmrc`), Docker, and Git. Local work needs no `.env` file: the
+scripts read the local Supabase URL and key from `supabase status`.
 
 1. Install dependencies:
 
@@ -38,23 +39,20 @@ Phase 1 creates the project. After that, you need Node.js, Docker, and Git.
    npm ci
    ```
 
-2. Start local Supabase:
+2. Start local Supabase. The first start downloads its Docker images:
 
    ```sh
    npm run db:start
    ```
 
-3. Copy the environment template and fill in the local values that `npm run db:start` prints:
-
-   ```sh
-   cp .env.example .env.local
-   ```
-
-4. Start the app:
+3. Start the app:
 
    ```sh
    npm run dev
    ```
+
+4. Open `http://localhost:5173/calorithm/` and sign in as the synthetic seed user:
+   `seed.user@calorithm.test` with password `Local-Seed-Pass-2026`.
 
 See [the development guide](docs/development.md) for every command, and the checks a change
 must pass.

@@ -15,7 +15,7 @@ sensitive.
 |---|---|
 | One user reads or changes another's data | Row-level security on every table, `user_id = (select auth.uid())`; pgTAP tests per table |
 | A modified client writes bad or oversized values | `CHECK` constraints, `NOT NULL`, foreign keys, and unique indexes in Postgres |
-| A leaked anon key | The anon key is public by design; without a user's token, row-level security returns nothing |
+| A leaked publishable key | The publishable key is public by design; without a user's token, row-level security returns nothing |
 | A leaked service-role key | Never used by the app, never committed, never in a prompt |
 | A second person on a shared device | Local database per user, deleted on sign-out |
 | Malicious import file | Zod validates the whole file before any write; unknown versions are rejected |

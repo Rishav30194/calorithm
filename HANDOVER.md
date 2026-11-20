@@ -5,17 +5,22 @@ Updated at the end of every session. Read this first.
 ## Where things stand
 
 - **Date:** 2026-11-19.
-- **Phase:** planning done. Phase 1 hasn't started.
-- **Repository:** the folder isn't a git repository yet, and no GitHub repository exists.
-- **Written so far:** `PLAN.md`, `CLAUDE.md`, `README.md`, the `docs/` folder, the Claude Code
-  hooks in `.claude/` (92 hook tests passing), `.gitignore`, and the PR template.
-- **Hooks confirmed live:** a test command that read a `.env` file was blocked in this session.
+- **Phase:** phase 1 (foundations) is built on `chore/scaffold` and passes `npm run check:full`
+  locally. It isn't pushed: no GitHub repository exists yet.
+- **`main`:** one commit with the plan, docs, and hooks.
+- **Verified locally:** 20 unit tests, 24 pgTAP tests, the generated-types check, a 129.8 kB
+  first load against the 200 kB budget, and 18 Playwright tests (sign-in, wrong password, tabs,
+  refresh, sign-out, axe in light and dark, PWA install criteria) on phone and desktop sizes.
+  The CI service set was also run locally and passes.
 
 ## Next
 
-1. Get the user's approval of `PLAN.md` and `docs/phases.md`.
-2. Start phase 1 on `chore/scaffold`. Its first commit, on `main`, is these planning files.
-3. Ask the user before installing dependencies; phase 1 lists them.
+1. Create the GitHub repository, push `main` and `chore/scaffold`, and open the phase 1 PR.
+   All three need the user's approval.
+2. Confirm CI passes on the PR; that closes the last open phase 1 criterion besides the manual
+   PWA install.
+3. Install the app from Chrome by hand once, then mark phase 1 done after the merge.
+4. Start phase 2 (local database and sync) from `docs/phases.md`.
 
 ## Open questions
 
@@ -24,6 +29,11 @@ Updated at the end of every session. Read this first.
 
 ## Watch out for
 
-- Hooks skip `npm run` checks until `package.json` exists, then require the `check:fast` and
-  `check:full` scripts. Create both early in phase 1.
-- The first commit on `main` is the only one the commit hook allows there.
+- Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
+  `npm run dev`, `check:full`, or the e2e tests.
+- The app and preview live under `/calorithm/`, also locally.
+- npm 11 holds back `fsevents`'s install script; it's optional and not needed.
+- 4 moderate `npm audit` findings sit in `vite-plugin-pwa`'s build-time dependencies (`glob`
+  and `minimatch` through `workbox-build`). npm's only fix is a breaking downgrade. Shipped
+  packages audit clean, and CI audits only those.
+- Supabase CLI 3.2.0 is out; the project stays on 3.1.0 until 3.2.0 is at least 7 days old.

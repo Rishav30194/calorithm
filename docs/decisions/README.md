@@ -30,3 +30,5 @@ change a decision, write a new record that supersedes the old one.
 | [0008](0008-biome-for-lint-and-format.md) | Biome for lint and format | Accepted |
 | [0009](0009-safety-limits-on-targets.md) | Safety limits on targets | Accepted |
 | [0010](0010-ai-development-guardrails.md) | Guardrails for AI-assisted development | Accepted |
+| [0011](0011-typescript-7.md) | TypeScript 7 | Accepted |
+| [0012](0012-publishable-api-key.md) | Publishable API key | Accepted |

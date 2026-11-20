@@ -71,12 +71,12 @@ Changes to `.claude/` and `.github/workflows/` need the user's approval.
 
 ## Commands
 
-Phase 1 creates these `package.json` scripts. Their names are a contract: the hooks and CI call
-them.
+These `package.json` scripts are a contract: the hooks and CI call them by name.
 
 | Script | Runs |
 |---|---|
-| `npm run dev` | The app against local Supabase |
+| `npm run dev` | The app at `http://localhost:5173/calorithm/` against local Supabase; no `.env` file needed |
+| `npm run build:local` | Production build with the local Supabase keys |
 | `npm run check:fast` | Type check, `biome ci`, unit tests |
 | `npm run check:full` | `check:fast`, database tests, generated-types check, end-to-end tests with axe, production build, bundle size check |
 | `npm run test` | Vitest |
@@ -100,6 +100,8 @@ supabase/
   tests/        pgTAP tests
   seed.sql      synthetic local data
 e2e/            Playwright tests
+public/         icons and static files
+scripts/        local-env wrapper, type and bundle checks, icon rendering
 docs/           architecture, phases, decisions, workflow
 ```
 
@@ -175,5 +177,5 @@ docs/           architecture, phases, decisions, workflow
 
 - Never read, print, or write `.env` files. The only committed one is `.env.example`.
 - The Supabase service-role key never appears in the app, the repository, or a prompt. The app
-  uses only the anon key, and row-level security protects the data.
+  uses only the publishable key, and row-level security protects the data.
 - If a task needs a key, tell the user which one to set and where.

@@ -164,7 +164,7 @@ A phone can stay offline for weeks with outbox entries in an old shape. To stay 
 
 - Email and password through Supabase Auth. The session lives in the app's storage, which an
   installed iOS app doesn't share with Safari, so magic links aren't used.
-- The app uses only the anon key. Every request carries the user's token, and row-level
+- The app uses only the publishable key (`sb_publishable_…`), which replaces the legacy anon key. Every request carries the user's token, and row-level
   security does the rest.
 - Sign-ups are off in the dashboard while there's one user. `PLAN.md`, "Before friends join",
   replaces this with invite codes.

@@ -13,7 +13,7 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
 
 ## Phase 1 — Foundations
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** an empty app that signs in, with every check and gate working.
 
@@ -35,14 +35,24 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
 - Decision record template in use.
 
 **Acceptance criteria:**
-- [ ] `npm run check:full` passes locally and in CI.
-- [ ] Signing in with the seeded synthetic user shows the empty shell; a wrong password shows
+- [ ] `npm run check:full` passes locally and in CI. (Local: passes. CI: waits for the GitHub repository.)
+- [x] Signing in with the seeded synthetic user shows the empty shell; a wrong password shows
   an error.
-- [ ] pgTAP proves one user can't read or write another's `profile` row.
-- [ ] axe reports no violations on the sign-in screen and the shell.
-- [ ] The production build installs as a PWA in Chrome.
+- [x] pgTAP proves one user can't read or write another's `profile` row.
+- [x] axe reports no violations on the sign-in screen and the shell.
+- [ ] The production build installs as a PWA in Chrome. (Install criteria checked by `e2e/pwa.spec.ts`; a manual install is still to do.)
 
-**Implementation notes:** none yet.
+**Implementation notes:**
+- Dependencies pinned to exact versions at least 7 days old; `overrides` pins `playwright-core`
+  to match `@playwright/test`, because `@axe-core/playwright` takes it as a peer.
+- TypeScript 7.0.2 (decision 0011) and the publishable key (decision 0012).
+- Local work needs no `.env` file: `scripts/with-local-env.mjs` reads `supabase status`.
+- Local Supabase uses ports 55320 to 55329, so it runs beside other local Supabase projects.
+- The `/calorithm/` base path applies in dev and preview too, after the preview server served
+  `index.html` for every asset under a build-only base path.
+- `profile.id` equals `user_id`, so two devices creating a profile offline write one row.
+- Biome's Markdown formatter is off, so the docs keep their hand-written tables.
+- First-load JavaScript: 129.8 kB gzipped of the 200 kB budget.
 
 ## Phase 2 — Local database and sync
 
