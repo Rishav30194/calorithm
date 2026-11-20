@@ -25,5 +25,7 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  // Integration tests run in Node; tsconfig.integration.json checks them.
+  "exclude": ["src/**/*.integration.test.ts"]
 }
