@@ -102,7 +102,7 @@ Cases 4 and 12 use a made-up table until phase 3 adds parent and child tables an
 schema version. The server job that removes rows deleted over 90 days ago moves to phase 7.
 
 **Implementation notes:**
-- PR 1 (engine): `src/data/db.ts`, `tables.ts`, `repository.ts`, and `src/data/sync/` (push,
+- PR 1 (engine), merged in PR #2 on 2026-11-20: `src/data/db.ts`, `tables.ts`, `repository.ts`, and `src/data/sync/` (push,
   pull, `syncOnce`, and the in-memory `FakeRemote`). Sync cases 2 to 12, 16, and 18 have unit
   tests; each guard was checked by breaking it on purpose and watching its test fail.
 - A full resync pulls before removing anything, instead of clearing tables first (decision
