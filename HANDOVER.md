@@ -6,9 +6,8 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Plan phase 2 (local database and sync) on `feature/local-sync` and get the user's approval
-   before writing code. Read `docs/architecture.md`, "Sync", and `docs/testing.md`, "Sync",
-   first: phase 2 is test first, and every one of the 18 sync cases needs a test.
+1. Build phase 2 PR 1 (engine) on `feature/local-sync`, test first; the approved plan is in
+   `docs/phases.md`. Then PRs 2 and 3.
 2. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
 
 Pushes use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push`,

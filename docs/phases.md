@@ -63,7 +63,7 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
 
 ## Phase 2 — Local database and sync
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** any table can be written offline and reaches Supabase reliably.
 
@@ -82,6 +82,24 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
 - [ ] A Playwright test writes offline, goes online, and finds the row in Supabase.
 - [ ] Two browser contexts as the same user see each other's changes.
 - [ ] After sign-out, IndexedDB holds no database for that user.
+
+**Plan** (approved 2026-11-20): three PRs.
+
+1. **Engine:** Dexie database, synced-table registry, repository and outbox (one row per
+   pending change, collapsed on repeat edits), push with error classes and backoff, pull with
+   keyset paging and the one-minute overlap, the full resync rule, an in-memory fake server,
+   and unit tests for sync cases 2 to 12, 16, and 18.
+2. **Live wiring:** the Supabase adapter with integration tests against local Supabase (new
+   `test:integration` script in `check:full`), the sync schedule, the `min_app_version` check
+   and **Update** screen (`workbox-window` 7.4.1 becomes a direct dependency), the sync status
+   badge and Settings panel with **Discard** for failed changes, and a **Units** setting as the
+   first real synced write. Case 13.
+3. **Session:** sign-out that syncs, warns, and offers a JSON export of unsent changes;
+   separate databases per user; `storage.persist()`; Playwright tests for offline writes, two
+   windows, and sign-out. Cases 1, 14, 15, and 17.
+
+Cases 4 and 12 use a made-up table until phase 3 adds parent and child tables and a second
+schema version. The server job that removes rows deleted over 90 days ago moves to phase 7.
 
 **Implementation notes:** none yet.
 
