@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { LocalDb } from '../db'
 import { writeRow } from '../repository'
 import type { TableSpec } from '../tables'
-import { overlapStart, pull } from './pull'
+import { pull } from './pull'
 import type { SyncContext } from './push'
 import type { PullFrom } from './remote'
 import { FakeRemote } from './testing/fakeRemote'
@@ -200,6 +200,20 @@ describe('pull', () => {
     expect(await pull(ctx)).toMatchObject({ status: 'done', applied: 1 })
   })
 
+  it('falls back to a full pull when the saved cursor’s id isn’t a UUID', async () => {
+    await serverWrite('a')
+    await pull(ctx)
+    const state = await db.sync_state.get('parent')
+    await db.sync_state.put({
+      table: 'parent',
+      cursor: { updatedAt: state?.cursor?.updatedAt ?? '', id: 'x,user_id.neq.y' },
+      lastPullAt: time.clock().getTime(),
+      unreadable: [],
+    })
+
+    expect(await pull(ctx)).toMatchObject({ status: 'done', resynced: ['parent'] })
+  })
+
   it('decides a full resync for each table on its own', async () => {
     const both = { ...ctx, tables: [parentSpec, childSpec] }
     await pull({ ...both, tables: [parentSpec] })
@@ -215,22 +229,5 @@ describe('pull', () => {
       ['parent', 'all'],
       ['child', 'all'],
     ])
-  })
-})
-
-describe('overlapStart', () => {
-  it('starts a minute early from a Postgres timestamp with microseconds', () => {
-    expect(overlapStart('2026-11-20T10:00:00.123456+00:00')).toBe('2026-11-20T09:59:00.123Z')
-  })
-
-  it('reads the format variants Postgres can return', () => {
-    expect(overlapStart('2026-11-20 10:00:00.5+00')).toBe('2026-11-20T09:59:00.500Z')
-    expect(overlapStart('2026-11-20T10:00:00+0530')).toBe('2026-11-20T04:29:00.000Z')
-    expect(overlapStart('2026-11-20T10:00:00Z')).toBe('2026-11-20T09:59:00.000Z')
-  })
-
-  it('returns null for text that isn’t a timestamp', () => {
-    expect(overlapStart('not a time')).toBeNull()
-    expect(overlapStart('2026-13-40T99:00:00Z')).toBeNull()
   })
 })

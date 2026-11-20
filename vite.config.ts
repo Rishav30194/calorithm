@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { configDefaults } from 'vitest/config'
 
 const themeColor = '#0f766e'
 
@@ -56,6 +57,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
+    // Integration tests need local Supabase; they run through vitest.integration.config.ts.
+    exclude: [...configDefaults.exclude, 'src/**/*.integration.test.ts'],
     restoreMocks: true,
     unstubGlobals: true,
     unstubEnvs: true,

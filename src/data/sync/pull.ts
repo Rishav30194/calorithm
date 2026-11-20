@@ -4,6 +4,7 @@ import type { Cursor, LocalDb, SyncState } from '../db'
 import type { TableSpec } from '../tables'
 import type { SyncContext } from './push'
 import type { PullFrom } from './remote'
+import { isCursor, overlapStart } from './timestamps'
 
 export type PullOutcome =
   | { status: 'done'; applied: number; skipped: number; invalid: number; resynced: string[] }
@@ -11,41 +12,11 @@ export type PullOutcome =
   | { status: 'needs_auth' }
 
 const DEFAULT_PAGE_SIZE = 500
-// updated_at is the transaction's start time, so a slow transaction can commit after a pull
-// has passed it. Starting each pull a minute early catches it; rows read twice are harmless.
-const OVERLAP_MS = 60_000
-
-const timestampPattern =
-  /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}(?::?\d{2})?)$/
-
-// Rewrites a Postgres timestamp into the one format every JavaScript engine must parse
-// (YYYY-MM-DDTHH:mm:ss.sss±HH:mm), since engines may reject microseconds or a short offset.
-const normalize = (timestamp: string): string | null => {
-  const match = timestampPattern.exec(timestamp)
-  if (!match) return null
-  const [, date, time, fraction = '', offset = 'Z'] = match
-  const millis = fraction.padEnd(3, '0').slice(0, 3)
-  const zone =
-    offset === 'Z'
-      ? 'Z'
-      : `${offset.slice(0, 3)}:${offset.slice(3).replace(':', '').padEnd(2, '0')}`
-  return `${date}T${time}.${millis}${zone}`
+const cursorOf = (row: Record<string, unknown>): Cursor | null => {
+  if (typeof row.updated_at !== 'string' || typeof row.id !== 'string') return null
+  const cursor = { updatedAt: row.updated_at, id: row.id }
+  return isCursor(cursor) ? cursor : null
 }
-
-// The start of an incremental pull, one minute before the cursor. Dropping microseconds only
-// moves it slightly earlier, which is safe; the cursor itself stays the exact Postgres text.
-// Null when the cursor can't be read, which makes the pull start from the beginning.
-export const overlapStart = (updatedAt: string): string | null => {
-  const iso = normalize(updatedAt)
-  const millis = iso === null ? Number.NaN : Date.parse(iso)
-  if (Number.isNaN(millis)) return null
-  return new Date(millis - OVERLAP_MS).toISOString()
-}
-
-const cursorOf = (row: Record<string, unknown>): Cursor | null =>
-  typeof row.updated_at === 'string' && typeof row.id === 'string' && normalize(row.updated_at)
-    ? { updatedAt: row.updated_at, id: row.id }
-    : null
 
 type Counts = {
   applied: number
@@ -113,8 +84,9 @@ const stopOf = (kind: string): Stop => ({ status: kind === 'auth' ? 'needs_auth'
 // than the retention window, or a saved cursor that can't be read. A table whose last pull
 // found no rows has no cursor and reads from the start without counting as a resync.
 const plan = (state: SyncState | undefined, forceFull: boolean, now: number) => {
-  const start = state?.cursor ? overlapStart(state.cursor.updatedAt) : null
-  const unreadableCursor = Boolean(state?.cursor) && start === null
+  const readable = state?.cursor ? isCursor(state.cursor) : false
+  const start = readable && state?.cursor ? overlapStart(state.cursor.updatedAt) : null
+  const unreadableCursor = Boolean(state?.cursor) && !readable
   const full = forceFull || unreadableCursor || needsFullResync(state?.lastPullAt ?? null, now)
   const from: PullFrom =
     full || start === null ? { kind: 'all' } : { kind: 'since', updatedAt: start }

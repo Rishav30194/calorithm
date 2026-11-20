@@ -17,11 +17,12 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "test:db": "supabase test db",
+    "test:integration": "node scripts/with-local-env.mjs vitest run --config vitest.integration.config.ts",
     "test:e2e": "playwright test",
     "bundle:check": "node scripts/check-bundle.mjs",
     "types:check": "node scripts/check-types.mjs",
     "check:fast": "npm run typecheck && npm run lint && npm run test",
-    "check:full": "npm run check:fast && npm run test:db && npm run types:check && npm run build:local && npm run bundle:check && npm run test:e2e",
+    "check:full": "npm run check:fast && npm run test:db && npm run test:integration && npm run types:check && npm run build:local && npm run bundle:check && npm run test:e2e",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
@@ -37,6 +38,7 @@
     "dexie-react-hooks": "4.4.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "workbox-window": "7.4.1",
     "zod": "4.6.7"
   },
   "devDependencies": {
