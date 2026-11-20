@@ -94,14 +94,25 @@ sequenceDiagram
   `schema_version` to the app's current shape. The server's trigger sets `updated_at`.
 - **Order:** the outbox is sent in insertion order, parents before children (a recipe before
   its items).
-- **Failures:** a network error leaves the entry for the next run, with exponential backoff. A
-  rejection by a constraint or policy is permanent: the entry moves to a failed state, and the
-  app shows it to the user instead of retrying forever.
+- **One entry per row:** repeat edits of a row collapse into one outbox entry holding the
+  latest row. Each edit bumps the entry's `rev`, and a push deletes an entry only if its `rev`
+  hasn't changed, so an edit made while a push is in flight is never lost.
+- **Failures** (decision 0014):
+  - A network error, a 5xx, or a 429 leaves the entries for later. Backoff is shared by the
+    whole outbox, doubling up to 5 minutes with jitter, so a child row never goes ahead of a
+    parent that's waiting.
+  - An auth error asks the app to refresh the session, then retry.
+  - A rejection by a constraint, policy, or foreign key is permanent. Postgres rejects a
+    statement as a whole, so a rejected batch is resent one row at a time to find the bad
+    rows. Those entries move to a failed state, and the app shows them to the user instead
+    of retrying forever.
 
 ### Pulling
 
 For each table, the sync requests rows with `updated_at` later than the saved pull position
-minus one minute, in pages ordered by `(updated_at, id)`. Each page continues after the last
+minus one minute, in pages ordered by `(updated_at, id)`. The saved position is the exact
+`updated_at` string Postgres returned: JavaScript dates keep only milliseconds, and rounding
+away the microseconds would skip rows (decision 0013). Each page continues after the last
 `(updated_at, id)` pair it received, so rows sharing a timestamp across a page boundary aren't
 skipped.
 
@@ -133,8 +144,9 @@ Deletes are soft: the row gets a `deleted_at` value and syncs like any other cha
 filter deleted rows out. A scheduled cleanup removes rows deleted more than 90 days ago.
 
 A device whose last pull is older than 90 days may have missed a delete that the cleanup has
-since erased. Before syncing, it pushes its outbox, clears its local tables, and pulls
-everything.
+since erased. It pushes its outbox, pulls every row, and then removes local rows the server no
+longer has, except rows with an unsent change. Nothing is removed before the pull succeeds, so
+an offline device never shows an empty app (decision 0015).
 
 ### Signing out
 

@@ -101,7 +101,14 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
 Cases 4 and 12 use a made-up table until phase 3 adds parent and child tables and a second
 schema version. The server job that removes rows deleted over 90 days ago moves to phase 7.
 
-**Implementation notes:** none yet.
+**Implementation notes:**
+- PR 1 (engine): `src/data/db.ts`, `tables.ts`, `repository.ts`, and `src/data/sync/` (push,
+  pull, `syncOnce`, and the in-memory `FakeRemote`). Sync cases 2 to 12, 16, and 18 have unit
+  tests; each guard was checked by breaking it on purpose and watching its test fail.
+- A full resync pulls before removing anything, instead of clearing tables first (decision
+  0015).
+- The outbox holds one entry per row, with a `rev` counter so a push never clears an edit made
+  while it was in flight.
 
 ## Phase 3 — Foods, recipes, and the daily log
 

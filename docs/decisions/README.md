@@ -32,3 +32,6 @@ change a decision, write a new record that supersedes the old one.
 | [0010](0010-ai-development-guardrails.md) | Guardrails for AI-assisted development | Accepted |
 | [0011](0011-typescript-7.md) | TypeScript 7 | Accepted |
 | [0012](0012-publishable-api-key.md) | Publishable API key | Accepted |
+| [0013](0013-pull-cursor-as-postgres-text.md) | Pull cursor kept as Postgres's timestamp text | Accepted |
+| [0014](0014-push-error-classes.md) | Push error classes and shared backoff | Accepted |
+| [0015](0015-resync-pulls-before-removing.md) | Full resync pulls before removing anything | Accepted |
