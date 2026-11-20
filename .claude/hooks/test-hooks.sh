@@ -91,6 +91,11 @@ b 0 "commit, checks pass" 'git commit -m "x"'
 b 0 "commit -am, checks pass" 'git commit -am "add thing"'
 b 2 "--no-verify" 'git commit --no-verify -m "x"'
 b 2 "-n" 'git commit -n -m "x"'
+b 0 "the word commit earlier, sed -n before the commit" 'echo "commit" > notes && sed -n 1p notes && git commit -m "x"'
+b 0 "sed -n after the commit" 'git commit -m "x" && sed -n 1p notes'
+b 2 "-n after git add" 'git add -A && git commit -n -m "x"'
+b 2 "--no-verify with git -C" 'git -C /tmp/somewhere commit --no-verify -m "x"'
+b 2 "-n in a second commit" 'git commit -m "x" && git commit -n -m "y"'
 b 0 "push feature branch" 'git push -u origin feature/x'
 b 2 "force push" 'git push --force origin feature/x'
 b 2 "force-with-lease push" 'git push --force-with-lease'
@@ -230,8 +235,83 @@ git -C "$SB" add package.json && git -C "$SB" commit -q -m scripts
 echo "notes" >"$SB/NOTES.md"
 s 0 "docs-only change" '{"stop_hook_active":false}'
 
+echo "== stop check: handover =="
+past="$(($(date +%s) - 7200))"
+old_commit() { GIT_AUTHOR_DATE="@$past" GIT_COMMITTER_DATE="@$past" git -C "$SB" commit -q -m "$1"; }
+s 0 "no handover file" '{"stop_hook_active":false}'
+echo "# Handover" >"$SB/HANDOVER.md"
+git -C "$SB" add HANDOVER.md && old_commit handover
+s 0 "handover is the latest commit" '{"stop_hook_active":false}'
+echo "work" >"$SB/work.txt"
+git -C "$SB" add work.txt && git -C "$SB" commit -q -m work
+s 2 "commit after the handover" '{"stop_hook_active":false}'
+s 0 "commit after the handover, already blocked once" '{"stop_hook_active":true}'
+echo "next step" >>"$SB/HANDOVER.md"
+s 0 "handover being edited this turn" '{"stop_hook_active":false}'
+git -C "$SB" add HANDOVER.md && old_commit "update handover"
+s 0 "handover updated after the commit" '{"stop_hook_active":false}'
+git init -q --bare "$WORK/remote.git"
+git -C "$SB" remote add origin "$WORK/remote.git"
+git -C "$SB" push -q -u origin feature/x 2>/dev/null
+s 0 "push that includes the handover" '{"stop_hook_active":false}'
+git -C "$SB" push -q origin main 2>/dev/null
+s 2 "push of commits the handover predates" '{"stop_hook_active":false}'
+
 echo "== session context =="
+expect_out() { # expect_out <label> <pattern>
+  if grep -Eq -- "$2" "$WORK/stdout.txt"; then
+    pass=$((pass + 1))
+  else
+    fail=$((fail + 1))
+    echo "FAIL [$1] output lacks /$2/ :: $(head -c 300 "$WORK/stdout.txt")"
+  fi
+}
+# Keep these cases off the network: no gh calls without a GitHub remote.
+git -C "$SB" remote remove origin
 expect 0 "session context runs" session-context.sh '{}'
+expect_out "shows the branch" 'branch feature/x'
+expect_out "shows commits ahead of main" '[0-9]+ commit\(s\) ahead of main'
+expect_out "shows a branch was never pushed" 'feature/x has never been pushed'
+expect_out "shows the handover age" 'HANDOVER.md last changed in [0-9a-f]+, 0 commit\(s\) ago'
+expect_out "shows the date" 'Today is'
+
+echo "== session context: PR and CI lines =="
+# A stand-in gh that applies the hook's own --jq filter to fixture JSON, so the filters are
+# tested without the network. The remote URL is never contacted.
+mkdir -p "$WORK/bin"
+cat >"$WORK/bin/gh" <<'STUB'
+#!/usr/bin/env bash
+sub="$1 $2"; filter="."
+while (($#)); do [[ "$1" == "--jq" ]] && { filter="$2"; shift; }; shift; done
+case "$sub" in
+  "pr view") fixture="$GH_PR_FIXTURE" ;;
+  "run list") fixture="$GH_RUN_FIXTURE" ;;
+  *) exit 1 ;;
+esac
+jq -r "$filter" <<<"$fixture"
+STUB
+chmod +x "$WORK/bin/gh"
+git -C "$SB" remote add origin https://example.invalid/calorithm.git
+ctx() { PATH="$WORK/bin:$PATH" expect 0 "$1" session-context.sh '{}'; }
+
+export GH_PR_FIXTURE='{"number":7,"state":"OPEN","url":"u","statusCheckRollup":[{"status":"IN_PROGRESS","conclusion":""}]}'
+export GH_RUN_FIXTURE='[{"workflowName":"CI","status":"in_progress","conclusion":"","headSha":"abcdef123"}]'
+ctx "session context with CI running"
+expect_out "a running check shows its status" 'checks: 1 in_progress'
+expect_out "a running CI run shows its status" 'CI on abcdef1: in_progress'
+
+export GH_PR_FIXTURE='{"number":7,"state":"OPEN","url":"u","statusCheckRollup":[{"status":"COMPLETED","conclusion":"SUCCESS"},{"state":"PENDING"}]}'
+export GH_RUN_FIXTURE='[{"workflowName":"CI","status":"completed","conclusion":"success","headSha":"abcdef123"}]'
+ctx "session context with CI finished"
+expect_out "finished and pending checks are counted" 'checks: 1 pending, 1 success'
+expect_out "a finished CI run shows its result" 'CI on abcdef1: success'
+
+export GH_PR_FIXTURE='{"number":7,"state":"OPEN","url":"u","statusCheckRollup":[]}'
+export GH_RUN_FIXTURE='[]'
+ctx "session context with no checks or runs"
+expect_out "no checks says none" 'checks: none'
+expect_out "no runs says none" 'Latest CI run on feature/x: none\.'
+unset GH_PR_FIXTURE GH_RUN_FIXTURE
 
 echo "passed=$pass failed=$fail"
 [[ "$fail" == 0 ]]

@@ -85,8 +85,11 @@ if grep -Eq '(^|[^[:alnum:]_./-])supabase[[:space:]]+db[[:space:]]+(reset|push)(
 fi
 
 if runs_git commit; then
-  after_commit="${cmd#*commit}"
-  if grep -Eq -- '--no-verify|(^|[[:space:]])-[[:alpha:]]*n[[:alpha:]]*([[:space:]]|$)' <<<"$after_commit"; then
+  # Only each git commit's own arguments, up to the next &&, ;, |, or line end, so an
+  # unrelated `sed -n` elsewhere in the command doesn't count. Heredoc message lines are
+  # excluded too, since grep reads line by line.
+  commit_args="$(grep -oE "git([[:space:]]+-[^[:space:]]+([[:space:]]+[^-[:space:]][^[:space:]]*)?)*[[:space:]]+commit([[:space:]][^;&|]*)?" <<<"$cmd" | sed -E 's/^.*[[:space:]]commit//')"
+  if grep -Eq -- '--no-verify|(^|[[:space:]])-[[:alpha:]]*n[[:alpha:]]*([[:space:]]|$)' <<<"$commit_args"; then
     block "git commit --no-verify (or -n) skips validation. Commit without it."
   fi
   if git -C "$root" rev-parse --git-dir >/dev/null 2>&1; then

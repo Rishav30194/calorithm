@@ -6,7 +6,8 @@ a rewrite. It holds health data, so correctness and privacy come before speed of
 
 ## Read first
 
-1. `HANDOVER.md`: where the work stands and what comes next.
+1. The session-start facts (printed by a hook) and `HANDOVER.md`: the live git, PR, and CI
+   state, then the next steps, open questions, and warnings.
 2. `docs/phases.md`: the current phase, its scope, and its acceptance criteria.
 3. `PLAN.md`: product scope, data model, and how the numbers work.
 4. `docs/architecture.md`: how the app is built. Read it before touching sync or the schema.
@@ -14,7 +15,16 @@ a rewrite. It holds health data, so correctness and privacy come before speed of
 This file holds the rules for how the work is done. Where a rule here and a document conflict,
 this file wins; fix the document in the same PR.
 
-At the end of every session, update `HANDOVER.md` and the phase status in `docs/phases.md`.
+Each piece of status lives in one place:
+
+| What | Where |
+|---|---|
+| Branch, push, PR, and CI state | Printed live at session start by `session-context.sh`; never written down |
+| Phase status and implementation notes | `docs/phases.md` |
+| Next steps, open questions, and warnings | `HANDOVER.md` |
+
+Before ending a turn that committed or pushed, update `HANDOVER.md`; `check-stop.sh` blocks once
+if it's older than the latest commit or push. Update the phase status when a phase changes.
 
 ## Workflow
 
@@ -54,8 +64,8 @@ something that looks right, stop and tell the user.
 | `guard-bash.sh` | No `.env` reads or redirects into `.env` files. Commits: not on `main`, no `.env` file, tests change with `src/domain/` and `src/data/sync/` code, a pgTAP test changes with any migration that creates a table, and `npm run check:fast` passes. Pushes: not from `main`, never forced. `gh pr create`: `npm run check:full` passes. No reset or push to a linked database. |
 | `guard-edit.sh` | No `.env` writes. Migrations on `main` are append-only. `src/data/database.types.ts` and `package-lock.json` are never edited by hand. |
 | `check-edit.sh` | After each edit: Biome formats and lints the file, and `src/domain/` stays free of React, Dexie, Supabase, the data and UI layers, browser APIs, clock reads, and randomness. |
-| `check-stop.sh` | A turn can't end with uncommitted code that fails `npm run check:fast` unless the failure is reported. |
-| `session-context.sh` | Prints the date, git state, current phase, and installed versions at session start. |
+| `check-stop.sh` | A turn can't end with uncommitted code that fails `npm run check:fast`, or with `HANDOVER.md` older than the latest commit or push, unless Claude reports why. |
+| `session-context.sh` | Prints the date, git state, commits ahead of `main`, push state, the open PR and its checks, the latest CI run, the handover's age, the current phase, and installed versions at session start. |
 
 After changing any hook, run `bash .claude/hooks/test-hooks.sh`; every case must pass.
 Changes to `.claude/` and `.github/workflows/` need the user's approval.
@@ -71,12 +81,12 @@ Changes to `.claude/` and `.github/workflows/` need the user's approval.
 
 ## Commands
 
-Phase 1 creates these `package.json` scripts. Their names are a contract: the hooks and CI call
-them.
+These `package.json` scripts are a contract: the hooks and CI call them by name.
 
 | Script | Runs |
 |---|---|
-| `npm run dev` | The app against local Supabase |
+| `npm run dev` | The app at `http://localhost:5173/calorithm/` against local Supabase; no `.env` file needed |
+| `npm run build:local` | Production build with the local Supabase keys |
 | `npm run check:fast` | Type check, `biome ci`, unit tests |
 | `npm run check:full` | `check:fast`, database tests, generated-types check, end-to-end tests with axe, production build, bundle size check |
 | `npm run test` | Vitest |
@@ -100,6 +110,8 @@ supabase/
   tests/        pgTAP tests
   seed.sql      synthetic local data
 e2e/            Playwright tests
+public/         icons and static files
+scripts/        local-env wrapper, type and bundle checks, icon rendering
 docs/           architecture, phases, decisions, workflow
 ```
 
@@ -175,5 +187,5 @@ docs/           architecture, phases, decisions, workflow
 
 - Never read, print, or write `.env` files. The only committed one is `.env.example`.
 - The Supabase service-role key never appears in the app, the repository, or a prompt. The app
-  uses only the anon key, and row-level security protects the data.
+  uses only the publishable key, and row-level security protects the data.
 - If a task needs a key, tell the user which one to set and where.

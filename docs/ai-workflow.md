@@ -22,10 +22,10 @@ behind them.
 | Layer | When it runs | What it catches |
 |---|---|---|
 | `CLAUDE.md` and docs | Every session | Wrong approach, wrong layer, missing context |
-| `session-context.sh` | Session start | Wrong date, wrong phase, guessed library versions |
+| `session-context.sh` | Session start | Wrong date, wrong phase, guessed library versions, and a stale picture of the branch, PR, or CI |
 | `guard-edit.sh` | Before each edit | Secrets, edits to applied migrations or generated files |
 | `check-edit.sh` | After each edit | Lint and format errors, impure domain code |
-| `check-stop.sh` | End of each turn | Claiming work is done while checks fail |
+| `check-stop.sh` | End of each turn | Claiming work is done while checks fail; a handover left older than a commit or push |
 | `guard-bash.sh` | Before each command | Commits without tests or checks, pushes to `main`, force pushes, remote database changes, secret reads |
 | Permission rules | Before each tool use | Dependency installs, file deletion, pushes, PRs, and edits to `.claude/` and CI ask the user first |
 | Code review skills | Before each PR | Bugs, security issues, and broken rules a test didn't cover |
@@ -52,7 +52,8 @@ behind them.
    first.
 9. **Human review and merge.** The user reads the diff, CI must be green, and the user
    squash-merges.
-10. **Close out.** Update the phase's status and implementation notes, and `HANDOVER.md`.
+10. **Close out.** Update the phase's status and implementation notes, and the next steps in
+    `HANDOVER.md`. Don't copy git or CI state into it; the session-start hook reads that live.
 
 ## Writing good prompts for this repository
 

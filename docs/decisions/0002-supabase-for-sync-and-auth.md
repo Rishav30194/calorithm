@@ -12,7 +12,7 @@ custom backend needs hosting, security work, and upkeep that one person can't ju
 ## Decision
 
 Use Supabase: Postgres with row-level security for the sync copy and the rules, and Supabase
-Auth for sign-in. Local development uses the Supabase CLI in Docker, as in `wolf_gym`.
+Auth for sign-in. Local development uses the Supabase CLI in Docker.
 
 ## Alternatives
 

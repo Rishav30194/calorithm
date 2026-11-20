@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/* Theme tokens. Components use the Tailwind names (bg-bg, text-muted) and never fixed colors.
+   Every text color keeps at least 4.5:1 contrast on bg and surface in both themes. */
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --surface: #f4f4f5;
+  --text: #18181b;
+  --muted: #52525b;
+  --border: #a1a1aa;
+  --accent: #0f766e;
+  --accent-text: #ffffff;
+  --danger: #b91c1c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0f10;
+    --surface: #161b1d;
+    --text: #f4f4f5;
+    --muted: #a1a1aa;
+    --border: #52525b;
+    --accent: #2dd4bf;
+    --accent-text: #042f2e;
+    --danger: #f87171;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-danger: var(--danger);
+}
+
+html,
+body {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}

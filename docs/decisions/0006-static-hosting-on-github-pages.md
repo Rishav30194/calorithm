@@ -6,8 +6,8 @@
 
 ## Context
 
-The app is a static build. `daily`, `ten`, and `life-admin` already deploy to GitHub Pages
-from GitHub Actions.
+The app is a static build, and the code already lives on GitHub. GitHub Pages serves static
+files for free and deploys from GitHub Actions.
 
 ## Decision
 

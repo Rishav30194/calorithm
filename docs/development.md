@@ -1,10 +1,10 @@
 # Development
 
-Commands, branches, commits, PRs, and releases. Phase 1 creates the scripts listed here.
+Commands, branches, commits, PRs, and releases.
 
 ## Prerequisites
 
-- Node.js (the version in `.nvmrc`, which phase 1 adds)
+- Node.js 26, the LTS line in `.nvmrc`
 - Docker, for local Supabase
 - Git and the GitHub CLI (`gh`)
 - `jq`, used by the Claude Code hooks
@@ -14,7 +14,8 @@ Commands, branches, commits, PRs, and releases. Phase 1 creates the scripts list
 | Command | Does |
 |---|---|
 | `npm ci` | Install exact dependency versions from the lockfile |
-| `npm run dev` | Start the app against local Supabase |
+| `npm run dev` | Start the app at `http://localhost:5173/calorithm/` against local Supabase |
+| `npm run build:local` | Production build with the local Supabase keys, for the end-to-end tests |
 | `npm run db:start` | Start local Supabase in Docker |
 | `npm run db:stop` | Stop it |
 | `npm run db:reset` | Rebuild the local database from migrations and `seed.sql` |
@@ -24,6 +25,7 @@ Commands, branches, commits, PRs, and releases. Phase 1 creates the scripts list
 | `npm run test:e2e` | Playwright end-to-end tests with axe |
 | `npm run check:fast` | Type check, `biome ci`, and unit tests: run before each commit |
 | `npm run check:full` | Everything, plus the build and bundle size check: run before each PR |
+| `node scripts/make-icons.mjs` | Render the PNG app icons from `public/icon.svg` |
 
 ## Adding a database change
 
@@ -78,7 +80,18 @@ Never edit a migration that's on `main`. Fix it with a new one.
 
 | Variable | Holds | Where it's set |
 |---|---|---|
-| `VITE_SUPABASE_URL` | The Supabase project URL | `.env.local` for local work; GitHub Actions secret for deploys |
-| `VITE_SUPABASE_ANON_KEY` | The anon key | Same |
+| `VITE_SUPABASE_URL` | The Supabase project URL | Read from `supabase status` locally; a GitHub Actions secret for deploys |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | The publishable key (`sb_publishable_…`) | Same |
 
-`.env.example` lists the names with no values. The service-role key is never used by the app.
+`scripts/with-local-env.mjs` passes the local values to `npm run dev` and `npm run build:local`,
+so local work needs no `.env` file. `.env.example` lists the names with no values. The secret
+and service-role keys are never used by the app.
+
+## Local Supabase
+
+- **Ports:** the API runs on `55321` and Postgres on `55322`, instead of Supabase's defaults
+  (`54321` and up), so this project can run beside another local Supabase project.
+- **Seed user:** `supabase/seed.sql` creates `seed.user@calorithm.test` with password
+  `Local-Seed-Pass-2026`. It's synthetic and exists only in local databases.
+- **Auth settings:** `supabase/config.toml` turns sign-ups off and requires passwords of at
+  least 12 characters with upper case, lower case, and digits, matching the hosted project.
