@@ -9,23 +9,21 @@ steps. The rest waits in the checklists under "Growth checklists".
 
 ## Defaults
 
-- **Stack:** Vite, React, TypeScript, Tailwind v4, vite-plugin-pwa, and GitHub Pages, the
-  same front end as `daily` and `life-admin`. The app installs on a phone.
+- **Stack:** Vite, React, TypeScript, Tailwind v4, vite-plugin-pwa, and GitHub Pages. The app installs on a phone.
 - **Storage:** IndexedDB on the device through Dexie is the source of truth. Supabase (Postgres)
   is the sync copy, so data reaches other devices. The free plan is enough for one user.
 - **Sign-in:** email and password through Supabase Auth. Sign-ups are turned off after your
   account exists, and row-level security limits every table to its owner. No magic links: on
   iOS they open in Safari, which doesn't share storage with the installed app.
-- **Development database:** local Supabase in Docker through the Supabase CLI, run with `npx`,
-  the same setup as `wolf_gym`. Schema changes are SQL migrations in `supabase/migrations/`.
+- **Development database:** local Supabase in Docker through the Supabase CLI, run with `npx`.
+  Schema changes are SQL migrations in `supabase/migrations/`.
 - **Food data:** you enter your own foods and recipes. No built-in food database or barcode
   scanner. A shared catalog is in the checklist for customers.
 - **Units:** kilograms and kilocalories, with pounds available as a setting.
 - **Text and formats:** all interface text lives in one file, and numbers and dates are
   formatted with `Intl`, so translation can be added later without touching every screen.
 - **Accessibility:** every screen meets WCAG 2.2 AA, checked by axe in the browser tests.
-- **Decisions:** each significant choice gets a short record in `docs/decisions/`, as in
-  `penny-scout`.
+- **Decisions:** each significant choice gets a short record in `docs/decisions/`.
 - **Git:** work on `feature/` branches and merge through PRs.
 
 ## Front-end libraries
@@ -177,8 +175,7 @@ inputs and results; it doesn't run the calculation.
 - **Browser tests:** Playwright for logging food, adding a weigh-in, the weekly check-in, and
   deleting an account, run against local Supabase. Each screen also gets an axe scan.
 - **CI:** GitHub Actions runs typecheck, Biome, Vitest, `supabase test db`, Playwright with
-  axe, the generated-types check, and a bundle size budget on every PR, the same setup as
-  `wolf_gym`.
+  axe, the generated-types check, and a bundle size budget on every PR.
 
 ## Free-plan safeguards
 
@@ -218,7 +215,7 @@ Each phase's scope, acceptance criteria, status, and implementation notes are in
 ## Before step 7
 
 - Create the Supabase project in the Supabase dashboard. You do this step yourself.
-- Set the project URL and anon key as GitHub Actions secrets. You set these values yourself;
+- Set the project URL and publishable key as GitHub Actions secrets. You set these values yourself;
   they never go in the repository.
 
 ## Growth checklists
