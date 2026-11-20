@@ -11,8 +11,9 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 2. The user installs the app from Chrome by hand once; that's the last phase 1 criterion.
    Run `npm run db:start`, `npm run build:local`, and `npm run preview`, then open
    `http://localhost:4173/calorithm/` and use the install button in the address bar.
-3. The user reviews and squash-merges PR #1. It includes the session-start fix for blank CI
-   results while a run is in progress.
+3. The user reviews and squash-merges PR #1. It also includes two hook fixes: CI results no longer
+   show blank while a run is in progress, and the commit gate no longer mistakes an unrelated
+   `sed -n` for `--no-verify`.
 4. After the merge, mark phase 1 done in `docs/phases.md`, branch `feature/local-sync` from
    `main`, and plan phase 2 (local database and sync). Read `docs/architecture.md`, "Sync",
    and `docs/testing.md`, "Sync", first: phase 2 is test first, and every one of the 18 sync
