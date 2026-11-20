@@ -1,7 +1,7 @@
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js'
 import { describe, expect, it } from 'vitest'
 
-import { signOut, toSignInFailure } from './auth'
+import { refreshSession, signOut, toSignInFailure } from './auth'
 
 describe('signOut', () => {
   it('succeeds when the server accepts', async () => {
@@ -45,5 +45,39 @@ describe('toSignInFailure', () => {
 
   it('maps anything else to unknown', () => {
     expect(toSignInFailure(new Error('boom'))).toBe('unknown')
+  })
+})
+
+describe('refreshSession', () => {
+  const session = { access_token: 't' }
+
+  it('is true when the session was refreshed', async () => {
+    const client = { auth: { refreshSession: async () => ({ data: { session }, error: null }) } }
+    expect(await refreshSession(client)).toBe(true)
+  })
+
+  it('is false when the session can’t be refreshed', async () => {
+    const client = {
+      auth: {
+        refreshSession: async () => ({
+          data: { session: null },
+          error: new AuthApiError('Invalid Refresh Token', 400, 'refresh_token_not_found'),
+        }),
+      },
+    }
+    expect(await refreshSession(client)).toBe(false)
+  })
+
+  // Offline, the session may still be fine: let the sync retry and report offline instead.
+  it('is true when only the network failed', async () => {
+    const client = {
+      auth: {
+        refreshSession: async () => ({
+          data: { session: null },
+          error: new AuthRetryableFetchError('Failed to fetch', 0),
+        }),
+      },
+    }
+    expect(await refreshSession(client)).toBe(true)
   })
 })

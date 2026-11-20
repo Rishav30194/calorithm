@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 import tailwindcss from '@tailwindcss/vite'
@@ -8,6 +9,10 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { configDefaults } from 'vitest/config'
 
 const themeColor = '#0f766e'
+
+// The app compares this with app_config.min_app_version before every sync.
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
+if (typeof version !== 'string') throw new Error('package.json has no version')
 
 export default defineConfig({
   // GitHub Pages serves the app from /calorithm/. Dev and preview use the same path, so a
@@ -45,6 +50,9 @@ export default defineConfig({
       },
     }),
   ],
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+  },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },

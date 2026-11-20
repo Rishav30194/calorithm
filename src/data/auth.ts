@@ -35,6 +35,25 @@ export const signIn = async (
   }
 }
 
+type RefreshClient = {
+  auth: {
+    refreshSession: () => Promise<{ data: { session: unknown }; error: unknown }>
+  }
+}
+
+// Whether syncing may continue. A refresh that failed only because the network is down
+// counts as fine: the sync then fails as offline and retries, instead of reporting the user
+// signed out when they aren't.
+export const refreshSession = async (client: RefreshClient): Promise<boolean> => {
+  try {
+    const { data, error } = await client.auth.refreshSession()
+    if (isAuthRetryableFetchError(error)) return true
+    return error === null && data.session !== null
+  } catch {
+    return false
+  }
+}
+
 export type SignOutResult = { ok: boolean }
 
 // Takes only what it uses, so tests pass a small fake instead of a whole client.

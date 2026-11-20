@@ -1,7 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 
-import { formatKcal, formatProtein, formatWeight } from './format'
+import { formatAgo, formatKcal, formatProtein, formatWeight } from './format'
 
 describe('formatKcal', () => {
   it('rounds to a whole number with grouping', () => {
@@ -48,5 +48,25 @@ describe('formatWeight', () => {
         },
       ),
     )
+  })
+})
+
+describe('formatAgo', () => {
+  const minute = 60_000
+
+  it('says now for under a minute', () => {
+    expect(formatAgo(0, 'en-GB')).toBe('now')
+    expect(formatAgo(59_000, 'en-GB')).toBe('now')
+  })
+
+  it('uses the largest whole unit', () => {
+    expect(formatAgo(5 * minute, 'en-GB')).toBe('5 minutes ago')
+    expect(formatAgo(2 * 60 * minute, 'en-GB')).toBe('2 hours ago')
+    expect(formatAgo(26 * 60 * minute, 'en-GB')).toBe('yesterday')
+    expect(formatAgo(3 * 24 * 60 * minute, 'en-GB')).toBe('3 days ago')
+  })
+
+  it('treats a time in the future as now', () => {
+    expect(formatAgo(-5 * minute, 'en-GB')).toBe('now')
   })
 })
