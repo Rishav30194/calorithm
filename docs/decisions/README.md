@@ -35,3 +35,4 @@ change a decision, write a new record that supersedes the old one.
 | [0013](0013-pull-cursor-as-postgres-text.md) | Pull cursor kept as Postgres's timestamp text | Accepted |
 | [0014](0014-push-error-classes.md) | Push error classes and shared backoff | Accepted |
 | [0015](0015-resync-pulls-before-removing.md) | Full resync pulls before removing anything | Accepted |
+| [0016](0016-one-retry-policy.md) | One retry policy: the sync engine's | Accepted |

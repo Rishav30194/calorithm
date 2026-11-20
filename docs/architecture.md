@@ -172,9 +172,25 @@ database.
 
 ### When sync runs
 
-On app start, when the connection returns (`online` event), when the app comes back to the
-foreground (`visibilitychange`), and a few seconds after each local write. Only one sync runs
-at a time.
+`src/data/sync/engine.ts` runs a sync on app start, when the connection returns (`online`
+event), when the app comes back to the foreground (`visibilitychange`), and 3 seconds after
+the last of a run of writes. Only one sync runs at a time; a request made during one runs once
+more after it. Before each sync it reads `app_config.min_app_version`. An expired session is
+refreshed once; if that fails, sync pauses and Settings asks the user to sign in again. After
+a network failure it retries when the outbox's backoff ends, or after 30 seconds.
+
+`src/data/sync/supabaseRemote.ts` is the only code that sends sync requests to Supabase. It
+uses the client's untyped view, because the engine names tables at runtime; every row is still
+checked by the table's Zod schema. It turns off the library's own read retries (decision
+0016), and checks every cursor before it reaches a PostgREST filter.
+
+### In the app
+
+`src/data/DataProvider.tsx` opens the signed-in user's database and runs the engine. Screens
+use its hooks (`useSyncStatus`, `useOutbox`, `useUnits`, `useSetUnits`, `useDiscard`) and never
+see Dexie or the Supabase client. The header shows a sync badge when something needs
+attention; Settings shows the last sync, changes waiting, and refused changes with
+**Discard**.
 
 ### Schema versions
 
@@ -215,6 +231,9 @@ inputs and outputs in `checkins`.
 
 - `vite-plugin-pwa` precaches the built files. `registerType: 'prompt'` shows an
   **Update available** prompt instead of reloading on its own.
+- The service worker registers through `usePwaUpdate()` at the app root (`src/ui/pwa.ts`).
+  Importing the plugin's React hook stops it injecting its own registration, so the hook must
+  run on every screen.
 - On start, the app calls `navigator.storage.persist()` so the browser doesn't evict the local
   database.
 - The app reads `min_app_version` on each sync and blocks syncing when it's too old.
