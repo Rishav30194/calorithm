@@ -22,17 +22,21 @@ or in another account. Three facts shape it:
 
 - **File:** one JSON object with `format: "calorithm-export"`, `version: 1`, the export time,
   the app version, the exporting account's `user_id`, and every live row of every table, as
-  stored. Deleted rows are left out.
+  stored, read in one transaction. Deleted rows are left out, except a deleted food or recipe
+  that a live log entry or recipe item still uses.
 - **Checks:** a Zod schema and the table specs check the whole file before anything is
-  written: each row's shape, the database's `CHECK` ranges, one row per date where ids come
-  from the date, and references to rows in the same file. A newer format version or row
+  written: each row's shape, the database's `CHECK` ranges and column scales, one row per
+  date where ids come from the date, and references to rows in the same file. Edit times may
+  run at most a day past the export time, and the export time at most a day past the device's
+  clock: a far-future edit time would win every later conflict. A newer format version or row
   schema version is refused with its own message.
 - **Ids:** in the exporting account, ids stay as they are. In another account, every
   random id becomes a version 5 UUID of a fixed namespace, the account, and the old id.
   References change with it, and ids that come from the user and date are worked out again
   for the new user.
 - **Merge:** a row is written only when its `client_updated_at` is later than this device's
-  copy, the same rule as the server's `skip_stale_update` trigger. Each written row keeps the
+  copy, compared to the microsecond, the same rule as the server's `skip_stale_update`
+  trigger. Each written row keeps the
   file's edit time and is queued in the outbox, so the server also keeps any newer edit.
   Every write happens in one Dexie transaction.
 
