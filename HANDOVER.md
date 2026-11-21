@@ -6,8 +6,9 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 4, PR 3 (the weight screen) is on `feature/phase-4-weight-screen`. Ask the user
-   before pushing it. Once merged, mark phase 4 done in `docs/phases.md`.
+1. Phase 4, PR 3 (the weight screen) is on `feature/phase-4-weight-screen`. `/code-review`
+   found 5 bugs and 4 nits, all fixed; `check:full` passes. Ask the user before pushing it.
+   Once merged, mark phase 4 done in `docs/phases.md`.
 2. Bug, found in phase 4 PR 3: `useOutbox` in `src/data/DataProvider.tsx` returns an empty
    outbox while its query loads, so the settings screen flashes **Everything is synced** even
    with changes waiting. Fix it with a loading state; ask the user first, since it's outside
@@ -34,7 +35,7 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 176.1 kB of the 200 kB budget; the log and food screens load as
+- First-load JavaScript is 177.4 kB of the 200 kB budget; the log and food screens load as
   their own chunks. Phase 3 will likely need to load
   screens on demand.
 - The browser tests run a production build, so React's development double-run isn't covered.
