@@ -6,9 +6,9 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 4, PR 3 (the weight screen) is on `feature/phase-4-weight-screen`. `/code-review`
-   found 5 bugs and 4 nits, all fixed; `check:full` passes. Ask the user before pushing it.
-   Once merged, mark phase 4 done in `docs/phases.md`.
+1. Phase 4 is done (PRs #11 to #13). The phase status change is on `chore/phase-4-done`;
+   ask the user before pushing it and opening its PR. Phase 5 (targets and the weekly
+   check-in) comes next: read its scope in `docs/phases.md` and present a plan first.
 2. Bug, found in phase 4 PR 3: `useOutbox` in `src/data/DataProvider.tsx` returns an empty
    outbox while its query loads, so the settings screen flashes **Everything is synced** even
    with changes waiting. Fix it with a loading state; ask the user first, since it's outside
