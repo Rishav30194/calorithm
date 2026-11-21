@@ -2,6 +2,9 @@
 // changing either breaks sync for every existing day.
 export const DAYS_NAMESPACE = '55e70c90-e7ae-4176-b16f-2c8bfcbdef11'
 
+// The weights table's CHECK constraint uses the same value; the same warning applies.
+export const WEIGHTS_NAMESPACE = '927e1d10-0ca5-4624-ba33-d19a9497f975'
+
 const hexToBytes = (hex: string): Uint8Array => {
   const clean = hex.replaceAll('-', '')
   const bytes = new Uint8Array(clean.length / 2)
@@ -33,3 +36,8 @@ export const uuidV5 = async (namespace: string, name: string): Promise<string> =
 // knowing someone's user id doesn't let another user claim their day (decision 0018).
 export const dayId = (userId: string, date: string): Promise<string> =>
   uuidV5(DAYS_NAMESPACE, `${userId}/${date}`)
+
+// One weigh-in per user and day: a second weigh-in on the same day, from any device, writes the
+// same row and replaces the first (decision 0020).
+export const weightId = (userId: string, date: string): Promise<string> =>
+  uuidV5(WEIGHTS_NAMESPACE, `${userId}/${date}`)

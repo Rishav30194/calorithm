@@ -39,3 +39,4 @@ change a decision, write a new record that supersedes the old one.
 | [0017](0017-delete-local-data-before-signing-out.md) | Delete the local database before signing out | Accepted |
 | [0018](0018-day-ids-from-user-and-date.md) | Day ids derived from the user and date, checked by the database | Accepted |
 | [0019](0019-hold-children-of-failed-parents.md) | Hold rows whose parent has a failed change | Accepted |
+| [0020](0020-weight-ids-from-user-and-date.md) | Weigh-in ids derived from the user and date | Accepted |

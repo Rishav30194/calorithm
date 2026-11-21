@@ -6,11 +6,10 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 3 is done (PRs #6 to #9). The phase status change is on `chore/phase-3-done`; ask
-   the user before pushing it and opening its PR.
-2. Phase 4 (weight and the trend chart) after that; read its scope in `docs/phases.md` and
-   present a plan first. The chart likely needs a dependency, which needs the user's approval
-   and its bundle cost.
+1. Phase 4, PR 1 (the `weights` schema) is on `feature/phase-4-weights-schema`. Ask the user
+   before pushing it and opening its PR; run `/code-review` and `/security-review` first.
+2. Then phase 4, PR 2: `src/domain/trend.ts`, kg and lb conversion, and the weigh-in
+   repository. See the plan in `docs/phases.md`.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
    from the installed app.
 4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix

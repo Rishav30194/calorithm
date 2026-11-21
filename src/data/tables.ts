@@ -147,6 +147,21 @@ export const logEntriesSpec: TableSpec<LogEntryRow> = {
   parents: (row) => [...ref('foods', row.food_id), ...ref('recipes', row.recipe_id)],
 }
 
+export type WeightRow = Tables<'weights'>
+
+export const weightsSpec: TableSpec<WeightRow> = {
+  name: 'weights',
+  schemaVersion: 1,
+  parse: parser(
+    z.object({
+      ...syncColumns,
+      date: z.iso.date(),
+      // The database's range check; rejected here so a bad row fails before it's sent.
+      weight_kg: z.number().check(z.gte(20), z.lte(400)),
+    }),
+  ),
+}
+
 // Push order: a parent table comes before any table that references it.
 export const syncedTables: readonly TableSpec[] = [
   profileSpec,
@@ -155,4 +170,5 @@ export const syncedTables: readonly TableSpec[] = [
   recipeItemsSpec,
   daysSpec,
   logEntriesSpec,
+  weightsSpec,
 ]
