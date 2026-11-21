@@ -62,6 +62,8 @@ Each case needs a test:
 16. A device whose last pull is older than 90 days does a full resync.
 17. Two users on one device never see each other's rows.
 18. Each Dexie version upgrade keeps existing data.
+19. A row whose parent has a failed change waits, then goes out once the parent is fixed
+    or discarded.
 
 ## Database
 

@@ -138,6 +138,19 @@ describe('food and log table specs', () => {
   })
 })
 
+describe('parents', () => {
+  it('names the rows a recipe item or log entry references', () => {
+    expect(recipeItemsSpec.parents?.(recipeItem)).toEqual([
+      { table: 'recipes', id: recipe.id },
+      { table: 'foods', id: food.id },
+    ])
+    expect(logEntriesSpec.parents?.(logEntry)).toEqual([{ table: 'foods', id: food.id }])
+    expect(logEntriesSpec.parents?.({ ...logEntry, food_id: null, recipe_id: recipe.id })).toEqual([
+      { table: 'recipes', id: recipe.id },
+    ])
+  })
+})
+
 describe('values the columns can’t store', () => {
   // Rejected here rather than by the server, where the change would fail for good.
   it('rejects a fractional kcal', () => {

@@ -108,6 +108,9 @@ sequenceDiagram
     statement as a whole, so a rejected batch is resent one row at a time to find the bad
     rows. Those entries move to a failed state, and the app shows them to the user instead
     of retrying forever.
+  - A row that references another, such as a log entry and its food, waits while that
+    parent has a failed change, and goes out once the parent is fixed or discarded
+    (decision 0019).
 
 ### Pulling
 
