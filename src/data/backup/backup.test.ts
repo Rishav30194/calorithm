@@ -5,15 +5,16 @@ import { checkinId, dayId, weightId } from '../dayId'
 import type { LocalDb } from '../db'
 import { createFood, updateFood } from '../foods'
 import { logFood } from '../log'
+import { softDelete } from '../repository'
 import { closeAll, manualClock, openDb, userId } from '../sync/testing/fixtures'
-import { type SyncRow, syncedTables, type WeightRow, weightsSpec } from '../tables'
+import { foodsSpec, type SyncRow, syncedTables, type WeightRow, weightsSpec } from '../tables'
 import { setWeighIn } from '../weights'
 import { buildExport, exportFileName, importData, importedId } from './backup'
 import { EXPORT_FORMAT, EXPORT_VERSION, type ExportFile } from './format'
 import { seedSample } from './testing'
 
 const otherUser = 'b0000000-0000-4000-8000-000000000002'
-const today = '2026-11-21'
+const context = { now: new Date('2026-11-21T12:00:00.000Z'), today: '2026-11-21' }
 const exportedAt = new Date('2026-11-21T09:00:00.000Z')
 
 let time: ReturnType<typeof manualClock>
@@ -82,6 +83,44 @@ describe('buildExport', () => {
   })
 })
 
+describe('buildExport with deleted parents', () => {
+  it('keeps a deleted food that a live row uses, and the import still works', async () => {
+    const db = freshDb()
+    const used = await createFood(db, time.clock, userId, {
+      name: 'Oats',
+      servingSize: 40,
+      servingUnit: 'g',
+      kcal: 150,
+      proteinG: 5,
+    })
+    const unused = await createFood(db, time.clock, userId, {
+      name: 'Rice',
+      servingSize: 75,
+      servingUnit: 'g',
+      kcal: 270,
+      proteinG: 5.3,
+    })
+    await logFood(db, time.clock, userId, {
+      date: '2026-11-20',
+      meal: 'breakfast',
+      food: used,
+      servings: 1,
+    })
+    await softDelete(db, foodsSpec, used.id, time.clock)
+    await softDelete(db, foodsSpec, unused.id, time.clock)
+
+    const file = await buildExport(db, userId, exportedAt, '0.1.0')
+
+    expect(file.tables.foods.map((row) => row.id)).toEqual([used.id])
+    expect(file.tables.foods[0]?.deleted_at).not.toBeNull()
+    const target = freshDb()
+    const result = await importData(target, JSON.stringify(file), otherUser, context)
+    expect(result).toEqual({ ok: true, written: 2, skipped: 0 })
+    const moved = await target.rows('foods').get(await importedId(otherUser, used.id))
+    expect(moved?.deleted_at).toBe(file.tables.foods[0]?.deleted_at)
+  })
+})
+
 describe('exportFileName', () => {
   it('names the file after the local day', () => {
     expect(exportFileName('2026-11-21')).toBe('calorithm-export-2026-11-21.json')
@@ -95,7 +134,7 @@ describe('importData', () => {
     const live = await allRows(source)
 
     const target = freshDb()
-    const result = await importData(target, text, userId, today)
+    const result = await importData(target, text, userId, context)
 
     const restored = await allRows(target)
     for (const spec of syncedTables) {
@@ -112,7 +151,7 @@ describe('importData', () => {
     const file: ExportFile = JSON.parse(await exportText(source, userId))
 
     const target = freshDb()
-    await importData(target, JSON.stringify(file), otherUser, today)
+    await importData(target, JSON.stringify(file), otherUser, context)
 
     const imported = await buildExport(target, otherUser, exportedAt, '0.1.0')
     const id = (old: string) => importedId(otherUser, old)
@@ -167,10 +206,10 @@ describe('importData', () => {
   it('writes nothing new when the same file is imported twice', async () => {
     const text = await exportText(await sampleDb(), userId)
     const target = freshDb()
-    const first = await importData(target, text, otherUser, today)
+    const first = await importData(target, text, otherUser, context)
     const before = await allRows(target)
 
-    const second = await importData(target, text, otherUser, today)
+    const second = await importData(target, text, otherUser, context)
 
     expect(first.ok && first.written).toBeGreaterThan(0)
     expect(second).toEqual({ ok: true, written: 0, skipped: first.ok ? first.written : -1 })
@@ -201,11 +240,34 @@ describe('importData', () => {
     const weight = await weightId(userId, '2026-11-20')
     await rewindWeight(db, weight)
 
-    const result = await importData(db, text, userId, today)
+    const result = await importData(db, text, userId, context)
 
     expect(result).toEqual({ ok: true, written: 1, skipped: 1 })
     expect(await db.rows('foods').get(oats.id)).toMatchObject({ name: 'Rolled oats' })
     expect(await db.rows('weights').get(weight)).toMatchObject({ weight_kg: 82.4 })
+  })
+
+  it('compares edit times to the microsecond, as the server does', async () => {
+    const db = freshDb()
+    await setWeighIn(db, time.clock, userId, { date: '2026-11-20', kg: 82.4 })
+    const file: ExportFile = JSON.parse(await exportText(db, userId))
+    const [weight] = file.tables.weights
+    if (!weight) throw new Error('no weigh-in exported')
+    const id = weight.id
+    const local = weightsSpec.parse(await db.rows('weights').get(id))
+    if (!local) throw new Error('no local weigh-in')
+    const older: WeightRow = {
+      ...local,
+      weight_kg: 90,
+      client_updated_at: '2026-11-20 10:00:12.123100+00',
+    }
+    await db.rows('weights').put(older)
+    Object.assign(weight, { client_updated_at: '2026-11-20 10:00:12.123900+00' })
+
+    const result = await importData(db, JSON.stringify(file), userId, context)
+
+    expect(result).toEqual({ ok: true, written: 1, skipped: 0 })
+    expect(await db.rows('weights').get(id)).toMatchObject({ weight_kg: 82.4 })
   })
 
   it('replaces a queued older change and bumps its revision', async () => {
@@ -218,7 +280,7 @@ describe('importData', () => {
     await rewindWeight(db, weight)
     const queued = await db.outbox.where('[table+rowId]').equals(['weights', weight]).first()
 
-    await importData(db, text, userId, today)
+    await importData(db, text, userId, context)
 
     const entry = await db.outbox.where('[table+rowId]').equals(['weights', weight]).first()
     expect(entry).toMatchObject({ rev: (queued?.rev ?? 0) + 1, row: { weight_kg: 82 } })
@@ -232,7 +294,7 @@ describe('importData', () => {
     time.advance(86_400_000)
 
     const target = freshDb()
-    await importData(target, text, otherUser, today)
+    await importData(target, text, otherUser, context)
 
     const food = file.tables.foods[0]
     if (!food) throw new Error('the sample has no food')
@@ -249,7 +311,7 @@ describe('importData', () => {
     ['a newer version', '{"format":"calorithm-export","version":2}', 'newer_version'],
   ])('writes nothing for a file that is %s', async (_case, text, reason) => {
     const db = freshDb()
-    expect(await importData(db, text, userId, today)).toEqual({ ok: false, reason })
+    expect(await importData(db, text, userId, context)).toEqual({ ok: false, reason })
     expect(Object.values(await allRows(db)).flat()).toEqual([])
     expect(await db.outbox.count()).toBe(0)
   })
@@ -261,7 +323,7 @@ describe('importData', () => {
     Object.assign(last, { kcal_target: 1 })
 
     const db = freshDb()
-    expect(await importData(db, JSON.stringify(file), userId, today)).toEqual({
+    expect(await importData(db, JSON.stringify(file), userId, context)).toEqual({
       ok: false,
       reason: 'invalid',
     })
@@ -305,7 +367,7 @@ describe('importData', () => {
           }
 
           const target = freshDb()
-          const result = await importData(target, await exportText(source, userId), userId, today)
+          const result = await importData(target, await exportText(source, userId), userId, context)
 
           expect(result.ok).toBe(true)
           expect(await allRows(target)).toEqual(await allRows(source))

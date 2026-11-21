@@ -6,7 +6,7 @@ import { buildExport } from './backup'
 import { type ExportFile, MAX_EXPORT_CHARS, parseExport } from './format'
 import { seedSample } from './testing'
 
-const today = '2026-11-21'
+const context = { now: new Date('2026-11-21T12:00:00.000Z'), today: '2026-11-21' }
 let sample: ExportFile
 
 beforeAll(async () => {
@@ -36,7 +36,7 @@ const first = (file: ExportFile, table: keyof ExportFile['tables']): Record<stri
 
 describe('parseExport', () => {
   it('accepts an export the app built', () => {
-    const result = parseExport(JSON.stringify(sample), today)
+    const result = parseExport(JSON.stringify(sample), context)
     expect(result).toEqual({ ok: true, file: sample })
   })
 
@@ -44,18 +44,36 @@ describe('parseExport', () => {
     const text = edited((file) => {
       first(file, 'foods').client_updated_at = '2026-11-20 10:00:00.123456+00'
     })
-    expect(parseExport(text, today).ok).toBe(true)
+    expect(parseExport(text, context).ok).toBe(true)
+  })
+
+  it('accepts a deleted food, which live rows may still use', () => {
+    const text = edited((file) => {
+      first(file, 'foods').deleted_at = '2026-11-20T10:00:00.000Z'
+    })
+    expect(parseExport(text, context).ok).toBe(true)
+  })
+
+  it('checks the birth date against the earlier of the local and UTC days', () => {
+    // 12:00 UTC on the 21st is already the 22nd in UTC+13.
+    const ahead = { now: context.now, today: '2026-11-22' }
+    const born = (date: string) =>
+      edited((file) => {
+        first(file, 'profile').birth_date = date
+      })
+    expect(parseExport(born('2026-11-21'), ahead).ok).toBe(true)
+    expect(parseExport(born('2026-11-22'), ahead)).toEqual({ ok: false, reason: 'invalid' })
   })
 
   it('refuses a file over the size limit before parsing it', () => {
-    expect(parseExport(' '.repeat(MAX_EXPORT_CHARS + 1), today)).toEqual({
+    expect(parseExport(' '.repeat(MAX_EXPORT_CHARS + 1), context)).toEqual({
       ok: false,
       reason: 'too_large',
     })
   })
 
   it('refuses text that is not JSON', () => {
-    expect(parseExport('{"format": "calorithm-export",', today)).toEqual({
+    expect(parseExport('{"format": "calorithm-export",', context)).toEqual({
       ok: false,
       reason: 'not_json',
     })
@@ -68,19 +86,19 @@ describe('parseExport', () => {
     ['an array', () => '[]'],
     ['a number', () => '42'],
   ])('refuses a file that is not an export: %s', (_case, text) => {
-    expect(parseExport(text(), today)).toEqual({ ok: false, reason: 'not_export' })
+    expect(parseExport(text(), context)).toEqual({ ok: false, reason: 'not_export' })
   })
 
   it('refuses a file from a newer format version', () => {
     const text = edited((file) => Object.assign(file, { version: 2, tables: 'anything' }))
-    expect(parseExport(text, today)).toEqual({ ok: false, reason: 'newer_version' })
+    expect(parseExport(text, context)).toEqual({ ok: false, reason: 'newer_version' })
   })
 
   it('refuses a row written in a newer schema version', () => {
     const text = edited((file) => {
       first(file, 'weights').schema_version = 2
     })
-    expect(parseExport(text, today)).toEqual({ ok: false, reason: 'newer_version' })
+    expect(parseExport(text, context)).toEqual({ ok: false, reason: 'newer_version' })
   })
 
   const invalid: [string, (file: Record<string, unknown> & ExportFile) => void][] = [
@@ -225,6 +243,34 @@ describe('parseExport', () => {
       },
     ],
     [
+      'protein with more decimals than the column keeps',
+      (file) => {
+        first(file, 'foods').protein_g = 10.15
+      },
+    ],
+    [
+      'servings with more decimals than the column keeps',
+      (file) => {
+        first(file, 'log_entries').servings = 1.125
+      },
+    ],
+    [
+      'an edit time more than a day after the export',
+      (file) => {
+        first(file, 'foods').client_updated_at = '2026-11-22T09:00:00.001Z'
+      },
+    ],
+    [
+      'an export time more than a day ahead of this device',
+      (file) => Object.assign(file, { exported_at: '2026-11-22T12:00:00.001Z' }),
+    ],
+    [
+      'a deleted log entry',
+      (file) => {
+        first(file, 'log_entries').deleted_at = '2026-11-20T10:00:00.000Z'
+      },
+    ],
+    [
       'an unknown activity level',
       (file) => {
         first(file, 'profile').activity_level = 'athlete'
@@ -233,13 +279,13 @@ describe('parseExport', () => {
   ]
 
   it.each(invalid)('refuses a file with %s', (_case, change) => {
-    expect(parseExport(edited(change), today)).toEqual({ ok: false, reason: 'invalid' })
+    expect(parseExport(edited(change), context)).toEqual({ ok: false, reason: 'invalid' })
   })
 
   it('never throws or accepts arbitrary text', () => {
     fc.assert(
       fc.property(fc.string(), (text) => {
-        expect(parseExport(text, today).ok).toBe(false)
+        expect(parseExport(text, context).ok).toBe(false)
       }),
     )
   })
@@ -247,7 +293,7 @@ describe('parseExport', () => {
   it('never throws or accepts arbitrary JSON', () => {
     fc.assert(
       fc.property(fc.jsonValue(), (value) => {
-        expect(parseExport(JSON.stringify(value), today).ok).toBe(false)
+        expect(parseExport(JSON.stringify(value), context).ok).toBe(false)
       }),
     )
   })
@@ -269,7 +315,7 @@ describe('parseExport', () => {
             const column = columns[columnIndex % columns.length]
             if (column) row[column] = value
           })
-          const result = parseExport(text, today)
+          const result = parseExport(text, context)
           expect(typeof result.ok).toBe('boolean')
         },
       ),

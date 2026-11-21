@@ -20,6 +20,7 @@ import {
   EXPORT_VERSION,
   type ExportFile,
   type ImportFailure,
+  type ParseContext,
   parseExport,
 } from './format'
 
@@ -31,30 +32,49 @@ const IMPORT_NAMESPACE = 'a658b5ff-6afd-421c-be21-0f657ab5ccfb'
 // `day` is the device's local calendar day, YYYY-MM-DD.
 export const exportFileName = (day: string): string => `calorithm-export-${day}.json`
 
-// Every live row on this device, including changes not yet sent. Deleted rows are left out:
-// the file is a copy of the data, not of its history.
-export const buildExport = async (
+const storedRows = async <Row extends SyncRow>(db: LocalDb, spec: TableSpec<Row>) =>
+  (await db.rows(spec.name).toArray()).flatMap((raw) => {
+    const row = spec.parse(raw)
+    return row ? [row] : []
+  })
+
+// Live rows, plus deleted ones that a live row still points at: a food deleted on another
+// device stays in the file while a log entry uses it, or the entry couldn't be imported.
+const liveOrUsed = <Row extends SyncRow>(rows: Row[], used: ReadonlySet<string | null>): Row[] =>
+  rows.filter((row) => row.deleted_at === null || used.has(row.id))
+
+// Every live row on this device, including changes not yet sent. Other deleted rows are left
+// out: the file is a copy of the data, not of its history.
+export const buildExport = (
   db: LocalDb,
   userId: string,
   exportedAt: Date,
   appVersion: string,
-): Promise<ExportFile> => ({
-  format: EXPORT_FORMAT,
-  version: EXPORT_VERSION,
-  exported_at: exportedAt.toISOString(),
-  app_version: appVersion,
-  user_id: userId,
-  tables: {
-    profile: await visibleRows(db, profileSpec),
-    foods: await visibleRows(db, foodsSpec),
-    recipes: await visibleRows(db, recipesSpec),
-    recipe_items: await visibleRows(db, recipeItemsSpec),
-    days: await visibleRows(db, daysSpec),
-    log_entries: await visibleRows(db, logEntriesSpec),
-    weights: await visibleRows(db, weightsSpec),
-    checkins: await visibleRows(db, checkinsSpec),
-  },
-})
+): Promise<ExportFile> =>
+  // One read transaction, so a pull landing midway can't leave a reference without its row.
+  db.transaction('r', [...syncedTables.map((spec) => db.rows(spec.name))], async () => {
+    const recipeItems = await visibleRows(db, recipeItemsSpec)
+    const logEntries = await visibleRows(db, logEntriesSpec)
+    const usedFoods = new Set([...recipeItems, ...logEntries].map((row) => row.food_id))
+    const usedRecipes = new Set(logEntries.map((row) => row.recipe_id))
+    return {
+      format: EXPORT_FORMAT,
+      version: EXPORT_VERSION,
+      exported_at: exportedAt.toISOString(),
+      app_version: appVersion,
+      user_id: userId,
+      tables: {
+        profile: await visibleRows(db, profileSpec),
+        foods: liveOrUsed(await storedRows(db, foodsSpec), usedFoods),
+        recipes: liveOrUsed(await storedRows(db, recipesSpec), usedRecipes),
+        recipe_items: recipeItems,
+        days: await visibleRows(db, daysSpec),
+        log_entries: logEntries,
+        weights: await visibleRows(db, weightsSpec),
+        checkins: await visibleRows(db, checkinsSpec),
+      },
+    }
+  })
 
 // Every table's id is a primary key across all accounts, so rows moved into another account
 // need ids of their own.
@@ -135,9 +155,13 @@ const moveRows = async ({ user_id: owner, tables }: ExportFile, userId: string) 
   ]
 }
 
+// Microseconds since 1970, as Postgres compares them; normalizeTimestamp keeps only
+// milliseconds, so the rest of the fraction is added back.
 const editTime = (timestamp: string): number => {
   const iso = normalizeTimestamp(timestamp)
-  return iso === null ? Number.NaN : Date.parse(iso)
+  if (iso === null) return Number.NaN
+  const fraction = /[.](\d+)/.exec(timestamp)?.[1] ?? ''
+  return Date.parse(iso) * 1000 + Number(fraction.padEnd(6, '0').slice(3, 6))
 }
 
 // The same rule as the server's skip_stale_update trigger: an edit replaces a row only when
@@ -154,14 +178,14 @@ export type ImportResult =
 
 // Checks the whole file, then writes every row that is newer than this device's copy, with
 // its outbox entry, in one transaction. Each row keeps the file's edit time, so the server
-// also keeps any edit made after the export. `today` is the device's local day.
+// also keeps any edit made after the export.
 export const importData = async (
   db: LocalDb,
   text: string,
   userId: string,
-  today: string,
+  context: ParseContext,
 ): Promise<ImportResult> => {
-  const parsed = parseExport(text, today)
+  const parsed = parseExport(text, context)
   if (!parsed.ok) return parsed
   // Ids are worked out before the transaction: Dexie commits a transaction that awaits
   // anything other than its own queries, such as crypto.subtle.

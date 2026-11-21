@@ -59,9 +59,22 @@ export type ParseExportResult =
   | { ok: true; file: ExportFile }
   | { ok: false; reason: ImportFailure }
 
-const isTimestamp = (value: string): boolean => {
+// How far a timestamp may run ahead of the clock that checks it, for devices whose clocks
+// disagree. An edit time far in the future would win every later conflict, here and on the
+// server, so the row could never change again.
+const CLOCK_SKEW_MS = 86_400_000
+
+const timeOf = (value: string): number => {
   const iso = normalizeTimestamp(value)
-  return iso !== null && !Number.isNaN(Date.parse(iso))
+  return iso === null ? Number.NaN : Date.parse(iso)
+}
+
+const isTimestamp = (value: string): boolean => !Number.isNaN(timeOf(value))
+
+export type ParseContext = {
+  now: Date
+  // The device's local calendar day, YYYY-MM-DD.
+  today: string
 }
 
 const header = z.object({ format: z.literal(EXPORT_FORMAT), version: z.int().check(z.gte(1)) })
@@ -89,6 +102,26 @@ const envelope = z.object({
 type Envelope = z.infer<typeof envelope>
 type TableName = keyof ExportTables
 
+const tableNames = [
+  'profile',
+  'foods',
+  'recipes',
+  'recipe_items',
+  'days',
+  'log_entries',
+  'weights',
+  'checkins',
+] as const satisfies readonly TableName[]
+
+const isOneOf = <T extends string>(values: readonly T[], value: string): value is T =>
+  values.some((allowed) => allowed === value)
+
+// The column's numeric scale: Postgres would round a value with more decimal places.
+const hasDecimals = (value: number, places: number): boolean => {
+  const scale = 10 ** places
+  return Math.abs(value * scale - Math.round(value * scale)) < 1e-6
+}
+
 // Postgres btrim and char_length: spaces only, counted in characters rather than UTF-16 units.
 const textFits = (value: string, max: number): boolean => {
   const length = [...value.replace(/^ +| +$/g, '')].length
@@ -105,42 +138,64 @@ const dayFits = (date: string): boolean => isDay(date) && date >= EARLIEST_DAY
 
 // The database's CHECK constraints that the table specs don't repeat. A row that breaks one
 // would fail on every push, so the whole file is refused instead.
-const fitsDatabase = (today: string) => ({
+// The database checks the birth date against its own date, in UTC, which can be a day behind
+// the device's; the earlier of the two is safe for both.
+const latestBirthDate = ({ now, today }: ParseContext): string => {
+  const utcDay = now.toISOString().slice(0, 10)
+  return utcDay < today ? utcDay : today
+}
+
+// The database's CHECK constraints and column scales that the table specs don't repeat. A row
+// that breaks one would fail on every push, or be rounded differently by the server, so the
+// whole file is refused instead.
+const fitsDatabase = (context: ParseContext) => ({
   profile: (row: ProfileRow) =>
-    (row.height_cm === null || within(row.height_cm, 100, 250)) &&
+    (row.height_cm === null ||
+      (within(row.height_cm, 100, 250) && hasDecimals(row.height_cm, 1))) &&
     (row.birth_date === null ||
-      (isDay(row.birth_date) && row.birth_date >= '1900-01-01' && row.birth_date <= today)) &&
+      (isDay(row.birth_date) &&
+        row.birth_date >= '1900-01-01' &&
+        row.birth_date <= latestBirthDate(context))) &&
     (row.sex === null || row.sex === 'female' || row.sex === 'male') &&
-    (row.activity_level === null ||
-      (activityLevels as readonly string[]).includes(row.activity_level)) &&
+    (row.activity_level === null || isOneOf(activityLevels, row.activity_level)) &&
     (row.units === 'metric' || row.units === 'imperial') &&
     within(row.goal_rate_kg_per_week, -2, 2) &&
+    hasDecimals(row.goal_rate_kg_per_week, 2) &&
     within(row.protein_g_per_kg, 1.6, 2.2) &&
+    hasDecimals(row.protein_g_per_kg, 1) &&
     Number.isInteger(row.calorie_floor_kcal) &&
     within(row.calorie_floor_kcal, 1000, 3000),
   foods: (row: FoodRow) =>
     textFits(row.name, 100) &&
     positiveUpTo(row.serving_size, 10000) &&
+    hasDecimals(row.serving_size, 2) &&
     textFits(row.serving_unit, 20) &&
     within(row.kcal, 0, 10000) &&
     within(row.protein_g, 0, 1000) &&
+    hasDecimals(row.protein_g, 1) &&
     optionalTimestamp(row.archived_at),
   recipes: (row: RecipeRow) =>
     textFits(row.name, 100) &&
     positiveUpTo(row.servings, 1000) &&
+    hasDecimals(row.servings, 2) &&
     optionalTimestamp(row.archived_at),
-  recipe_items: (row: RecipeItemRow) => positiveUpTo(row.servings, 1000),
+  recipe_items: (row: RecipeItemRow) =>
+    positiveUpTo(row.servings, 1000) && hasDecimals(row.servings, 2),
   days: (row: DayRow) => dayFits(row.date),
   log_entries: (row: LogEntryRow) =>
     dayFits(row.date) &&
-    (meals as readonly string[]).includes(row.meal) &&
+    isOneOf(meals, row.meal) &&
     (row.food_id === null) !== (row.recipe_id === null) &&
     positiveUpTo(row.servings, 1000) &&
+    hasDecimals(row.servings, 2) &&
     textFits(row.name, 100) &&
     within(row.kcal, 0, 100000) &&
     within(row.protein_g, 0, 10000) &&
+    hasDecimals(row.protein_g, 1) &&
     within(row.kcal_per_serving, 0, 100000) &&
+    hasDecimals(row.kcal_per_serving, 3) &&
     within(row.protein_g_per_serving, 0, 10000) &&
+    hasDecimals(row.protein_g_per_serving, 3) &&
     isTimestamp(row.logged_at),
   weights: (_row: WeightRow) => true,
   checkins: (_row: CheckinRow) => true,
@@ -149,11 +204,19 @@ const fitsDatabase = (today: string) => ({
 const rowVersion = (raw: unknown): unknown =>
   typeof raw === 'object' && raw !== null && 'schema_version' in raw ? raw.schema_version : null
 
+type RowRules = {
+  userId: string
+  // Edit times later than this are refused.
+  latestEdit: number
+  // Only foods and recipes: a deleted one stays in the file while live rows still use it.
+  deletedAllowed: boolean
+}
+
 // Every row of one table, checked on its own, or null when any row doesn't fit.
 const parseRows = <Row extends SyncRow>(
   spec: TableSpec<Row>,
   raws: readonly unknown[],
-  userId: string,
+  { userId, latestEdit, deletedAllowed }: RowRules,
   fits: (row: Row) => boolean,
 ): Row[] | null => {
   const rows: Row[] = []
@@ -164,10 +227,10 @@ const parseRows = <Row extends SyncRow>(
       !row ||
       row.schema_version !== spec.schemaVersion ||
       row.user_id !== userId ||
-      row.deleted_at !== null ||
+      (row.deleted_at !== null && !(deletedAllowed && isTimestamp(row.deleted_at))) ||
       !isUuid(row.id) ||
       ids.has(row.id) ||
-      !isTimestamp(row.client_updated_at) ||
+      !(timeOf(row.client_updated_at) <= latestEdit) ||
       !fits(row)
     ) {
       return null
@@ -178,18 +241,23 @@ const parseRows = <Row extends SyncRow>(
   return rows
 }
 
-const parseTables = (file: Envelope, today: string): ExportTables | null => {
+const parseTables = (file: Envelope, context: ParseContext): ExportTables | null => {
   const raw = file.tables
-  const fits = fitsDatabase(today)
-  const user = file.user_id
-  const profile = parseRows(profileSpec, raw.profile, user, fits.profile)
-  const foods = parseRows(foodsSpec, raw.foods, user, fits.foods)
-  const recipes = parseRows(recipesSpec, raw.recipes, user, fits.recipes)
-  const recipe_items = parseRows(recipeItemsSpec, raw.recipe_items, user, fits.recipe_items)
-  const days = parseRows(daysSpec, raw.days, user, fits.days)
-  const log_entries = parseRows(logEntriesSpec, raw.log_entries, user, fits.log_entries)
-  const weights = parseRows(weightsSpec, raw.weights, user, fits.weights)
-  const checkins = parseRows(checkinsSpec, raw.checkins, user, fits.checkins)
+  const fits = fitsDatabase(context)
+  const live: RowRules = {
+    userId: file.user_id,
+    latestEdit: timeOf(file.exported_at) + CLOCK_SKEW_MS,
+    deletedAllowed: false,
+  }
+  const parent: RowRules = { ...live, deletedAllowed: true }
+  const profile = parseRows(profileSpec, raw.profile, live, fits.profile)
+  const foods = parseRows(foodsSpec, raw.foods, parent, fits.foods)
+  const recipes = parseRows(recipesSpec, raw.recipes, parent, fits.recipes)
+  const recipe_items = parseRows(recipeItemsSpec, raw.recipe_items, live, fits.recipe_items)
+  const days = parseRows(daysSpec, raw.days, live, fits.days)
+  const log_entries = parseRows(logEntriesSpec, raw.log_entries, live, fits.log_entries)
+  const weights = parseRows(weightsSpec, raw.weights, live, fits.weights)
+  const checkins = parseRows(checkinsSpec, raw.checkins, live, fits.checkins)
   if (
     !profile ||
     !foods ||
@@ -241,16 +309,15 @@ const versions: Record<TableName, number> = {
 }
 
 const hasNewerRows = (file: Envelope): boolean =>
-  (Object.keys(versions) as TableName[]).some((table) =>
+  tableNames.some((table) =>
     file.tables[table].some((raw) => {
       const version = rowVersion(raw)
       return typeof version === 'number' && version > versions[table]
     }),
   )
 
-// Checks the whole file before anything is written. `today` is the device's local day, for
-// the profile's birth date rule.
-export const parseExport = (text: string, today: string): ParseExportResult => {
+// Checks the whole file before anything is written.
+export const parseExport = (text: string, context: ParseContext): ParseExportResult => {
   if (text.length > MAX_EXPORT_CHARS) return { ok: false, reason: 'too_large' }
   let json: unknown
   try {
@@ -262,9 +329,11 @@ export const parseExport = (text: string, today: string): ParseExportResult => {
   if (!head.success) return { ok: false, reason: 'not_export' }
   if (head.data.version > EXPORT_VERSION) return { ok: false, reason: 'newer_version' }
   const file = envelope.safeParse(json)
-  if (!file.success) return { ok: false, reason: 'invalid' }
+  if (!file.success || timeOf(file.data.exported_at) > context.now.getTime() + CLOCK_SKEW_MS) {
+    return { ok: false, reason: 'invalid' }
+  }
   if (hasNewerRows(file.data)) return { ok: false, reason: 'newer_version' }
-  const tables = parseTables(file.data, today)
+  const tables = parseTables(file.data, context)
   if (!tables || !consistent(tables, file.data.user_id)) return { ok: false, reason: 'invalid' }
   return { ok: true, file: { ...file.data, tables } }
 }
