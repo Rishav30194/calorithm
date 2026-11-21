@@ -141,11 +141,12 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 - Daily kcal and protein totals.
 
 **Acceptance criteria:**
-- [ ] Logging a saved food takes at most two taps from the log screen.
-- [ ] Editing a food doesn't change any past log entry (unit and end-to-end tests).
-- [ ] A log made at 00:30 lands on that calendar day.
+- [x] Logging a saved food takes at most two taps from the log screen. (`e2e/log.spec.ts`)
+- [x] Editing a food doesn't change any past log entry (unit and end-to-end tests).
+- [x] A log made at 00:30 lands on that calendar day. (End-to-end, in the `Asia/Kolkata`
+  time zone with a fixed clock.)
 - [x] Constraints reject negative kcal, zero servings, and similar values (pgTAP).
-- [ ] axe passes on every new screen.
+- [x] axe passes on every new screen.
 
 **Plan** (approved 2026-11-20): four PRs.
 
@@ -192,6 +193,12 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
   chunk. Screens read through `src/data/foodHooks.ts`, which returns view objects, never
   rows. `ScreenErrorBoundary` catches live-query errors and offers **Try again**. Forms
   parse with Zod in `src/ui/food/forms.ts` and accept a decimal comma.
+- PR 4: the log screen (`src/ui/log/`) shows today at `#/log` and other days at
+  `#/log/day/YYYY-MM-DD`, loaded on demand. `useToday` reads the local day and moves on at
+  midnight and when the app returns to the foreground. The picker's Today, Yesterday, and
+  Most used rows (last 60 days, top 10) log the servings last logged in one tap; search logs
+  one serving. `src/domain/dates.ts` does calendar arithmetic in UTC so daylight saving
+  never skips a day.
 
 ## Phase 4 — Weight and the trend chart
 
