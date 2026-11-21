@@ -7,11 +7,10 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 ## Next
 
 1. Phase 5 is in progress; the approved four-PR plan is in `docs/phases.md`. PR 1 (the
-   `checkins` schema and decision 0021) is merged as #17. PR 2 (the calculations) is on
-   `feature/phase-5-calculations`. Next: PR 3, the profile screen on the settings tab. The
-   last acceptance criterion (a skipped week says why) closes with the check-in screen in
-   PR 4, which maps `CheckinFields` to the row and should run them through `checkinsSpec` in a
-   test.
+   `checkins` schema) and PR 2 (the calculations) are merged as #17 and #18. Next: PR 3, the
+   profile screen on the settings tab, on `feature/phase-5-profile`. The last acceptance
+   criterion (a skipped week says why) closes with the check-in screen in PR 4, which maps
+   `CheckinFields` to the row and should run them through `checkinsSpec` in a test.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
