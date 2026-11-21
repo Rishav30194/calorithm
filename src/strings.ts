@@ -81,4 +81,15 @@ export const strings = {
     signingOut: 'Signing out…',
     signOutFailed: 'Couldn’t sign out. Check your connection and try again.',
   },
+
+  signOutWarning: {
+    title: 'Sign out and lose unsent changes?',
+    body: (count: number) =>
+      count === 1
+        ? '1 change hasn’t reached the server. Signing out deletes it from this device. Export it first to keep a copy.'
+        : `${count} changes haven’t reached the server. Signing out deletes them from this device. Export them first to keep a copy.`,
+    export: 'Export changes',
+    confirm: 'Sign out anyway',
+    cancel: 'Cancel',
+  },
 } as const

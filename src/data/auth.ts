@@ -91,17 +91,16 @@ export const useSession = (client: Client): SessionState => {
 export type Auth = {
   session: SessionState
   signIn: (email: string, password: string) => Promise<SignInResult>
-  signOut: () => Promise<SignOutResult>
 }
 
 // The interface's only way in: screens get session state and actions, never the client.
+// Sign-out comes from DataProvider's useSignOut, since it deletes the local database first.
 export const useAuth = (env: Env): Auth => {
   const client = getClient(env)
   const session = useSession(client)
   const actions = useMemo(
     () => ({
       signIn: (email: string, password: string) => signIn(client, email, password),
-      signOut: () => signOut(client),
     }),
     [client],
   )

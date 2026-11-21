@@ -36,6 +36,17 @@ export const pendingDeletesIn = (storage: KeyValueStorage): PendingDeletes => {
   }
 }
 
+const noStorage: KeyValueStorage = { getItem: () => null, setItem: () => {} }
+
+export const browserPendingDeletes = (): PendingDeletes => {
+  try {
+    // Reading the property itself throws where site data is blocked.
+    return pendingDeletesIn(window.localStorage)
+  } catch {
+    return pendingDeletesIn(noStorage)
+  }
+}
+
 // Without this, the browser may clear IndexedDB under storage pressure, losing unsent
 // changes. The browser can refuse; the app works either way.
 export const requestPersistentStorage = async (): Promise<void> => {

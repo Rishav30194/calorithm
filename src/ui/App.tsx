@@ -1,6 +1,7 @@
 import { useAuth } from '@/data/auth'
 import { DataProvider } from '@/data/DataProvider'
 import { type Env, parseEnv } from '@/data/env'
+import { useLocalDataReady } from '@/data/startup'
 import { strings } from '@/strings'
 
 import { usePwaUpdate } from './pwa'
@@ -28,17 +29,19 @@ const Loading = () => (
 )
 
 const Configured = ({ env, onUpdate }: { env: Env; onUpdate: () => Promise<void> }) => {
-  const { session, signIn, signOut } = useAuth(env)
+  const { session, signIn } = useAuth(env)
+  const ready = useLocalDataReady()
   switch (session.status) {
     case 'loading':
       return <Loading />
     case 'signed_out':
       return <SignIn onSignIn={signIn} />
     case 'signed_in':
+      if (!ready) return <Loading />
       // Keyed by user, so a different user always gets a fresh database and engine.
       return (
         <DataProvider key={session.userId} env={env} userId={session.userId} loading={<Loading />}>
-          <SignedIn email={session.email} onSignOut={signOut} onUpdate={onUpdate} />
+          <SignedIn email={session.email} onUpdate={onUpdate} />
         </DataProvider>
       )
   }
