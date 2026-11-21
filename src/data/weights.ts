@@ -1,4 +1,4 @@
-import { isDay } from '@/domain/dates'
+import { EARLIEST_DAY, isDay } from '@/domain/dates'
 import { roundTo } from '@/domain/nutrition'
 import type { WeighIn } from '@/domain/trend'
 import { isWeightKgInRange } from '@/domain/weight'
@@ -6,7 +6,7 @@ import { isWeightKgInRange } from '@/domain/weight'
 import { weightId } from './dayId'
 import type { LocalDb } from './db'
 import { type Clock, softDelete, visibleRows, writeRow } from './repository'
-import { EARLIEST_DAY, type WeightRow, weightsSpec } from './tables'
+import { type WeightRow, weightsSpec } from './tables'
 
 export type SetWeighInResult =
   | { ok: true; row: WeightRow }

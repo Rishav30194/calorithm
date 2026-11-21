@@ -14,6 +14,20 @@ export const secondUser = {
   password: 'Local-Seed-Pass-2026',
 }
 
+// Weight tests only; its units stay metric, since other tests flip the seed user's units.
+export const weightUser = {
+  id: 'd0000000-0000-4000-8000-000000000003',
+  email: 'weight.user@calorithm.test',
+  password: 'Local-Seed-Pass-2026',
+}
+
+// The units switch test only, in the desktop project.
+export const unitsUser = {
+  id: 'd0000000-0000-4000-8000-000000000004',
+  email: 'units.user@calorithm.test',
+  password: 'Local-Seed-Pass-2026',
+}
+
 type SeedUser = typeof seedUser
 
 export const signIn = (page: Page, password = seedUser.password) =>

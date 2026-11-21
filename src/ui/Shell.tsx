@@ -16,6 +16,7 @@ type Props = {
   foodScreens?: (route: FoodRoute) => ReactNode
   // The day's log; a date of null is today.
   logScreen?: (date: string | null) => ReactNode
+  weightScreen?: ReactNode
 }
 
 const ComingSoon = ({ text }: { text: string }) => <p className="text-muted">{text}</p>
@@ -65,7 +66,7 @@ const screen = (route: Route, props: Props) => {
     case 'recipe':
       return props.foodScreens?.(route) ?? null
     case 'weight':
-      return <ComingSoon text={strings.comingSoon.weight} />
+      return props.weightScreen ?? null
     case 'checkin':
       return <ComingSoon text={strings.comingSoon.checkin} />
     case 'settings':

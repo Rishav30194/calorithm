@@ -2,7 +2,7 @@ import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 
 import { addDays } from './dates'
-import { trend, type WeighIn } from './trend'
+import { trend, trendChange, type WeighIn } from './trend'
 
 const at = (points: ReturnType<typeof trend>, date: string) =>
   points.find((point) => point.date === date)
@@ -171,6 +171,51 @@ describe('trend properties', () => {
           const next = points[index + 1]
           if (next) expect(next.date).toBe(addDays(point.date, 1))
         })
+      }),
+    )
+  })
+})
+
+describe('trendChange', () => {
+  // From the hand-computed history in the trend tests: 80 on 11-01, 80.191 on 11-05.
+  const points = trend(
+    [
+      { date: '2026-11-01', kg: 80 },
+      { date: '2026-11-02', kg: 81 },
+      { date: '2026-11-04', kg: 79 },
+      { date: '2026-11-05', kg: 82 },
+    ],
+    '2026-11-01',
+    '2026-11-05',
+  )
+
+  it('is the trend on the date minus the trend the given days before', () => {
+    expect(trendChange(points, '2026-11-05', 4)).toBeCloseTo(0.191, 10)
+    expect(trendChange(points, '2026-11-04', 1)).toBeCloseTo(-0.11, 10)
+  })
+
+  it('is null when either end has no trend', () => {
+    expect(trendChange(points, '2026-11-05', 7)).toBeNull()
+    expect(trendChange(points, '2026-11-06', 1)).toBeNull()
+    expect(trendChange([], '2026-11-05', 1)).toBeNull()
+  })
+
+  it('is zero for a constant series, and the end minus the start otherwise', () => {
+    fc.assert(
+      fc.property(history, fc.integer({ min: 1, max: 30 }), (weighIns, days) => {
+        const all = trend(weighIns, '2026-01-01', end)
+        const change = trendChange(all, end, days)
+        const start = all.find((point) => point.date === addDays(end, -days))
+        if (start === undefined) expect(change).toBeNull()
+        else expect(change).toBeCloseTo((all.at(-1)?.trendKg ?? 0) - start.trendKg, 9)
+
+        const flat = trend(
+          weighIns.map((weighIn) => ({ ...weighIn, kg: 80 })),
+          '2026-01-01',
+          end,
+        )
+        const flatChange = trendChange(flat, end, days)
+        if (flatChange !== null) expect(flatChange).toBeCloseTo(0, 9)
       }),
     )
   })

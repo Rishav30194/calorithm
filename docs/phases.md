@@ -202,7 +202,7 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 
 ## Phase 4 — Weight and the trend chart
 
-**Status:** In progress
+**Status:** In progress (all three PRs written; marked done once PR 3 merges)
 
 **Goal:** daily weigh-ins with a trend line you can trust.
 
@@ -218,7 +218,8 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
   carry it forward. (`src/domain/trend.test.ts`)
 - [x] A second weigh-in on the same day replaces the first. (`src/data/weights.test.ts`, and
   the database test in `supabase/tests/weights.test.sql`)
-- [ ] Units switch without changing stored values.
+- [x] Units switch without changing stored values. (`src/domain/weight.test.ts` and
+  `e2e/weight.spec.ts`)
 
 **Plan** (approved 2026-11-21): three PRs.
 
@@ -245,6 +246,22 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
   rounds to two decimals and refuses values outside 20 to 400 kg, and dates before 2000 or
   not real, with a typed result;
   `src/data/weightHooks.ts` reads and writes for the screen.
+- PR 3: the weight screen (`src/ui/weight/`) loads on demand at `#/weight`. It shows the
+  trend and its change over 7 days, a weigh-in form for today or an earlier day, a chart of
+  the last 90 days, and a table of those weigh-ins with their trend (**Show all weigh-ins**
+  lists older ones); a row opens an edit dialog with **Delete**. The chart's axis starts at
+  the first point in the window. Without a weigh-in in the window, the screen shows no trend,
+  since one carried from months ago isn't current. The form's day follows today until a day
+  is picked, typed text clears when the unit changes, and the screen waits for the profile's
+  unit (`useWeightUnit`) before showing the form. An unchanged pound edit saves nothing, since
+  one decimal in pounds doesn't always convert back to the stored kilograms. The SVG
+  is hidden from screen readers; a visually hidden summary names its dates and the lowest and
+  highest weigh-in, and the table holds the values. `trendChange` in `src/domain/trend.ts`
+  gives the 7-day change. The plan's hidden data table became the visible weigh-ins table.
+- The browser tests sign in as two synthetic users added to `supabase/seed.sql`:
+  `weight.user`, whose units never change, and `units.user`, for the desktop-only units test.
+  The seed user can't be used, because `sync.spec.ts` flips its units in parallel. Each test
+  fixes the clock to a random past day and waits for the outbox to empty before it ends.
 
 ## Phase 5 — Targets and the weekly check-in
 

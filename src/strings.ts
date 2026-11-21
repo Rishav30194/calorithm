@@ -190,8 +190,42 @@ export const strings = {
     },
   },
 
+  weight: {
+    add: 'Weigh in',
+    day: 'Day',
+    weight: (unit: string) => `Weight (${unit})`,
+    save: 'Save',
+    saved: 'Saved.',
+    replaces: 'This replaces the weigh-in already saved for this day.',
+    failed: 'Couldn’t save that. Try again.',
+    errors: {
+      day: 'Pick a day from 2000 up to today.',
+      weight: (min: string, max: string) => `Enter a weight between ${min} and ${max}.`,
+    },
+    trend: (weight: string) => `Trend ${weight}`,
+    down: (amount: string) => `Down ${amount} in the last 7 days`,
+    up: (amount: string) => `Up ${amount} in the last 7 days`,
+    steady: 'No change in the last 7 days',
+    chartTitle: 'Weight chart',
+    // Read by screen readers instead of the chart, which shows the same data as the table.
+    chartSummary: (from: string, to: string, low: string, high: string) =>
+      `Chart from ${from} to ${to}: weigh-ins between ${low} and ${high}, and the trend line.`,
+    legendWeighIns: 'Weigh-ins',
+    legendTrend: 'Trend',
+    history: 'Weigh-ins',
+    date: 'Date',
+    trendColumn: 'Trend',
+    empty: 'No weigh-ins yet. Weigh in to start your trend.',
+    noneRecent: 'No weigh-ins in the last 90 days.',
+    showAll: 'Show all weigh-ins',
+    showRecent: 'Show the last 90 days only',
+    edit: (day: string) => `Edit weigh-in for ${day}`,
+    editTitle: (day: string) => `Weigh-in for ${day}`,
+    remove: 'Delete',
+    cancel: 'Cancel',
+  },
+
   comingSoon: {
-    weight: 'Weigh-ins and the trend chart arrive in phase 4.',
     checkin: 'Targets and the weekly check-in arrive in phase 5.',
   },
 

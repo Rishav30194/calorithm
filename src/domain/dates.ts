@@ -2,6 +2,9 @@
 // where every day is 24 hours, so daylight-saving changes never skip or repeat a day.
 const DAY_MS = 86_400_000
 
+// The earliest date the database accepts for a day, log entry, or weigh-in.
+export const EARLIEST_DAY = '2000-01-01'
+
 const toUtc = (day: string): number => {
   const [year = 0, month = 1, date = 1] = day.split('-').map(Number)
   return Date.UTC(year, month - 1, date)

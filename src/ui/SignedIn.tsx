@@ -24,6 +24,8 @@ const loadFoodScreens = () =>
   lazy(() => import('./food/screens').then((module) => ({ default: module.FoodScreens })))
 const loadLogScreen = () =>
   lazy(() => import('./log/screens').then((module) => ({ default: module.LogScreen })))
+const loadWeightScreen = () =>
+  lazy(() => import('./weight/screens').then((module) => ({ default: module.WeightScreen })))
 
 // Re-renders every 30 seconds so "Last synced 5 minutes ago" stays current.
 const useNow = (): number => {
@@ -74,6 +76,7 @@ export const SignedIn = ({ email, onUpdate }: Props) => {
   const signOut = useSignOut()
   const [FoodScreens, setFoodScreens] = useState(loadFoodScreens)
   const [LogScreen, setLogScreen] = useState(loadLogScreen)
+  const [WeightScreen, setWeightScreen] = useState(loadWeightScreen)
   if (status.state === 'update_required') return <UpdateRequired onUpdate={onUpdate} />
   return (
     <Shell
@@ -88,6 +91,13 @@ export const SignedIn = ({ email, onUpdate }: Props) => {
           </Suspense>
         </ScreenErrorBoundary>
       )}
+      weightScreen={
+        <ScreenErrorBoundary onRetry={() => setWeightScreen(() => loadWeightScreen())}>
+          <Suspense fallback={<p className="text-muted">{strings.loading}</p>}>
+            <WeightScreen locale={navigator.language} />
+          </Suspense>
+        </ScreenErrorBoundary>
+      }
       foodScreens={(route) => (
         // Catches a chunk that fails to load, such as offline before it was cached.
         <ScreenErrorBoundary onRetry={() => setFoodScreens(() => loadFoodScreens())}>
