@@ -66,6 +66,7 @@ must pass.
 | [docs/phases.md](docs/phases.md) | Build phases, acceptance criteria, and status |
 | [docs/decisions/](docs/decisions/) | Architecture decision records |
 | [docs/development.md](docs/development.md) | Commands, branches, commits, PRs, and releases |
+| [docs/production.md](docs/production.md) | Hosted setup, deployment, and the live checks |
 | [docs/testing.md](docs/testing.md) | Test strategy and the cases each layer covers |
 | [docs/security.md](docs/security.md) | Threat model, privacy, and data handling |
 | [docs/ai-workflow.md](docs/ai-workflow.md) | How AI-assisted development is run and checked |

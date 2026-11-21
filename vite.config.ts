@@ -22,9 +22,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      // 'prompt' never reloads on its own, so an entry in progress is never lost. Until the
-      // Update available prompt arrives (phase 6), a new build waits until every app window
-      // closes.
+      // 'prompt' never reloads on its own, so an entry in progress is never lost: a new build
+      // waits until the user selects Update on the Update available banner.
       registerType: 'prompt',
       injectRegister: 'auto',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],

@@ -1,0 +1,27 @@
+name: Keep awake
+
+# A free Supabase project pauses after a week with no requests. Reading app_config, the one
+# table open before sign-in, counts as a request and needs no account or service key. A failed
+# run means the project is paused or the secrets are wrong; GitHub emails the repo owner.
+on:
+  schedule:
+    - cron: "17 6 * * 1,4"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read app_config from the hosted database
+        env:
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          body=$(curl --fail-with-body --silent --show-error --max-time 30 --retry 3 \
+            --header "apikey: $SUPABASE_KEY" \
+            "$SUPABASE_URL/rest/v1/app_config?select=min_app_version")
+          echo "$body"
+          [[ $(jq 'length' <<<"$body") == 1 ]] || { echo "::error::Expected one app_config row"; exit 1; }

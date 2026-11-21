@@ -43,3 +43,4 @@ change a decision, write a new record that supersedes the old one.
 | [0021](0021-weekly-check-in-rules.md) | Weekly check-in rules | Accepted |
 | [0022](0022-export-file-and-import-merge.md) | Export file format and how import merges | Accepted |
 | [0023](0023-account-deletion-needs-a-recent-password-sign-in.md) | Account deletion needs a recent password sign-in | Accepted |
+| [0024](0024-public-repository-for-github-pages.md) | Public repository for GitHub Pages | Accepted |
