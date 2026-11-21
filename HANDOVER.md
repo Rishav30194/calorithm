@@ -6,18 +6,19 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 2 PR 2 (live wiring) is built on `feature/sync-wiring` and passed both reviews. Ask
-   the user before pushing and opening its PR.
-2. Then PR 3 (session), the last part of phase 2:
+1. PR 3 (session), the last part of phase 2, on `feature/session` (branched from `main` after
+   PR #3 merged). Present the plan and wait for approval first:
    - sign-out that waits for `engine.whenIdle()`, syncs, warns about unsent changes with a
      JSON export, then deletes the local database (cases 14 and 15)
    - two users on one device never see each other's rows (case 17)
    - `navigator.storage.persist()` on start
-   - cases 1 and the two-window check are already covered in `e2e/sync.spec.ts`
-3. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+   - case 1 and the two-window check are already covered in `e2e/sync.spec.ts`
+   Then tick the last phase 2 criterion ("After sign-out, IndexedDB holds no database for
+   that user") and mark phase 2 done when its PR merges.
+2. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
 
-Pushes use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push`,
-because git has no stored GitHub credentials and the global git config stays untouched.
+Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential'`
+(then `push` or `fetch`), because git has no stored GitHub credentials and the global git config stays untouched.
 
 ## Open questions
 
