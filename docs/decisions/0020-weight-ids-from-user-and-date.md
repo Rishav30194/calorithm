@@ -31,3 +31,5 @@ the row's own `user_id` and `date`, as decision 0018 does for `days`.
 - Deleting a weigh-in soft deletes the row, and weighing in again that day revives the same
   row.
 - The namespace can never change, for the same reason as the `days` one.
+- A weigh-in's date can't change: the id would no longer match. Moving a weigh-in to another
+  day soft deletes it and writes the row for the new day.

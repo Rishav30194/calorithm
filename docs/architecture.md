@@ -89,7 +89,10 @@ sequenceDiagram
 ```
 
 - **Idempotent:** every row has a device-created UUID, and the push is an upsert on that ID.
-  A resend after a lost response writes the same row again.
+  A resend after a lost response writes the same row again. Tables with one row per user and
+  date (`days` and `weights`) derive the UUID from the user and date instead (`dayId` and
+  `weightId` in `src/data/dayId.ts`), and a `CHECK` constraint requires it, so two devices
+  write one row (decisions 0018 and 0020). Such a row's date never changes.
 - **Stamped:** the repository sets `client_updated_at` to the device's time and
   `schema_version` to the app's current shape. The server's trigger sets `updated_at`.
 - **Order:** the outbox is sent in insertion order, parents before children (a recipe before

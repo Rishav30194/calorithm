@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(21);
+select plan(22);
 
 -- Two synthetic users. Tests act as one of them by setting the JWT claims PostgREST would set.
 insert into auth.users (id, email)
@@ -44,6 +44,14 @@ select throws_ok(
   '42501',
   null,
   'a user cannot create a weigh-in for someone else'
+);
+
+select throws_ok(
+  $$ update public.weights set user_id = 'b0000000-0000-4000-8000-000000000002', client_updated_at = '2026-11-19 10:30+00'
+     where id = '798ab06f-16c7-5671-9a7c-c0241face483' $$,
+  '42501',
+  null,
+  'an owner cannot give their weigh-in to another user'
 );
 
 select throws_ok(

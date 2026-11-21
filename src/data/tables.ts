@@ -156,8 +156,13 @@ export const weightsSpec: TableSpec<WeightRow> = {
     z.object({
       ...syncColumns,
       date: z.iso.date(),
-      // The database's range check; rejected here so a bad row fails before it's sent.
-      weight_kg: z.number().check(z.gte(20), z.lte(400)),
+      // numeric(5,2) between 20 and 400. Repositories round to 2 decimals; anything else is
+      // rejected here, as the food specs do, rather than rounded differently by the server.
+      weight_kg: z.number().check(
+        z.gte(20),
+        z.lte(400),
+        z.refine((kg) => Math.abs(kg * 100 - Math.round(kg * 100)) < 1e-6),
+      ),
     }),
   ),
 }

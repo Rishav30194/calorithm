@@ -184,6 +184,16 @@ describe('values the columns can’t store', () => {
     expect(weightsSpec.parse({ ...weight, weight_kg: 20 })).toEqual({ ...weight, weight_kg: 20 })
     expect(weightsSpec.parse({ ...weight, weight_kg: 400 })).toEqual({ ...weight, weight_kg: 400 })
   })
+
+  it('rejects a weight that isn’t a finite number with at most 2 decimals', () => {
+    for (const weight_kg of [Number.NaN, Number.POSITIVE_INFINITY, '82.4', null, 82.345]) {
+      expect(weightsSpec.parse({ ...weight, weight_kg })).toBeNull()
+    }
+    expect(weightsSpec.parse({ ...weight, weight_kg: 82.35 })).toEqual({
+      ...weight,
+      weight_kg: 82.35,
+    })
+  })
 })
 
 describe('syncedTables', () => {
