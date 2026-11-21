@@ -23,32 +23,40 @@ export const writeRow = async <Row extends SyncRow>(
   })
   if (!row) throw new Error(`writeRow: the row doesn't match the ${spec.name} table`)
 
-  await db.transaction('rw', db.rows(spec.name), db.outbox, async () => {
-    await db.rows(spec.name).put(row)
-    const existing = await db.outbox.where('[table+rowId]').equals([spec.name, row.id]).first()
-    if (existing?.seq !== undefined) {
-      await db.outbox.update(existing.seq, {
-        row,
-        schemaVersion: spec.schemaVersion,
-        rev: existing.rev + 1,
-        attempts: 0,
-        nextAttemptAt: 0,
-        failure: null,
-      })
-    } else {
-      await db.outbox.add({
-        table: spec.name,
-        rowId: row.id,
-        row,
-        schemaVersion: spec.schemaVersion,
-        rev: 1,
-        attempts: 0,
-        nextAttemptAt: 0,
-        failure: null,
-      })
-    }
-  })
+  await db.transaction('rw', db.rows(spec.name), db.outbox, () => putAndQueue(db, spec, row))
   return row
+}
+
+// Stores the row and queues it, replacing any queued change to the same row. Must run inside a
+// transaction that covers the row's table and the outbox.
+export const putAndQueue = async <Row extends SyncRow>(
+  db: LocalDb,
+  spec: TableSpec<Row>,
+  row: Row,
+): Promise<void> => {
+  await db.rows(spec.name).put(row)
+  const existing = await db.outbox.where('[table+rowId]').equals([spec.name, row.id]).first()
+  if (existing?.seq !== undefined) {
+    await db.outbox.update(existing.seq, {
+      row,
+      schemaVersion: spec.schemaVersion,
+      rev: existing.rev + 1,
+      attempts: 0,
+      nextAttemptAt: 0,
+      failure: null,
+    })
+  } else {
+    await db.outbox.add({
+      table: spec.name,
+      rowId: row.id,
+      row,
+      schemaVersion: spec.schemaVersion,
+      rev: 1,
+      attempts: 0,
+      nextAttemptAt: 0,
+      failure: null,
+    })
+  }
 }
 
 export const softDelete = async <Row extends SyncRow>(
