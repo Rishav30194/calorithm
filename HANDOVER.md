@@ -8,9 +8,9 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 1. Phase 3 PR 1 (schema) is built on `feature/food-schema`: five migrations with pgTAP
    tests, generated types, table specs, and Dexie schema version 2. `check:full` passed and
-   `/code-review` findings are fixed or recorded in `docs/phases.md`. `/security-review` was
-   running when the session ended; rerun it if no result is recorded, then ask the user
-   before pushing and opening the PR.
+   `/code-review` findings are fixed or recorded in `docs/phases.md`. `/security-review`
+   found nothing; its one note (how the `days` id is derived) is recorded under PR 2. Ask
+   the user before pushing and opening the PR.
 2. Phase 3 PR 2 (calculations and storage), as planned in `docs/phases.md`, including the
    two follow-ups from the PR 1 review: rounding at the boundary, and push holding children
    while their parent has a failed change. Holding children changes how push treats foreign
