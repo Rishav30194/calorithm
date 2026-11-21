@@ -41,7 +41,8 @@ export const strings = {
     add: 'Add',
     addTo: (meal: string) => `Add to ${meal}`,
     copyFrom: 'Copy from…',
-    copyFromLabel: (meal: string) => `Copy into ${meal} from another day or meal`,
+    // Starts with the visible text, so speech control users can say what they see.
+    copyFromLabel: (meal: string) => `Copy from… into ${meal}`,
     copyInto: (meal: string) => `Copy into ${meal}`,
     emptyMeal: 'Nothing logged yet.',
     servings: (amount: string, one: boolean) => (one ? `${amount} serving` : `${amount} servings`),
