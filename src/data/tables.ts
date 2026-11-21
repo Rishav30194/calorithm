@@ -169,6 +169,54 @@ export const weightsSpec: TableSpec<WeightRow> = {
   ),
 }
 
+export type CheckinRow = Tables<'checkins'>
+
+// Matches the column's numeric precision, so a value the server would round is rejected here.
+const decimals = (places: number) => {
+  const scale = 10 ** places
+  return z.refine<number>((value) => Math.abs(value * scale - Math.round(value * scale)) < 1e-6)
+}
+
+const checkinSchema = z
+  .object({
+    ...syncColumns,
+    date: z.iso.date().check(z.refine((date) => date >= EARLIEST_DAY)),
+    status: z.enum(['updated', 'skipped']),
+    // Only a week with too few complete days is stored as skipped; see the migration.
+    skip_reason: z.nullable(z.enum(['too_few_complete_days'])),
+    method: z.nullable(z.enum(['formula', 'adaptive'])),
+    previous_maintenance_kcal: z.nullable(z.int()),
+    raw_maintenance_kcal: z.nullable(z.int()),
+    maintenance_kcal: z.int(),
+    kcal_target: z.int(),
+    protein_target_g: z.number().check(decimals(1)),
+    trend_weight_kg: z.number().check(decimals(2)),
+    trend_change_kg: z.nullable(z.number().check(decimals(2))),
+    window_days: z.nullable(z.int()),
+    complete_days_in_window: z.nullable(z.int()),
+    average_intake_kcal: z.nullable(z.int()),
+    complete_days_in_week: z.int(),
+    goal_rate_requested_kg_per_week: z.number().check(decimals(2)),
+    goal_rate_applied_kg_per_week: z.number().check(decimals(2)),
+    protein_g_per_kg: z.number().check(decimals(1)),
+    calorie_floor_kcal: z.int(),
+    floor_applied: z.boolean(),
+    rate_capped: z.boolean(),
+  })
+  .check(
+    z.refine((row) =>
+      row.status === 'updated'
+        ? row.skip_reason === null && row.method !== null
+        : row.skip_reason !== null && row.method === null,
+    ),
+  )
+
+export const checkinsSpec: TableSpec<CheckinRow> = {
+  name: 'checkins',
+  schemaVersion: 1,
+  parse: parser(checkinSchema),
+}
+
 // Push order: a parent table comes before any table that references it.
 export const syncedTables: readonly TableSpec[] = [
   profileSpec,
@@ -178,4 +226,5 @@ export const syncedTables: readonly TableSpec[] = [
   daysSpec,
   logEntriesSpec,
   weightsSpec,
+  checkinsSpec,
 ]

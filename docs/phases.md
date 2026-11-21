@@ -282,7 +282,35 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 - [ ] No input produces a target below the calorie floor or a rate above the cap.
 - [ ] A week with fewer than 4 complete days leaves targets unchanged and says why.
 
-**Implementation notes:** none yet.
+**Plan** (approved 2026-11-21): four PRs.
+
+1. **Schema:** `checkins` migration and pgTAP tests, generated types, `checkinsSpec` last in
+   push order, and Dexie schema version 4 with an upgrade test.
+2. **Calculations:** `src/domain/maintenance.ts` (the Mifflin-St Jeor formula, the adaptive
+   estimate, blending, and skip reasons) and `src/domain/targets.ts` (rate cap, calorie floor,
+   protein), with every property in `docs/testing.md`, "Calculations", and 12-week synthetic
+   histories. Decision 0021 records the check-in rules.
+3. **Profile screen** on the settings tab: height, birth date, sex, activity, goal rate,
+   protein g per kg, and calorie floor.
+4. **The check-in screen**, loaded on demand, and progress bars on the log screen, with the
+   end-to-end journeys and axe.
+
+Check-in rules (to be recorded in decision 0021): a check-in is due when none exists or 7 days
+have passed since the last; you save it with **Save check-in**; the formula is used until 14
+days of data exist; the new estimate moves halfway toward the raw one, at most 150 kcal; and a
+week with fewer than 4 complete days is stored as skipped, carrying the targets forward.
+
+**Implementation notes:**
+- PR 1: a check-in's id is a UUID v5 of the user and date in its own namespace (`checkinId`),
+  checked by the database, so two devices running the same check-in write one row. Each row
+  stores the result and the inputs used: status (`updated` or `skipped`), method (`formula` or
+  `adaptive`), the previous, raw, and new estimates, the targets, trend weight and change, the
+  window and its complete days, average intake, requested and applied goal rate, protein
+  setting, calorie floor, and which limits applied. Only `too_few_complete_days` is a stored
+  skip reason: missing weigh-ins or profile fields block a check-in instead. An updated
+  check-in's target is at least its floor; a skipped one keeps the previous target even if the
+  floor has been raised since. `checkinsSpec` mirrors the enums, the status rules, and the
+  columns' precision.
 
 ## Phase 6 — Export, import, account deletion, and updates
 

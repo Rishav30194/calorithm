@@ -5,6 +5,9 @@ export const DAYS_NAMESPACE = '55e70c90-e7ae-4176-b16f-2c8bfcbdef11'
 // The weights table's CHECK constraint uses the same value; the same warning applies.
 export const WEIGHTS_NAMESPACE = '927e1d10-0ca5-4624-ba33-d19a9497f975'
 
+// The checkins table's CHECK constraint uses the same value; the same warning applies.
+export const CHECKINS_NAMESPACE = '7211687f-5471-4201-a682-62b6fde94019'
+
 const hexToBytes = (hex: string): Uint8Array => {
   const clean = hex.replaceAll('-', '')
   const bytes = new Uint8Array(clean.length / 2)
@@ -41,3 +44,7 @@ export const dayId = (userId: string, date: string): Promise<string> =>
 // same row and replaces the first (decision 0020).
 export const weightId = (userId: string, date: string): Promise<string> =>
   uuidV5(WEIGHTS_NAMESPACE, `${userId}/${date}`)
+
+// One check-in per user and day: two devices running the same check-in offline write one row.
+export const checkinId = (userId: string, date: string): Promise<string> =>
+  uuidV5(CHECKINS_NAMESPACE, `${userId}/${date}`)
