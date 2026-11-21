@@ -178,6 +178,13 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
   over 90 days ago must skip foods and recipes that live rows still reference, or remove
   those first.
 - `days` and `log_entries` accept future dates on purpose, for logging ahead.
+- PR 2: `src/domain/nutrition.ts` rounds at the storage boundary (kcal whole, protein one
+  decimal, servings two) and scales a recipe's exact totals before rounding once.
+  Repositories are `src/data/foods.ts` and `src/data/log.ts`. Changing an entry's servings
+  rescales from the entry's own values, never the food's current ones. Day ids follow
+  decision 0018, and push holds rows whose parent has a failed change (decision 0019).
+- Recipe items and a day's entries have no stored order: items come back in id order and
+  entries by last change. The screens sort them for display.
 
 ## Phase 4 — Weight and the trend chart
 
