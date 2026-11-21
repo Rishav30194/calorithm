@@ -7,8 +7,11 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 ## Next
 
 1. Phase 6 PRs 1 (#22) and 2 (#23) are merged. PR 3 (account deletion, decision 0023, the
-   `delete.me` seed user) is built; before its PR run `/code-review` and `/security-review`
-   (auth and row-level security). Run `npm run db:reset` once locally for the migration and
+   `delete.me` seed user) is built. `/code-review` findings are fixed: a lost response asks
+   Supabase Auth whether the user is gone (403 `user_not_found`, checked locally), a failed
+   local cleanup after deletion still signs out and leaves the delete for the next start, and
+   Cancel and Escape wait for a running deletion. Before its PR, run `/security-review` (auth
+   and row-level security). Run `npm run db:reset` once locally for the migration and
    the seed user. **Before the user signs up anyone else on the hosted project, they run
    `supabase db push` for the migration (Claude never does).** Next, PR 4: the **Update
    available** banner; then mark the phase done. End-to-end tests that look for a status
