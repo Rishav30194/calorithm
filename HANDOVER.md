@@ -11,8 +11,8 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    (deleted parents still in use are exported, the export reads in one transaction, column
    scales and far-future edit times are refused, edit times compare to the microsecond, birth
    dates check against the earlier of the local and UTC days, and the unproven casts are
-   gone). `/security-review` and `npm run check:full` were running when this was written;
-   check their results before opening the PR. PR 2 next: settings
+   gone). `/security-review` found nothing at confidence 8 or higher. PR #22 waits for the
+   user's review and squash-merge. PR 2 next: settings
    screen export and import, the last export date (`docs/architecture.md` says `sync_state`;
    its `SyncState` type doesn't fit, so decide the store there), and the check-in's 30-day
    reminder. End-to-end tests that look for a status message should scope it to a region: the
