@@ -115,7 +115,8 @@ Rules every user table follows:
   deletes, so deletions reach other devices; and `schema_version`, the shape the device wrote.
 - **Dates:** food and weight dates are `date` values from the device's local day, never
   `timestamptz`, so a snack at 00:30 or a log made while traveling lands on the right day.
-- **Numbers:** kcal is `integer`, protein `numeric(6,1)`, and weight `numeric(5,2)`. No floats.
+- **Numbers:** kcal is `integer`, protein `numeric(6,1)` (`numeric(7,1)` on log entries,
+  which hold many servings), and weight `numeric(5,2)`. No floats.
 - **Uniqueness:** `weights` and `days` have a unique index on `(user_id, date)`.
 - **Database checks:** `CHECK` constraints, `NOT NULL`, and foreign keys enforce the rules, so a
   modified client can't write bad data. For example: `kcal >= 0`, `protein >= 0`,

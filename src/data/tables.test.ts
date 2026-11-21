@@ -138,6 +138,19 @@ describe('food and log table specs', () => {
   })
 })
 
+describe('values the columns can’t store', () => {
+  // Rejected here rather than by the server, where the change would fail for good.
+  it('rejects a fractional kcal', () => {
+    expect(foodsSpec.parse({ ...food, kcal: 150.5 })).toBeNull()
+    expect(logEntriesSpec.parse({ ...logEntry, kcal: 195.00000000000003 })).toBeNull()
+  })
+
+  it('rejects a date that isn’t YYYY-MM-DD', () => {
+    expect(daysSpec.parse({ ...day, date: '20/11/2026' })).toBeNull()
+    expect(logEntriesSpec.parse({ ...logEntry, date: '2026-11-20T00:30:00' })).toBeNull()
+  })
+})
+
 describe('syncedTables', () => {
   it('lists each table once, parents before the tables that reference them', () => {
     const names = syncedTables.map((spec) => spec.name)

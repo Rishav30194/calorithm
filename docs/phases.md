@@ -153,7 +153,12 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
    push order, Dexie schema version 2 with an upgrade test, and sync case 4 on the real
    `recipes` and `recipe_items` tables.
 2. **Calculations and storage:** `src/domain/nutrition.ts` with property tests, repository
-   functions, and a `days` id derived from the user and date.
+   functions, and a `days` id derived from the user and date. From the PR 1 review:
+   - Repositories round servings and serving size to two decimals, protein to one, and kcal
+     to a whole number before writing, so the server never rejects a stored value.
+   - Push holds a log entry or recipe item while its food or recipe has a failed change.
+     Without this, the child fails on the foreign key and stays failed after the parent is
+     fixed. Sent once the parent syncs or is discarded.
 3. **Foods and recipes screens**, loaded on demand.
 4. **The log screen:** meals, quick re-log, copy a meal, day complete, totals, and the
    end-to-end journeys.
@@ -165,6 +170,10 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 - Log entries copy the food or recipe's `name`, `kcal`, and `protein_g` (for the servings
   logged) when written, so later edits never change a past day.
 - `meal` is one of `breakfast`, `lunch`, `dinner`, or `snacks`; a food is logged by servings.
+- The foreign keys have no `on delete` action, so phase 7's job that removes rows deleted
+  over 90 days ago must skip foods and recipes that live rows still reference, or remove
+  those first.
+- `days` and `log_entries` accept future dates on purpose, for logging ahead.
 
 ## Phase 4 — Weight and the trend chart
 

@@ -69,7 +69,7 @@ export const foodsSpec: TableSpec<FoodRow> = {
       name: z.string(),
       serving_size: z.number(),
       serving_unit: z.string(),
-      kcal: z.number(),
+      kcal: z.int(),
       protein_g: z.number(),
       archived_at: z.nullable(z.string()),
     }),
@@ -111,7 +111,7 @@ export type DayRow = Tables<'days'>
 export const daysSpec: TableSpec<DayRow> = {
   name: 'days',
   schemaVersion: 1,
-  parse: parser(z.object({ ...syncColumns, date: z.string(), complete: z.boolean() })),
+  parse: parser(z.object({ ...syncColumns, date: z.iso.date(), complete: z.boolean() })),
 }
 
 export type LogEntryRow = Tables<'log_entries'>
@@ -122,13 +122,13 @@ export const logEntriesSpec: TableSpec<LogEntryRow> = {
   parse: parser(
     z.object({
       ...syncColumns,
-      date: z.string(),
+      date: z.iso.date(),
       meal: z.string(),
       food_id: z.nullable(z.string()),
       recipe_id: z.nullable(z.string()),
       servings: z.number(),
       name: z.string(),
-      kcal: z.number(),
+      kcal: z.int(),
       protein_g: z.number(),
     }),
   ),
