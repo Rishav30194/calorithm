@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { useTargets } from '@/data/checkinHooks'
 import { useFoods, useRecipes } from '@/data/foodHooks'
 import type { LoggedEntry } from '@/data/log'
 import { useDay, useLogActions, useMealCount, useQuickPicks } from '@/data/logHooks'
@@ -94,6 +95,7 @@ const Copy = ({
 
 const Day = ({ date, today, locale }: { date: string; today: string; locale: string }) => {
   const day = useDay(date)
+  const targets = useTargets()
   const actions = useLogActions()
   const [dialog, setDialog] = useState<Dialog>({ kind: 'none' })
   const close = () => setDialog({ kind: 'none' })
@@ -105,6 +107,7 @@ const Day = ({ date, today, locale }: { date: string; today: string; locale: str
         date={date}
         today={today}
         day={day}
+        targets={targets}
         locale={locale}
         onAdd={(meal) => setDialog({ kind: 'add', meal })}
         onCopy={(meal) => setDialog({ kind: 'copy', meal })}

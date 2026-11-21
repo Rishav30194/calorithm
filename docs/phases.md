@@ -265,7 +265,7 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 
 ## Phase 5 — Targets and the weekly check-in
 
-**Status:** Not started
+**Status:** In progress: PR 4 is the last, and completes the phase when merged
 
 **Goal:** the app sets your targets from your own data each week.
 
@@ -283,9 +283,10 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
   (`src/domain/checkin.test.ts`)
 - [x] No input produces a target below the calorie floor or a rate above the cap.
   (`src/domain/targets.test.ts`, and the database test in `supabase/tests/checkins.test.sql`)
-- [ ] A week with fewer than 4 complete days leaves targets unchanged and says why.
+- [x] A week with fewer than 4 complete days leaves targets unchanged and says why.
+  (`src/domain/maintenance.test.ts`, `src/ui/checkin/checkin.test.tsx`, and `e2e/checkin.spec.ts`)
 
-**Plan** (approved 2026-11-21): four PRs.
+**Plan** (approved 2026-11-21): four PRs; PRs 1 to 3 merged as #17 to #19.
 
 1. **Schema:** `checkins` migration and pgTAP tests, generated types, `checkinsSpec` last in
    push order, Dexie schema version 4 with an upgrade test, and decision 0021.
@@ -339,6 +340,20 @@ Check-in rules: decision 0021.
   says so with a retry: a form started from defaults would overwrite the server's profile on
   save, which a 360-pixel screenshot caught and an end-to-end test now covers. The browser
   tests use a new synthetic seed user, `profile.user`, desktop only for writes.
+- PR 4: the check-in screen (`src/ui/checkin/`) loads on demand at `#/checkin`. When a
+  check-in is due it shows the result to save: the estimate, how it changed and how it was
+  made, the targets, and any limit applied; or, for a skipped week, why the targets stay the
+  same. A blocked check-in links to the weight or settings screen. Otherwise it shows the
+  latest check-in and the next date. `src/data/checkins.ts` gathers the inputs from Dexie
+  (weigh-ins, each day's logged kcal and completion for the last 35 days, the profile, and
+  the latest check-in) and maps `CheckinFields` to the row; a property test runs real
+  check-ins through `checkinsSpec`. Today's log shows kcal and protein bars against the
+  latest check-in's targets, under the day total, or a link to the check-in before the first.
+  Other days show the day total only, since their targets may have differed. Counts in the
+  check-in's text are formatted with `Intl`, and a capped rate shows two decimals rounded
+  down, so it never reads above 1%.
+  The browser tests use a new synthetic seed user, `checkin.user`; since check-ins can't be
+  deleted, each test fixes the clock 7 days past the latest stored check-in.
 
 ## Phase 6 — Export, import, account deletion, and updates
 

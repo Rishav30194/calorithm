@@ -26,6 +26,8 @@ const loadLogScreen = () =>
   lazy(() => import('./log/screens').then((module) => ({ default: module.LogScreen })))
 const loadWeightScreen = () =>
   lazy(() => import('./weight/screens').then((module) => ({ default: module.WeightScreen })))
+const loadCheckinScreen = () =>
+  lazy(() => import('./checkin/screens').then((module) => ({ default: module.CheckinScreen })))
 const loadProfileScreen = () =>
   lazy(() =>
     import('./profile/screens').then((module) => ({ default: module.ProfileSettingsScreen })),
@@ -86,6 +88,7 @@ export const SignedIn = ({ email, onUpdate }: Props) => {
   const [FoodScreens, setFoodScreens] = useState(loadFoodScreens)
   const [LogScreen, setLogScreen] = useState(loadLogScreen)
   const [WeightScreen, setWeightScreen] = useState(loadWeightScreen)
+  const [CheckinScreen, setCheckinScreen] = useState(loadCheckinScreen)
   if (status.state === 'update_required') return <UpdateRequired onUpdate={onUpdate} />
   return (
     <Shell
@@ -104,6 +107,13 @@ export const SignedIn = ({ email, onUpdate }: Props) => {
         <ScreenErrorBoundary onRetry={() => setWeightScreen(() => loadWeightScreen())}>
           <Suspense fallback={<p className="text-muted">{strings.loading}</p>}>
             <WeightScreen locale={navigator.language} />
+          </Suspense>
+        </ScreenErrorBoundary>
+      }
+      checkinScreen={
+        <ScreenErrorBoundary onRetry={() => setCheckinScreen(() => loadCheckinScreen())}>
+          <Suspense fallback={<p className="text-muted">{strings.loading}</p>}>
+            <CheckinScreen locale={navigator.language} />
           </Suspense>
         </ScreenErrorBoundary>
       }

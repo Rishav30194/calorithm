@@ -8,11 +8,15 @@ import { type Meal, meals, type Nutrients } from '@/domain/nutrition'
 import { strings } from '@/strings'
 
 import { routeHref } from '../routes'
+import { TargetProgress } from './TargetProgress'
 
 type Props = {
   date: string
   today: string
   day: DayView
+  // The latest check-in's targets, shown on today only; null before the first, undefined
+  // while loading.
+  targets?: Nutrients | null | undefined
   locale: string
   onAdd: (meal: Meal) => void
   onCopy: (meal: Meal) => void
@@ -36,6 +40,7 @@ export const LogDay = ({
   date,
   today,
   day,
+  targets,
   locale,
   onAdd,
   onCopy,
@@ -85,10 +90,16 @@ export const LogDay = ({
         </a>
       </div>
 
-      <p className="rounded-lg bg-surface p-3">
-        <span className="text-muted">{text.dayTotal} </span>
-        <span className="font-semibold">{nutrients(day.total)}</span>
-      </p>
+      <div className="flex flex-col gap-2">
+        <p className="rounded-lg bg-surface p-3">
+          <span className="text-muted">{text.dayTotal} </span>
+          <span className="font-semibold">{nutrients(day.total)}</span>
+        </p>
+        {/* The targets are the latest check-in's, so only today is measured against them. */}
+        {date === today && targets !== undefined && (
+          <TargetProgress total={day.total} targets={targets} locale={locale} />
+        )}
+      </div>
 
       {meals.map((meal) => {
         const name = text.meals[meal]
