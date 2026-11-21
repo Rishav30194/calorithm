@@ -94,11 +94,11 @@ export const totalsByMeal = (
   }
 }
 
-export type Pick_ = { source: Source; name: string; servings: number; count: number }
+export type QuickPick = { source: Source; name: string; servings: number; count: number }
 
 // The foods and recipes logged most often, each once, with the name and servings from the
 // latest time it was logged. Ties go to the most recent, then to the name.
-export const mostUsed = (entries: readonly Entry[], limit: number): Pick_[] => {
+export const mostUsed = (entries: readonly Entry[], limit: number): QuickPick[] => {
   const bySource = new Map<string, { latest: Entry; count: number }>()
   for (const entry of entries) {
     const key = `${entry.source.kind}:${entry.source.id}`

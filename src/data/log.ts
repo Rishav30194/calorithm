@@ -1,10 +1,14 @@
+import { addDays } from '@/domain/dates'
 import {
   type Entry,
   isMeal,
   type Meal,
+  mostUsed,
   type Nutrients,
+  type QuickPick,
   recipePerServing,
   roundServings,
+  type Source,
   scaleNutrients,
 } from '@/domain/nutrition'
 
@@ -12,7 +16,15 @@ import { dayId } from './dayId'
 import type { LocalDb } from './db'
 import { recipeIngredients } from './foods'
 import { type Clock, softDelete, writeRow } from './repository'
-import { daysSpec, type FoodRow, type LogEntryRow, logEntriesSpec, type RecipeRow } from './tables'
+import {
+  daysSpec,
+  type FoodRow,
+  foodsSpec,
+  type LogEntryRow,
+  logEntriesSpec,
+  type RecipeRow,
+  recipesSpec,
+} from './tables'
 
 export type LoggedEntry = Entry & { id: string }
 
@@ -217,4 +229,81 @@ export const setDayComplete = async (
 export const dayComplete = async (db: LocalDb, userId: string, date: string): Promise<boolean> => {
   const day = daysSpec.parse(await db.rows('days').get(await dayId(userId, date)))
   return day !== null && day.deleted_at === null && day.complete
+}
+
+export type LogSourceResult = { ok: true; row: LogEntryRow } | { ok: false; reason: 'not_found' }
+
+// Logs a food or recipe by id with its current values, as the picker does.
+export const logSource = async (
+  db: LocalDb,
+  clock: Clock,
+  userId: string,
+  { date, meal, source, servings }: Target & { source: Source; servings: number },
+): Promise<LogSourceResult> => {
+  if (source.kind === 'food') {
+    const food = foodsSpec.parse(await db.rows('foods').get(source.id))
+    if (!food || food.deleted_at !== null) return { ok: false, reason: 'not_found' }
+    return { ok: true, row: await logFood(db, clock, userId, { date, meal, food, servings }) }
+  }
+  const recipe = recipesSpec.parse(await db.rows('recipes').get(source.id))
+  if (!recipe || recipe.deleted_at !== null) return { ok: false, reason: 'not_found' }
+  return { ok: true, row: await logRecipe(db, clock, userId, { date, meal, recipe, servings }) }
+}
+
+// Every entry from the first day to the last, inclusive, by day and then in logged order.
+export const entriesBetween = async (
+  db: LocalDb,
+  first: string,
+  last: string,
+): Promise<LoggedEntry[]> =>
+  (await db.rows('log_entries').where('date').between(first, last, true, true).toArray())
+    .flatMap((raw) => {
+      const row = logEntriesSpec.parse(raw)
+      return row && row.deleted_at === null ? [row] : []
+    })
+    .sort(
+      (a, b) =>
+        a.date.localeCompare(b.date) ||
+        a.logged_at.localeCompare(b.logged_at) ||
+        a.id.localeCompare(b.id),
+    )
+    .flatMap((row) => {
+      const entry = toEntry(row)
+      return entry ? [entry] : []
+    })
+
+export type QuickPicks = { today: QuickPick[]; yesterday: QuickPick[]; mostUsed: QuickPick[] }
+
+const MOST_USED_DAYS = 60
+const MOST_USED_LIMIT = 10
+
+// The picker's one-tap rows. Archived or deleted foods and recipes are left out, and each
+// shows its current name.
+export const quickPicks = async (db: LocalDb, today: string): Promise<QuickPicks> => {
+  const yesterday = addDays(today, -1)
+  const entries = await entriesBetween(db, addDays(today, -(MOST_USED_DAYS - 1)), today)
+  const names = new Map<string, string>()
+  for (const raw of await db.rows('foods').toArray()) {
+    const food = foodsSpec.parse(raw)
+    if (food && food.deleted_at === null && food.archived_at === null) {
+      names.set(`food:${food.id}`, food.name)
+    }
+  }
+  for (const raw of await db.rows('recipes').toArray()) {
+    const recipe = recipesSpec.parse(raw)
+    if (recipe && recipe.deleted_at === null && recipe.archived_at === null) {
+      names.set(`recipe:${recipe.id}`, recipe.name)
+    }
+  }
+  const available = (picks: QuickPick[]): QuickPick[] =>
+    picks.flatMap((pick) => {
+      const name = names.get(`${pick.source.kind}:${pick.source.id}`)
+      return name === undefined ? [] : [{ ...pick, name }]
+    })
+  const on = (date: string) => entries.filter((entry) => entry.date === date)
+  return {
+    today: available(mostUsed(on(today), Number.POSITIVE_INFINITY)),
+    yesterday: available(mostUsed(on(yesterday), Number.POSITIVE_INFINITY)),
+    mostUsed: available(mostUsed(entries, Number.POSITIVE_INFINITY)).slice(0, MOST_USED_LIMIT),
+  }
 }

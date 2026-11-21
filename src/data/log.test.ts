@@ -2,14 +2,17 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { dayId } from './dayId'
 import type { LocalDb } from './db'
-import { createFood, createRecipe, updateFood } from './foods'
+import { createFood, createRecipe, setFoodArchived, updateFood } from './foods'
 import {
   changeServings,
   copyMealTo,
   dayComplete,
+  entriesBetween,
   entriesOn,
   logFood,
   logRecipe,
+  logSource,
+  quickPicks,
   removeEntry,
   setDayComplete,
 } from './log'
@@ -292,5 +295,142 @@ describe('days', () => {
 
   it('treats a day never marked as incomplete', async () => {
     expect(await dayComplete(db, userId, '2026-11-19')).toBe(false)
+  })
+})
+
+describe('logSource', () => {
+  it('logs a food or recipe by id with its current values', async () => {
+    const food = await addOats()
+    const recipe = await createRecipe(db, time.clock, userId, {
+      name: 'Porridge',
+      servings: 2,
+      items: [{ foodId: food.id, servings: 2 }],
+    })
+
+    const fromFood = await logSource(db, time.clock, userId, {
+      date: '2026-11-20',
+      meal: 'breakfast',
+      source: { kind: 'food', id: food.id },
+      servings: 2,
+    })
+    const fromRecipe = await logSource(db, time.clock, userId, {
+      date: '2026-11-20',
+      meal: 'dinner',
+      source: { kind: 'recipe', id: recipe.id },
+      servings: 1,
+    })
+
+    expect(fromFood).toMatchObject({ ok: true, row: { name: 'Oats', kcal: 300 } })
+    expect(fromRecipe).toMatchObject({ ok: true, row: { name: 'Porridge', kcal: 150 } })
+  })
+
+  it('reports a source that isn’t stored', async () => {
+    expect(
+      await logSource(db, time.clock, userId, {
+        date: '2026-11-20',
+        meal: 'lunch',
+        source: { kind: 'food', id: 'f0000000-0000-4000-8000-0000000000ff' },
+        servings: 1,
+      }),
+    ).toEqual({ ok: false, reason: 'not_found' })
+  })
+})
+
+describe('entriesBetween', () => {
+  it('lists the entries from the first day to the last, inclusive', async () => {
+    const food = await addOats()
+    for (const date of ['2026-11-17', '2026-11-18', '2026-11-19', '2026-11-20']) {
+      await logFood(db, time.clock, userId, { date, meal: 'lunch', food, servings: 1 })
+    }
+
+    const entries = await entriesBetween(db, '2026-11-18', '2026-11-19')
+
+    expect(entries.map((entry) => entry.date)).toEqual(['2026-11-18', '2026-11-19'])
+  })
+})
+
+describe('quickPicks', () => {
+  it('offers today’s, yesterday’s, and the most used, without archived foods', async () => {
+    const oats = await addOats()
+    const rice = await createFood(db, time.clock, userId, {
+      name: 'Rice',
+      servingSize: 75,
+      servingUnit: 'g',
+      kcal: 270,
+      proteinG: 5.3,
+    })
+    const old = await createFood(db, time.clock, userId, {
+      name: 'Old bread',
+      servingSize: 1,
+      servingUnit: 'slice',
+      kcal: 80,
+      proteinG: 3,
+    })
+    await logFood(db, time.clock, userId, {
+      date: '2026-11-21',
+      meal: 'breakfast',
+      food: oats,
+      servings: 2,
+    })
+    await logFood(db, time.clock, userId, {
+      date: '2026-11-20',
+      meal: 'dinner',
+      food: rice,
+      servings: 1.5,
+    })
+    await logFood(db, time.clock, userId, {
+      date: '2026-11-19',
+      meal: 'dinner',
+      food: rice,
+      servings: 1,
+    })
+    await logFood(db, time.clock, userId, {
+      date: '2026-11-19',
+      meal: 'lunch',
+      food: old,
+      servings: 1,
+    })
+    // Older than the 60-day window: doesn't count toward most used.
+    await logFood(db, time.clock, userId, {
+      date: '2026-09-01',
+      meal: 'lunch',
+      food: oats,
+      servings: 1,
+    })
+    await logFood(db, time.clock, userId, {
+      date: '2026-09-02',
+      meal: 'lunch',
+      food: oats,
+      servings: 1,
+    })
+    await setFoodArchived(db, time.clock, old.id, true)
+
+    const picks = await quickPicks(db, '2026-11-21')
+
+    expect(picks.today.map((pick) => [pick.name, pick.servings])).toEqual([['Oats', 2]])
+    expect(picks.yesterday.map((pick) => [pick.name, pick.servings])).toEqual([['Rice', 1.5]])
+    expect(picks.mostUsed.map((pick) => [pick.name, pick.count])).toEqual([
+      ['Rice', 2],
+      ['Oats', 1],
+    ])
+  })
+
+  it('shows a food’s current name, not the name it was logged under', async () => {
+    const oats = await addOats()
+    await logFood(db, time.clock, userId, {
+      date: '2026-11-21',
+      meal: 'breakfast',
+      food: oats,
+      servings: 1,
+    })
+    await updateFood(db, time.clock, oats.id, {
+      name: 'Rolled oats',
+      servingSize: 40,
+      servingUnit: 'g',
+      kcal: 150,
+      proteinG: 5,
+    })
+
+    expect((await quickPicks(db, '2026-11-21')).today[0]?.name).toBe('Rolled oats')
   })
 })
