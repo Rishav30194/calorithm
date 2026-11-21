@@ -140,7 +140,9 @@ for (const colorScheme of ['light', 'dark'] as const) {
         .getByRole('navigation', { name: 'Main' })
         .getByRole('link', { name: 'Weight' })
         .click()
-      await page.getByLabel('Day').fill(daysAgo(40))
+      // The log screen's "I logged everything I ate this day" box also matches a loose "Day".
+      await expect(page.getByRole('heading', { name: 'Weigh in', level: 2 })).toBeVisible()
+      await page.getByLabel('Day', { exact: true }).fill(daysAgo(40))
       await page.getByLabel(/^Weight \(/).fill('82')
       await page.getByRole('button', { name: 'Save' }).click()
       await expect(page.getByText(/^Saved\./)).toBeVisible()
