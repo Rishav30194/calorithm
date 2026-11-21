@@ -108,6 +108,9 @@ const logEntry: LogEntryRow = {
   name: 'Oats',
   kcal: 225,
   protein_g: 7.5,
+  kcal_per_serving: 150,
+  protein_g_per_serving: 5,
+  logged_at: '2026-11-20T08:00:00.000Z',
 }
 
 describe('food and log table specs', () => {
@@ -135,6 +138,19 @@ describe('food and log table specs', () => {
     const missing: Record<string, unknown> = { ...row }
     delete missing[column]
     expect(spec.parse(missing)).toBeNull()
+  })
+})
+
+describe('parents', () => {
+  it('names the rows a recipe item or log entry references', () => {
+    expect(recipeItemsSpec.parents?.(recipeItem)).toEqual([
+      { table: 'recipes', id: recipe.id },
+      { table: 'foods', id: food.id },
+    ])
+    expect(logEntriesSpec.parents?.(logEntry)).toEqual([{ table: 'foods', id: food.id }])
+    expect(logEntriesSpec.parents?.({ ...logEntry, food_id: null, recipe_id: recipe.id })).toEqual([
+      { table: 'recipes', id: recipe.id },
+    ])
   })
 })
 

@@ -38,6 +38,8 @@ export const childSpec: TableSpec<ChildRow> = {
   name: 'child',
   schemaVersion: 1,
   parse: parser(z.object({ ...syncColumns, parent_id: z.string(), note: z.string() })),
+  parents: (row) =>
+    typeof row.parent_id === 'string' ? [{ table: 'parent', id: row.parent_id }] : [],
 }
 
 // Version 1 called the column `label`; version 2 calls it `title`.

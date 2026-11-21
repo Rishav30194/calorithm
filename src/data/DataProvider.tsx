@@ -93,7 +93,7 @@ export const DataProvider = ({
 
   // The database and engine are made and closed in one effect, so each run of the effect
   // (React runs it twice in development) cleans up exactly what it opened.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: a new generation reopens the database after a failed sign-out deleted it
+  // A new generation reopens the database after a failed sign-out deleted it.
   useEffect(() => {
     const db = new LocalDb(dbNameFor(userId))
     const ctx: SyncContext = {

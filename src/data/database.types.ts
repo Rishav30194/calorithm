@@ -67,14 +67,14 @@ export type Database = {
                   ]
                 },"log_entries": {
                   Row: {
-                    "client_updated_at": string,"date": string,"deleted_at": string | null,"food_id": string | null,"id": string,"kcal": number,"meal": string,"name": string,"protein_g": number,"recipe_id": string | null,"schema_version": number,"servings": number,"updated_at": string,"user_id": string
+                    "client_updated_at": string,"date": string,"deleted_at": string | null,"food_id": string | null,"id": string,"kcal": number,"kcal_per_serving": number,"logged_at": string,"meal": string,"name": string,"protein_g": number,"protein_g_per_serving": number,"recipe_id": string | null,"schema_version": number,"servings": number,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "client_updated_at": string,"date": string,"deleted_at"?: string | null,"food_id"?: string | null,"id": string,"kcal": number,"meal": string,"name": string,"protein_g": number,"recipe_id"?: string | null,"schema_version": number,"servings": number,"updated_at"?: string,"user_id"?: string
+                    "client_updated_at": string,"date": string,"deleted_at"?: string | null,"food_id"?: string | null,"id": string,"kcal": number,"kcal_per_serving": number,"logged_at": string,"meal": string,"name": string,"protein_g": number,"protein_g_per_serving": number,"recipe_id"?: string | null,"schema_version": number,"servings": number,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "client_updated_at"?: string,"date"?: string,"deleted_at"?: string | null,"food_id"?: string | null,"id"?: string,"kcal"?: number,"meal"?: string,"name"?: string,"protein_g"?: number,"recipe_id"?: string | null,"schema_version"?: number,"servings"?: number,"updated_at"?: string,"user_id"?: string
+                    "client_updated_at"?: string,"date"?: string,"deleted_at"?: string | null,"food_id"?: string | null,"id"?: string,"kcal"?: number,"kcal_per_serving"?: number,"logged_at"?: string,"meal"?: string,"name"?: string,"protein_g"?: number,"protein_g_per_serving"?: number,"recipe_id"?: string | null,"schema_version"?: number,"servings"?: number,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {

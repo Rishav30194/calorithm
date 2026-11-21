@@ -20,7 +20,15 @@ export type TableSpec<Row extends SyncRow = SyncRow> = {
   parse: (raw: unknown) => Row | null
   // Brings an outbox row written by an older app version up to schemaVersion before it's sent.
   upgrade?: (row: Record<string, unknown>, fromVersion: number) => Record<string, unknown>
+  // Rows this row references. A foreign key error while one of them has a failed change keeps
+  // the row queued instead of failing it for good (decision 0019).
+  parents?: (row: Record<string, unknown>) => ParentRef[]
 }
+
+export type ParentRef = { table: string; id: string }
+
+const ref = (table: string, id: unknown): ParentRef[] =>
+  typeof id === 'string' ? [{ table, id }] : []
 
 const syncColumns = {
   id: z.string(),
@@ -104,6 +112,7 @@ export const recipeItemsSpec: TableSpec<RecipeItemRow> = {
       servings: z.number(),
     }),
   ),
+  parents: (row) => [...ref('recipes', row.recipe_id), ...ref('foods', row.food_id)],
 }
 
 export type DayRow = Tables<'days'>
@@ -130,8 +139,12 @@ export const logEntriesSpec: TableSpec<LogEntryRow> = {
       name: z.string(),
       kcal: z.int(),
       protein_g: z.number(),
+      kcal_per_serving: z.number(),
+      protein_g_per_serving: z.number(),
+      logged_at: z.string(),
     }),
   ),
+  parents: (row) => [...ref('foods', row.food_id), ...ref('recipes', row.recipe_id)],
 }
 
 // Push order: a parent table comes before any table that references it.

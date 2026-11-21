@@ -101,6 +101,20 @@ const fetchSkipped = async (
   return null
 }
 
+const FOREIGN_KEY_VIOLATION = '23503'
+
+const hasFailedParent = async (ctx: SyncContext, spec: TableSpec, entry: Entry) => {
+  const parents = spec.parents?.(entry.row) ?? []
+  for (const parent of parents) {
+    const queued = await ctx.db.outbox
+      .where('[table+rowId]')
+      .equals([parent.table, parent.id])
+      .first()
+    if (queued?.failure) return true
+  }
+  return false
+}
+
 // Postgres rejects a statement as a whole, so one bad row fails its batch. Sending the rows
 // one at a time finds the bad ones and lets the rest through.
 const isolateRejected = async (
@@ -111,6 +125,11 @@ const isolateRejected = async (
 ): Promise<BatchResult> => {
   const [only] = items
   if (items.length === 1 && only) {
+    // A missing parent whose own change failed: the row stays queued, not failed, and goes
+    // out once the parent is fixed or discarded (decision 0019).
+    if (error.code === FOREIGN_KEY_VIOLATION && (await hasFailedParent(ctx, spec, only.entry))) {
+      return { sent: 0, failed: 0, stop: null }
+    }
     await fail(ctx.db, spec, only.entry, error.code, error.message)
     return { sent: 0, failed: 1, stop: null }
   }

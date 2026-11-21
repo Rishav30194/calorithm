@@ -5,6 +5,7 @@ import { BACKOFF_MIN_MS } from '@/domain/backoff'
 import type { LocalDb } from '../db'
 import { writeRow } from '../repository'
 import { foodsSpec, recipeItemsSpec, recipesSpec, syncedTables } from '../tables'
+import { discardFailed } from './discard'
 import { push, type SyncContext } from './push'
 import { FakeRemote } from './testing/fakeRemote'
 import {
@@ -118,6 +119,90 @@ describe('push', () => {
     await push(real)
 
     expect(remote.upserts.map((call) => call.table)).toEqual(['foods', 'recipes', 'recipe_items'])
+  })
+
+  // Sync case 19.
+  describe('a child whose parent’s change failed', () => {
+    // The server refuses a parent named 'bad', and, like Postgres, a child whose parent it
+    // doesn't have.
+    const refuseBad = () => {
+      remote.reject = (table, row) => {
+        if (row.name === 'bad') return { code: '23514', message: 'violates check constraint' }
+        const parentStored = remote.rows('parent').some((parent) => parent.id === row.parent_id)
+        if (table === 'child' && !parentStored) {
+          return { code: '23503', message: 'violates foreign key constraint' }
+        }
+        return null
+      }
+    }
+
+    it('waits instead of failing on the missing parent', async () => {
+      refuseBad()
+      const parent = await writeRow(db, parentSpec, { ...sync(), name: 'bad' }, time.clock)
+      const child = await writeRow(
+        db,
+        childSpec,
+        { ...sync(), parent_id: parent.id, note: 'held' },
+        time.clock,
+      )
+
+      expect(await push(ctx)).toEqual({ status: 'done', sent: 0, failed: 1 })
+
+      expect(remote.rows('child')).toEqual([])
+      const held = await db.outbox.where('[table+rowId]').equals(['child', child.id]).first()
+      expect(held?.failure).toBeNull()
+    })
+
+    it('goes out once the parent is fixed', async () => {
+      refuseBad()
+      const parent = await writeRow(db, parentSpec, { ...sync(), name: 'bad' }, time.clock)
+      await writeRow(db, childSpec, { ...sync(), parent_id: parent.id, note: 'held' }, time.clock)
+      await push(ctx)
+
+      await writeRow(db, parentSpec, { ...parent, name: 'good' }, time.clock)
+      expect(await push(ctx)).toEqual({ status: 'done', sent: 2, failed: 0 })
+      expect(await db.outbox.count()).toBe(0)
+    })
+
+    it('goes out once the parent’s change is discarded, and fails then if the parent is missing', async () => {
+      refuseBad()
+      const parent = await writeRow(db, parentSpec, { ...sync(), name: 'bad' }, time.clock)
+      await writeRow(db, childSpec, { ...sync(), parent_id: parent.id, note: 'held' }, time.clock)
+      await push(ctx)
+      const failedParent = (await db.outbox.toArray()).find((entry) => entry.table === 'parent')
+      remote.reject = (table) =>
+        table === 'child' ? { code: '23503', message: 'violates foreign key constraint' } : null
+
+      await discardFailed(ctx, failedParent?.seq ?? -1)
+      expect(await push(ctx)).toEqual({ status: 'done', sent: 0, failed: 1 })
+
+      const [child] = await db.outbox.toArray()
+      expect(child?.failure?.code).toBe('23503')
+    })
+
+    it('sends a child whose parent is on the server, even while an edit to it is refused', async () => {
+      refuseBad()
+      const parent = await writeRow(db, parentSpec, { ...sync(), name: 'ok' }, time.clock)
+      await push(ctx)
+      time.advance(60_000)
+      await writeRow(db, parentSpec, { ...parent, name: 'bad' }, time.clock)
+      const child = await writeRow(
+        db,
+        childSpec,
+        { ...sync(), parent_id: parent.id, note: 'sent' },
+        time.clock,
+      )
+
+      expect(await push(ctx)).toEqual({ status: 'done', sent: 1, failed: 1 })
+      expect(remote.rows('child').map((row) => row.id)).toEqual([child.id])
+    })
+
+    it('doesn’t hold a child whose parent is fine', async () => {
+      const parent = await writeRow(db, parentSpec, { ...sync(), name: 'ok' }, time.clock)
+      await writeRow(db, childSpec, { ...sync(), parent_id: parent.id, note: 'sent' }, time.clock)
+
+      expect(await push(ctx)).toEqual({ status: 'done', sent: 2, failed: 0 })
+    })
   })
 
   // Sync case 10.
