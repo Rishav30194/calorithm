@@ -429,7 +429,7 @@ Check-in rules: decision 0021.
   its Auth settings (decision 0023 relies on it), and deletes a throwaway account to check
   that `delete_account()` works there as it does locally.
 - Deploy workflow to GitHub Pages.
-- Weekly keep-awake workflow.
+- Keep-awake workflow, twice a week so one failed run still leaves a request inside the week.
 
 **Acceptance criteria:**
 - [ ] The live app installs on the phone and opens offline.

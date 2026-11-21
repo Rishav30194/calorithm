@@ -6,13 +6,14 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 6 (export, import, account deletion, and updates) is done, merged as #22 to #25.
-   Phase 7 (production) is next: read its scope in `docs/phases.md` and present a plan first.
-   It starts with steps only the user can do: create the hosted Supabase project, apply every
-   migration, turn on **Secure password change**, and set the GitHub Actions secrets. Run
-   `npm run db:reset` once locally for the account deletion migration and seed users.
-   End-to-end tests that look for a status message should scope it to a region: the settings
-   screen has three.
+1. Phase 7 (production) is in progress on `feature/phase-7-deploy`: the deploy and
+   keep-awake workflows, `docs/production.md`, and decision 0024 (public repository). The
+   user approves the push and PR. After merging, the user follows `docs/production.md`:
+   make the repository public, set **Pages** to **GitHub Actions**, create the hosted
+   Supabase project, apply the migrations, set the two secrets, then the six checks. Record
+   each result in `docs/phases.md` and mark the phase done when all pass.
+   The first deploy runs when this PR's merge passes CI; without the secrets it fails at the
+   secret check, which is expected until they're set.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
@@ -29,6 +30,10 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 (then `push` or `fetch`), because git has no stored GitHub credentials and the global git config stays untouched.
 
 ## Open questions
+
+- Local Supabase accepted a wrong publishable key on the keep-awake request (2026-11-21).
+  Whether hosted Supabase refuses it is unverified; the workflow's first run shows a good key
+  works.
 
 - Does Supabase's free plan include downloadable backups? The user checks in the dashboard.
 - Exact rate limit of Supabase's built-in email sending. Matters only before friends join.

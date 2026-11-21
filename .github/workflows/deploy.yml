@@ -1,7 +1,7 @@
 name: Deploy
 
-# Deploys only a commit that passed CI on main. A manual run redeploys the head of main, for
-# example after the Supabase secrets change.
+# Deploys only a commit that passed CI on main and is still its head. A manual run from main
+# redeploys the head of main, for example after the Supabase secrets change.
 on:
   workflow_run:
     workflows: [CI]
@@ -18,19 +18,43 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  # Re-running an older CI run would otherwise publish its commit over a newer deployment.
+  current:
     if: >-
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.main.outputs.sha }}
+      deploy: ${{ steps.main.outputs.deploy }}
+    steps:
+      - id: main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECKED_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
+          echo "sha=$head" >> "$GITHUB_OUTPUT"
+          if [[ "$head" == "$CHECKED_SHA" ]]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipped: $CHECKED_SHA is no longer the head of main ($head)"
+          fi
+
+  build:
+    needs: current
+    if: needs.current.outputs.deploy == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       # Actions are pinned to commit hashes, so a moved tag can't change what runs.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # The commit CI checked, not whatever main points at by now.
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          # The commit the current job compared with main, not whatever main points at by now.
+          ref: ${{ needs.current.outputs.sha }}
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -45,7 +69,7 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          [[ "$VITE_SUPABASE_URL" == https://*.supabase.co ]] || { echo "::error::Set the VITE_SUPABASE_URL secret to the hosted project URL"; exit 1; }
+          [[ "$VITE_SUPABASE_URL" == https://*.supabase.co ]] || { echo "::error::Set the VITE_SUPABASE_URL secret to the hosted project URL, https://PROJECT_REF.supabase.co with no trailing slash"; exit 1; }
           [[ "$VITE_SUPABASE_PUBLISHABLE_KEY" == sb_publishable_* ]] || { echo "::error::Set the VITE_SUPABASE_PUBLISHABLE_KEY secret to the publishable key"; exit 1; }
 
       - name: Build

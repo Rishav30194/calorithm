@@ -7,7 +7,7 @@ yourself: Claude never touches the hosted project or the repository settings.
 |---|---|
 | App | GitHub Pages at `https://rishav30194.github.io/calorithm/`, deployed by `.github/workflows/deploy.yml` after CI passes on `main` |
 | Database and sign-in | A hosted Supabase project on the free plan |
-| Keep-awake | `.github/workflows/keep-awake.yml`, Mondays and Thursdays |
+| Keep-awake | `.github/workflows/keep-awake.yml`, Mondays and Thursdays, so one failed run still leaves a request inside the week |
 
 Dashboard menu names in this guide were not checked against the live dashboards; if one has
 moved, search the settings for it.
@@ -40,8 +40,9 @@ moved, search the settings for it.
 
    `PROJECT_REF` is the ID in the project's dashboard URL. Never pass `--include-seed`: the
    seed users have a published password.
-7. Note the project URL and the publishable key (`sb_publishable_…`) from **Project
-   Settings** > **API Keys**. Never use the secret key.
+7. Note the project URL, `https://PROJECT_REF.supabase.co` with no trailing slash, and the
+   publishable key (`sb_publishable_…`) from **Project Settings** > **API Keys**. Never use
+   the secret key.
 
 ### Connect them
 
@@ -52,8 +53,8 @@ moved, search the settings for it.
    gh secret set VITE_SUPABASE_PUBLISHABLE_KEY
    ```
 
-2. Run **Deploy** from the **Actions** tab, or merge to `main`. The deploy fails early with a
-   clear message if either secret is missing or looks wrong.
+2. Run **Deploy** from the **Actions** tab on `main`, or merge to `main`. The deploy fails
+   early with a clear message if either secret is missing or looks wrong.
 3. Run **Keep awake** from the **Actions** tab once, and check it passes.
 
 ## Acceptance checks
@@ -64,8 +65,9 @@ These are phase 7's acceptance criteria in `docs/phases.md`.
    Screen** on iPhone. Turn on airplane mode, open the installed app, and check it loads and
    shows your data.
 2. Add a food entry on the phone and check it appears on a laptop, then the reverse.
-3. Merge any change (or run **Deploy** after a version bump) with the installed app open, and
-   check the **Update available** banner appears within an hour or on returning to the app.
+3. With the installed app open, merge a change to the app's code or to `package.json`'s
+   version, and check the **Update available** banner appears within an hour or on returning
+   to the app. A docs-only change builds the same files, so it shows no banner.
 4. Check **Keep awake** has a passing run.
 5. In **Settings** > **Your data**, export, and check the file downloads and imports back
    without errors.
