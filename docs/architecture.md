@@ -240,12 +240,13 @@ All in `src/domain/`, as pure functions:
 | Module | Takes | Returns |
 |---|---|---|
 | `trend.ts` | Weigh-ins by date, a date range | Trend weight per day |
-| `maintenance.ts` | Complete days' intake, trend weights, previous estimate, profile | New estimate, or a reason it was skipped |
+| `maintenance.ts` | Days' intake, weigh-ins, previous estimate, profile, today | New estimate, or a reason it was skipped or blocked |
 | `targets.ts` | Maintenance, goal rate, trend weight, protein setting, calorie floor | kcal and protein targets, and any safety limit applied |
+| `checkin.ts` | The above, the previous check-in, and the profile's settings | Whether a check-in is due, and the values to store |
 | `dates.ts` | Date strings | Calendar-day arithmetic, with no time zones |
 
-The weekly check-in calls these with data from Dexie and today's local date, then stores the
-inputs and outputs in `checkins`.
+The check-in screen calls `runCheckin` with data from Dexie and today's local date, then stores
+the result in `checkins` when you save it. Decision 0021 holds the rules.
 
 ## Offline and updates
 

@@ -277,9 +277,12 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 - Weekly check-in screen: the estimate, how it changed, targets, and any limit applied.
 
 **Acceptance criteria:**
-- [ ] Every property listed in `docs/testing.md`, "Calculations", has a passing test.
-- [ ] Synthetic 12-week histories give estimates within 50 kcal of their known maintenance.
-- [ ] No input produces a target below the calorie floor or a rate above the cap.
+- [x] Every property listed in `docs/testing.md`, "Calculations", has a passing test.
+  (`src/domain/trend.test.ts`, `maintenance.test.ts`, and `targets.test.ts`)
+- [x] Synthetic 12-week histories give estimates within 50 kcal of their known maintenance.
+  (`src/domain/checkin.test.ts`)
+- [x] No input produces a target below the calorie floor or a rate above the cap.
+  (`src/domain/targets.test.ts`, and the database test in `supabase/tests/checkins.test.sql`)
 - [ ] A week with fewer than 4 complete days leaves targets unchanged and says why.
 
 **Plan** (approved 2026-11-21): four PRs.
@@ -310,6 +313,18 @@ Check-in rules: decision 0021.
   method and status carry, with wide ranges the calculation clamps to (decision 0021).
   `checkinsSpec` mirrors every one of those rules and the columns' precision, so a bad row
   fails before it's queued.
+- PR 2: `src/domain/maintenance.ts` (`estimateMaintenance`), `targets.ts`, and `checkin.ts`
+  (`isCheckinDue` and `runCheckin`, which returns the fields to store, or why the check-in is
+  blocked). The adaptive window ends yesterday, since today's log isn't finished, and spans
+  up to 28 days from the trend the day before it; the trend weight includes today's weigh-in,
+  so a new user gets targets on day one. The rate cap rounds down to whole hundredths, so the
+  applied rate never exceeds the database's 1% check. Results are clamped to the `checkins`
+  ranges, and a property test runs a check-in and the next one, 7 to 21 days later, against
+  every range and rule of the table. A repeated date in the days passed in counts once, the
+  last entry winning.
+  The 12-week histories (noise-free, ±0.8 kg daily noise, and under-logged incomplete days)
+  end within 2 kcal without noise and within 22 kcal with it. The early windows read low
+  during weight loss while the trend catches up from its first weigh-in, then recover.
 
 ## Phase 6 — Export, import, account deletion, and updates
 

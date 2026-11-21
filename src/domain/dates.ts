@@ -14,6 +14,10 @@ const fromUtc = (ms: number): string => new Date(ms).toISOString().slice(0, 10)
 
 export const addDays = (day: string, days: number): string => fromUtc(toUtc(day) + days * DAY_MS)
 
+// Calendar days from `from` to `to`: negative when `to` is earlier.
+export const daysBetween = (from: string, to: string): number =>
+  Math.round((toUtc(to) - toUtc(from)) / DAY_MS)
+
 // A real calendar day in YYYY-MM-DD form; 2027-02-29 is not one.
 export const isDay = (value: string): boolean =>
   /^\d{4}-\d{2}-\d{2}$/.test(value) && fromUtc(toUtc(value)) === value

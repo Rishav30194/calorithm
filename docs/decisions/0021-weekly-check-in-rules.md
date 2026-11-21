@@ -18,15 +18,17 @@ check-in does without a previous estimate.
   one. After a gap of several weeks, one check-in runs, not one per missed week.
 - **Saving:** the check-in screen shows the result, and you save it with **Save check-in**.
   Targets never change without you seeing why.
-- **Method:** the Mifflin-St Jeor formula times an activity factor, until 14 days have passed
-  since the first weigh-in. After that, the adaptive estimate: average intake on complete
-  days in the last 28 days ending yesterday, plus 7,700 kcal per kilogram the trend fell,
-  spread over the window's days.
+- **Method:** the Mifflin-St Jeor formula times an activity factor, until the window can span
+  14 days: from the first weigh-in's trend to yesterday's, so the first weigh-in is at least
+  15 days before the check-in. After that, the adaptive estimate: average intake on complete
+  days in the window (up to 28 days, ending yesterday), plus 7,700 kcal per kilogram the trend
+  fell, spread over the window's days.
 - **Blending:** the new estimate moves halfway from the previous one toward the raw one, and
   at most 150 kcal, whichever method produced the raw value.
 - **Skipped weeks:** a check-in with a previous estimate and fewer than 4 complete days in the
-  last 7 is stored as `skipped`, copying the previous check-in's estimate, targets, and
-  settings. The first check-in has nothing to carry, so it's never skipped: without enough
+  last 7 is stored as `skipped`, copying the previous check-in's estimate, targets, settings,
+  and trend weight. The trend weight is copied because the applied rate was capped against it;
+  the weight screen shows the current trend. The first check-in has nothing to carry, so it's never skipped: without enough
   complete days it uses the formula, which needs no intake.
 - **Blocked check-ins:** with no weigh-in, or a profile missing a field the formula needs, no
   check-in runs and nothing is stored; the screen says what's missing.

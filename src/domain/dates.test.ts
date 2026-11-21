@@ -1,7 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 
-import { addDays, EARLIEST_DAY, isDay } from './dates'
+import { addDays, daysBetween, EARLIEST_DAY, isDay } from './dates'
 
 const day = fc
   .integer({ min: Date.UTC(2000, 0, 1), max: Date.UTC(2100, 0, 1) })
@@ -54,5 +54,22 @@ describe('EARLIEST_DAY', () => {
   it('is the first day the database accepts, and a real day', () => {
     expect(EARLIEST_DAY).toBe('2000-01-01')
     expect(isDay(EARLIEST_DAY)).toBe(true)
+  })
+})
+
+describe('daysBetween', () => {
+  it('counts calendar days from one date to another', () => {
+    expect(daysBetween('2026-11-21', '2026-11-28')).toBe(7)
+    expect(daysBetween('2026-11-28', '2026-11-21')).toBe(-7)
+    expect(daysBetween('2028-02-28', '2028-03-01')).toBe(2)
+    expect(daysBetween('2026-03-07', '2026-03-09')).toBe(2)
+  })
+
+  it('undoes addDays', () => {
+    fc.assert(
+      fc.property(day, fc.integer({ min: -400, max: 400 }), (start, days) => {
+        expect(daysBetween(start, addDays(start, days))).toBe(days)
+      }),
+    )
   })
 })
