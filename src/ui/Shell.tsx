@@ -17,9 +17,8 @@ type Props = {
   // The day's log; a date of null is today.
   logScreen?: (date: string | null) => ReactNode
   weightScreen?: ReactNode
+  checkinScreen?: ReactNode
 }
-
-const ComingSoon = ({ text }: { text: string }) => <p className="text-muted">{text}</p>
 
 const Settings = ({ email, signOut, settings }: Props) => {
   const { state } = signOut
@@ -68,7 +67,7 @@ const screen = (route: Route, props: Props) => {
     case 'weight':
       return props.weightScreen ?? null
     case 'checkin':
-      return <ComingSoon text={strings.comingSoon.checkin} />
+      return props.checkinScreen ?? null
     case 'settings':
       return <Settings {...props} />
   }

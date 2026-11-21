@@ -35,6 +35,13 @@ export const profileUser = {
   password: 'Local-Seed-Pass-2026',
 }
 
+// The check-in tests only, in the desktop project; its check-ins pile up between local runs.
+export const checkinUser = {
+  id: 'd0000000-0000-4000-8000-000000000006',
+  email: 'checkin.user@calorithm.test',
+  password: 'Local-Seed-Pass-2026',
+}
+
 type SeedUser = typeof seedUser
 
 export const signIn = (page: Page, password = seedUser.password) =>

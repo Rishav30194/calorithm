@@ -225,8 +225,49 @@ export const strings = {
     cancel: 'Cancel',
   },
 
-  comingSoon: {
-    checkin: 'Targets and the weekly check-in arrive in phase 5.',
+  checkin: {
+    title: 'Weekly check-in',
+    due: 'Your check-in is ready. Save it to update your targets.',
+    save: 'Save check-in',
+    saving: 'Saving…',
+    saved: 'Saved. Your targets are updated.',
+    failed: 'Couldn’t save the check-in. Try again.',
+    last: (date: string) => `Last check-in: ${date}`,
+    next: (date: string) => `Next check-in: ${date}`,
+    estimate: 'Maintenance estimate',
+    perDay: (amount: string) => `${amount} a day`,
+    first: 'Your first estimate.',
+    up: (amount: string, from: string) => `Up ${amount} from ${from}.`,
+    down: (amount: string, from: string) => `Down ${amount} from ${from}.`,
+    unchanged: (from: string) => `Unchanged from ${from}.`,
+    formula:
+      'From the starting formula, using your profile and trend weight, until 2 weeks of weigh-ins exist.',
+    adaptive: (days: number, window: number, change: string) =>
+      `From your intake on ${days} complete days out of the last ${window}, with your trend weight ${change}.`,
+    trendDown: (amount: string) => `down ${amount}`,
+    trendUp: (amount: string) => `up ${amount}`,
+    trendFlat: 'unchanged',
+    targets: 'Daily targets',
+    kcalTarget: 'Calories',
+    proteinTarget: 'Protein',
+    floorApplied: (floor: string) =>
+      `Your calorie target was raised to your calorie floor of ${floor}.`,
+    rateCapped: (rate: string) =>
+      `Your goal rate was capped at ${rate} a week, 1% of your trend weight.`,
+    skipped: (complete: number) =>
+      `Skipped this week: only ${complete} of the last 7 days are marked complete, and the check-in needs at least 4. Your targets stay the same.`,
+    noWeighIns: 'Weigh in first: the check-in needs at least one weigh-in.',
+    goToWeight: 'Go to Weight',
+    profileIncomplete:
+      'Fill in your height, birth date, sex, and activity in Settings: the first estimate needs them.',
+    goToSettings: 'Go to Settings',
+  },
+
+  targets: {
+    title: 'Today against your targets',
+    progress: (eaten: string, target: string) => `${eaten} of ${target}`,
+    none: 'Save a weekly check-in to set your daily targets.',
+    goToCheckin: 'Go to Check-in',
   },
 
   profile: {
