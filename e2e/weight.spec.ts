@@ -50,8 +50,7 @@ const row = async (page: Page, day: string) =>
   })
 
 // Waits until the outbox is empty, so a test's cleanup reaches the server before it ends.
-// Reads IndexedDB rather than the settings screen, which can briefly say "Everything is
-// synced" before its outbox count loads.
+// Reads IndexedDB directly, so it doesn't depend on where the settings screen shows it.
 const waitForSync = async (page: Page, userId: string) => {
   await expect
     .poll(

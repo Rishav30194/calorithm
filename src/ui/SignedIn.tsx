@@ -39,13 +39,13 @@ const useNow = (): number => {
 
 const Badge = () => {
   const status = useSyncStatus()
-  const { pending, failed } = useOutbox()
-  return <SyncBadge status={status} pending={pending} failed={failed.length} />
+  const outbox = useOutbox()
+  return <SyncBadge status={status} outbox={outbox} />
 }
 
 const SyncSettings = () => {
   const status = useSyncStatus()
-  const { pending, failed } = useOutbox()
+  const outbox = useOutbox()
   const units = useUnits()
   const setUnits = useSetUnits()
   const discard = useDiscard()
@@ -55,8 +55,7 @@ const SyncSettings = () => {
       <UnitsSetting units={units} onChange={setUnits} />
       <SyncPanel
         status={status}
-        pending={pending}
-        failed={failed}
+        outbox={outbox}
         now={now}
         locale={navigator.language}
         onDiscard={discard}

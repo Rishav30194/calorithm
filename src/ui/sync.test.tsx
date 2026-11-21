@@ -23,26 +23,33 @@ const refused: FailedChange = {
   message: 'violates check constraint',
 }
 
+const box = (pending: number, failed: FailedChange[] = []) => ({ pending, failed })
+
 describe('SyncBadge', () => {
   it('shows nothing when everything is synced', () => {
-    const { container } = render(<SyncBadge status={synced} pending={0} failed={0} />)
+    const { container } = render(<SyncBadge status={synced} outbox={box(0)} />)
     expect(container).toBeEmptyDOMElement()
   })
 
   it('shows offline with the number of changes waiting', () => {
-    render(<SyncBadge status={offline} pending={2} failed={0} />)
+    render(<SyncBadge status={offline} outbox={box(2)} />)
     expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.offline(2))
   })
 
   it('puts refused changes first', () => {
-    render(<SyncBadge status={offline} pending={2} failed={1} />)
+    render(<SyncBadge status={offline} outbox={box(2, [refused])} />)
     expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.failed(1))
   })
 
   it('shows a paused sync when the session expired', () => {
     const status: SyncStatus = { state: 'idle', lastSyncedAt: null, problem: 'signed_out' }
-    render(<SyncBadge status={status} pending={0} failed={0} />)
+    render(<SyncBadge status={status} outbox={box(0)} />)
     expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.signedOut)
+  })
+
+  it('shows nothing until the outbox loads, rather than a count it doesn’t have', () => {
+    const { container } = render(<SyncBadge status={offline} outbox={undefined} />)
+    expect(container).toBeEmptyDOMElement()
   })
 })
 
@@ -51,8 +58,7 @@ describe('SyncPanel', () => {
     render(
       <SyncPanel
         status={synced}
-        pending={0}
-        failed={[]}
+        outbox={box(0)}
         now={now}
         locale="en-GB"
         onDiscard={async () => ({ status: 'done' })}
@@ -67,7 +73,7 @@ describe('SyncPanel', () => {
   })
 
   it('explains being offline and counts the changes waiting', () => {
-    panel({ status: offline, pending: 3 })
+    panel({ status: offline, outbox: box(3) })
     expect(screen.getByText(strings.sync.neverSynced)).toBeInTheDocument()
     expect(screen.getByText(strings.sync.waiting(3))).toBeInTheDocument()
     expect(screen.getByText(strings.sync.offline)).toBeInTheDocument()
@@ -81,8 +87,7 @@ describe('SyncPanel', () => {
     rerender(
       <SyncPanel
         status={neverSynced}
-        pending={0}
-        failed={[]}
+        outbox={box(0)}
         now={now}
         locale="en-GB"
         onDiscard={async () => ({ status: 'done' })}
@@ -91,9 +96,30 @@ describe('SyncPanel', () => {
     expect(screen.queryByText(strings.sync.allSynced)).not.toBeInTheDocument()
   })
 
+  // The outbox count loads after the first render; until then the panel can't know.
+  it('says it’s checking, not that everything is synced, until the outbox loads', () => {
+    const { rerender } = panel({ outbox: undefined })
+    expect(screen.getByText(strings.sync.checking)).toBeInTheDocument()
+    expect(screen.queryByText(strings.sync.allSynced)).not.toBeInTheDocument()
+    expect(screen.getByText(strings.sync.lastSynced('5 minutes ago'))).toBeInTheDocument()
+
+    rerender(
+      <SyncPanel
+        status={synced}
+        outbox={box(1)}
+        now={now}
+        locale="en-GB"
+        onDiscard={async () => ({ status: 'done' })}
+      />,
+    )
+    expect(screen.queryByText(strings.sync.checking)).not.toBeInTheDocument()
+    expect(screen.getByText(strings.sync.waiting(1))).toBeInTheDocument()
+    expect(screen.queryByText(strings.sync.allSynced)).not.toBeInTheDocument()
+  })
+
   it('lists refused changes with their reason and discards one', async () => {
     const onDiscard = vi.fn(async (): Promise<DiscardOutcome> => ({ status: 'done' }))
-    panel({ failed: [refused], onDiscard })
+    panel({ outbox: box(0, [refused]), onDiscard })
 
     expect(screen.getByText(strings.sync.failedReason(refused.message))).toBeInTheDocument()
     await userEvent.setup().click(screen.getByRole('button', { name: strings.sync.discard }))
@@ -102,7 +128,7 @@ describe('SyncPanel', () => {
   })
 
   it('says a discard needs the network when offline', async () => {
-    panel({ failed: [refused], onDiscard: async () => ({ status: 'retry_later' }) })
+    panel({ outbox: box(0, [refused]), onDiscard: async () => ({ status: 'retry_later' }) })
 
     await userEvent.setup().click(screen.getByRole('button', { name: strings.sync.discard }))
 
@@ -111,7 +137,7 @@ describe('SyncPanel', () => {
   })
 
   it('says to sign in again when a discard finds the session expired', async () => {
-    panel({ failed: [refused], onDiscard: async () => ({ status: 'needs_auth' }) })
+    panel({ outbox: box(0, [refused]), onDiscard: async () => ({ status: 'needs_auth' }) })
 
     await userEvent.setup().click(screen.getByRole('button', { name: strings.sync.discard }))
 

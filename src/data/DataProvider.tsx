@@ -216,10 +216,16 @@ export const useSignOut = (): SignOutControls => useData().signOut
 
 export type FailedChange = { seq: number; table: string; code: string; message: string }
 
-export const useOutbox = (): { pending: number; failed: FailedChange[] } => {
+export type OutboxSummary = { pending: number; failed: FailedChange[] }
+
+// Undefined while the outbox loads. An empty default would read as "nothing waiting" on the
+// first render and briefly show "Everything is synced" with changes still queued. A new user's
+// database remounts the provider (keyed on the user in App), so no result outlives its db.
+export const useOutbox = (): OutboxSummary | undefined => {
   const { ctx } = useData()
-  const entries = useLiveQuery(() => ctx.db.outbox.toArray(), [ctx.db], [])
+  const entries = useLiveQuery(() => ctx.db.outbox.toArray(), [ctx.db])
   return useMemo(() => {
+    if (entries === undefined) return undefined
     const failed: FailedChange[] = entries.flatMap((entry) =>
       entry.failure && entry.seq !== undefined
         ? [{ seq: entry.seq, table: entry.table, ...entry.failure }]

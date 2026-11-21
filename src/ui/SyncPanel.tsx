@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import type { FailedChange } from '@/data/DataProvider'
+import type { FailedChange, OutboxSummary } from '@/data/DataProvider'
 import type { DiscardOutcome } from '@/data/sync/discard'
 import type { SyncStatus } from '@/data/sync/engine'
 import { formatAgo } from '@/domain/format'
@@ -8,8 +8,8 @@ import { strings } from '@/strings'
 
 type Props = {
   status: SyncStatus
-  pending: number
-  failed: FailedChange[]
+  // Undefined while the outbox loads.
+  outbox: OutboxSummary | undefined
   now: number
   locale: string
   onDiscard: (seq: number) => Promise<DiscardOutcome>
@@ -60,14 +60,15 @@ const Refused = ({
 }
 
 // "Everything is synced" only after a sync succeeded, with nothing waiting or refused.
-const allSynced = (status: SyncStatus, pending: number, failed: number): boolean =>
+const allSynced = (status: SyncStatus, outbox: OutboxSummary): boolean =>
   status.state === 'idle' &&
   status.problem === null &&
   status.lastSyncedAt !== null &&
-  pending === 0 &&
-  failed === 0
+  outbox.pending === 0 &&
+  outbox.failed.length === 0
 
-export const SyncPanel = ({ status, pending, failed, now, locale, onDiscard }: Props) => {
+export const SyncPanel = ({ status, outbox, now, locale, onDiscard }: Props) => {
+  const failed: FailedChange[] = outbox?.failed ?? []
   const problem = status.state === 'update_required' ? null : status.problem
   return (
     <section aria-labelledby="sync-title" className="flex flex-col gap-2">
@@ -75,8 +76,11 @@ export const SyncPanel = ({ status, pending, failed, now, locale, onDiscard }: P
         {strings.sync.title}
       </h2>
       <p>{lastSyncedLine(status, now, locale)}</p>
-      {pending > 0 && <p className="text-muted">{strings.sync.waiting(pending)}</p>}
-      {allSynced(status, pending, failed.length) && (
+      {outbox === undefined && <p className="text-muted">{strings.sync.checking}</p>}
+      {outbox !== undefined && outbox.pending > 0 && (
+        <p className="text-muted">{strings.sync.waiting(outbox.pending)}</p>
+      )}
+      {outbox !== undefined && allSynced(status, outbox) && (
         <p className="text-muted">{strings.sync.allSynced}</p>
       )}
       {problem === 'offline' && <p className="text-muted">{strings.sync.offline}</p>}

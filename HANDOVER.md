@@ -6,13 +6,12 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 4 is done (PRs #11 to #13). The phase status change is on `chore/phase-4-done`;
-   ask the user before pushing it and opening its PR. Phase 5 (targets and the weekly
-   check-in) comes next: read its scope in `docs/phases.md` and present a plan first.
-2. Bug, found in phase 4 PR 3: `useOutbox` in `src/data/DataProvider.tsx` returns an empty
-   outbox while its query loads, so the settings screen flashes **Everything is synced** even
-   with changes waiting. Fix it with a loading state; ask the user first, since it's outside
-   phase 4. `e2e/weight.spec.ts` reads IndexedDB instead of that text because of it.
+1. Phase 5 (targets and the weekly check-in) is next: read its scope in `docs/phases.md`
+   and present a plan first.
+2. The sync status fix (settings no longer says **Everything is synced** before the outbox
+   count loads) is on `fix/sync-status-while-loading`. Ask the user before pushing it.
+   Found in its review, not fixed: if the outbox query itself fails, `useOutbox` throws
+   during render and the signed-in shell has no error state with a retry for it.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
    from the installed app.
 4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
@@ -46,8 +45,9 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - The sign-out end-to-end tests change `second.user@calorithm.test`'s profile and skip the
   phone project, as `sync.spec.ts` does for the seed user.
 - `e2e/sync.spec.ts:52` (an offline change reaches the server, desktop) failed once and passed
-  on retry in CI on PRs #11 and #12. It predates phase 4; check whether it's the `useOutbox`
-  flash above.
+  on retry in CI on PRs #11 to #14. It predates phase 4. The `useOutbox` loading fix likely
+  doesn't explain it: that test keeps the settings screen open, so its outbox count has
+  already loaded. Read the trace from a failed attempt before changing it.
 - An editor formatter reformatted the Markdown tables in `docs/architecture.md` outside
   any edit during PR 1; check `git diff` for unrelated doc changes before committing.
 - `/security-review` needs `origin/HEAD`; in a fresh setup run `git remote set-head origin main`.
