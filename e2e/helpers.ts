@@ -49,6 +49,14 @@ export const importUser = {
   password: 'Local-Seed-Pass-2026',
 }
 
+// The account deletion test only, in the desktop project: it deletes this user, and
+// e2e/database.ts puts it back before each run.
+export const deleteMeUser = {
+  id: 'd0000000-0000-4000-8000-000000000008',
+  email: 'delete.me@calorithm.test',
+  password: 'Local-Seed-Pass-2026',
+}
+
 type SeedUser = typeof seedUser
 
 export const signIn = (page: Page, password = seedUser.password) =>

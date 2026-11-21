@@ -6,6 +6,7 @@ import { writeRow } from '../repository'
 import { createEngine, type Engine } from './engine'
 import {
   deletePendingDatabases,
+  finishAccountDeletion,
   finishSignOut,
   type PendingDeletes,
   syncBeforeSignOut,
@@ -173,6 +174,41 @@ describe('finishSignOut', () => {
     expect(await other.rows('parent').toArray()).toEqual([
       expect.objectContaining({ id: theirs.id }),
     ])
+  })
+})
+
+describe('finishAccountDeletion', () => {
+  it('deletes the database and signs out, like a sign-out', async () => {
+    await finishAccountDeletion(deps())
+
+    expect(await Dexie.exists(dbNameFor(userId))).toBe(false)
+    expect(calls).toEqual([`mark ${dbNameFor(userId)}`, 'signOut exists=false'])
+    expect(pending.names.size).toBe(0)
+  })
+
+  it('still signs out when the delete fails, and leaves the delete for the next start', async () => {
+    await write('left behind')
+    const fail = vi.spyOn(Dexie, 'delete').mockRejectedValueOnce(new Error('UnknownError'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    await finishAccountDeletion(deps())
+
+    // The account is gone, so the device mustn't stay signed in to it.
+    expect(calls.at(-1)).toBe('signOut exists=true')
+    expect([...pending.names]).toEqual([dbNameFor(userId)])
+    fail.mockRestore()
+  })
+
+  it('signs out again when the first sign-out fails', async () => {
+    let attempts = 0
+    await finishAccountDeletion({
+      ...deps(),
+      signOut: async () => {
+        attempts++
+        return { ok: attempts > 1 }
+      },
+    })
+    expect(attempts).toBe(2)
   })
 })
 

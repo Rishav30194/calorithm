@@ -35,6 +35,74 @@ export const signIn = async (
   }
 }
 
+// not_recent: the server found no password sign-in in the last 5 minutes, which shouldn't
+// happen right after signing in again, unless the device clock and the server disagree.
+export type DeleteAccountFailure = SignInFailure | 'not_recent'
+
+export type DeleteAccountResult = { ok: true } | { ok: false; failure: DeleteAccountFailure }
+
+type DeleteAccountDeps = {
+  signIn: (email: string, password: string) => Promise<SignInResult>
+  callDelete: () => PromiseLike<{ status: number; error: { code: string; message: string } | null }>
+  // Whether the server says the signed-in user no longer exists; null when it can't tell.
+  accountGone: () => Promise<boolean | null>
+}
+
+const isNetworkStatus = (status: number): boolean =>
+  // postgrest-js reports a failed fetch as status 0; see decision 0014.
+  status === 0 || status === 408 || status === 429 || status >= 500
+
+// Signs in again with the password, which proves it and gives the token the fresh password
+// sign-in that public.delete_account() requires, then deletes the account on the server.
+// Deleting this device's data and session is left to the caller. When a response is lost,
+// the account may already be gone, so the server is asked before reporting a failure: the
+// retry's sign-in would otherwise fail and report a wrong password.
+export const deleteAccountWith =
+  ({ signIn: signInWith, callDelete, accountGone }: DeleteAccountDeps) =>
+  async (email: string, password: string): Promise<DeleteAccountResult> => {
+    const signedIn = await signInWith(email, password)
+    if (!signedIn.ok) {
+      if (signedIn.failure === 'invalid_credentials' && (await accountGone())) return { ok: true }
+      return signedIn
+    }
+    let response: Awaited<ReturnType<DeleteAccountDeps['callDelete']>>
+    try {
+      response = await callDelete()
+    } catch (error) {
+      console.error('delete_account call threw', error)
+      return { ok: false, failure: 'unknown' }
+    }
+    const { status, error } = response
+    if (!error) return { ok: true }
+    if (error.code === '28000') return { ok: false, failure: 'not_recent' }
+    if (isNetworkStatus(status)) {
+      return (await accountGone()) ? { ok: true } : { ok: false, failure: 'network' }
+    }
+    return { ok: false, failure: 'unknown' }
+  }
+
+// Supabase Auth answers 403 user_not_found for a session whose user was deleted.
+const accountGoneFrom = async (client: Client): Promise<boolean | null> => {
+  try {
+    const { data, error } = await client.auth.getUser()
+    if (data.user) return false
+    return isAuthApiError(error) && error.code === 'user_not_found' ? true : null
+  } catch {
+    return null
+  }
+}
+
+export const deleteAccount = (
+  client: Client,
+  email: string,
+  password: string,
+): Promise<DeleteAccountResult> =>
+  deleteAccountWith({
+    signIn: (address, secret) => signIn(client, address, secret),
+    callDelete: () => client.rpc('delete_account'),
+    accountGone: () => accountGoneFrom(client),
+  })(email, password)
+
 type RefreshClient = {
   auth: {
     refreshSession: () => Promise<{ data: { session: unknown }; error: unknown }>

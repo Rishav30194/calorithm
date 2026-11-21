@@ -1,8 +1,9 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 
 import type { SignOutControls } from '@/data/DataProvider'
 import { strings } from '@/strings'
 
+import { DeleteAccountDialog } from './DeleteAccountDialog'
 import { type FoodRoute, hrefFor, type Route, type Tab, tabs, useRoute } from './routes'
 import { SignOutDialog } from './SignOutDialog'
 
@@ -23,6 +24,7 @@ type Props = {
 const Settings = ({ email, signOut, settings }: Props) => {
   const { state } = signOut
   const busy = state.step === 'syncing' || state.step === 'deleting'
+  const [deleting, setDeleting] = useState(false)
   return (
     <div className="flex flex-col gap-6">
       {settings}
@@ -43,6 +45,21 @@ const Settings = ({ email, signOut, settings }: Props) => {
       >
         {busy ? strings.settings.signingOut : strings.settings.signOut}
       </button>
+      <button
+        type="button"
+        onClick={() => setDeleting(true)}
+        disabled={busy}
+        className="min-h-11 self-start rounded-lg border border-border px-4 font-medium text-danger disabled:opacity-60"
+      >
+        {strings.deleteAccount.open}
+      </button>
+      {deleting && (
+        <DeleteAccountDialog
+          email={email}
+          onDelete={signOut.deleteAccount}
+          onClose={() => setDeleting(false)}
+        />
+      )}
       {state.step === 'confirm' && (
         <SignOutDialog
           count={state.count}

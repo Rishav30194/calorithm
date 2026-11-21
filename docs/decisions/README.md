@@ -42,3 +42,4 @@ change a decision, write a new record that supersedes the old one.
 | [0020](0020-weight-ids-from-user-and-date.md) | Weigh-in ids derived from the user and date | Accepted |
 | [0021](0021-weekly-check-in-rules.md) | Weekly check-in rules | Accepted |
 | [0022](0022-export-file-and-import-merge.md) | Export file format and how import merges | Accepted |
+| [0023](0023-account-deletion-needs-a-recent-password-sign-in.md) | Account deletion needs a recent password sign-in | Accepted |

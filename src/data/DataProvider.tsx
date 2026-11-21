@@ -11,7 +11,12 @@ import {
   useState,
 } from 'react'
 
-import { refreshSession, signOut } from './auth'
+import {
+  type DeleteAccountResult,
+  deleteAccount as deleteAccountOnServer,
+  refreshSession,
+  signOut,
+} from './auth'
 import { dbNameFor, LocalDb, type OutboxEntry } from './db'
 import type { Env } from './env'
 import { readProfile, type SetUnitsResult, setUnits, type Units } from './profile'
@@ -21,6 +26,7 @@ import { type DiscardOutcome, discardFailed } from './sync/discard'
 import { createEngine, type Engine, type SyncStatus } from './sync/engine'
 import type { SyncContext } from './sync/push'
 import {
+  finishAccountDeletion,
   finishSignOut,
   syncBeforeSignOut,
   unsentExport,
@@ -49,6 +55,9 @@ export type SignOutControls = {
   confirm: () => void
   cancel: () => void
   unsentFile: () => UnsentFile | null
+  // Deletes the account on the server after checking the password, then this device's data
+  // and session, the way a sign-out does.
+  deleteAccount: (email: string, password: string) => Promise<DeleteAccountResult>
 }
 
 type DataContextValue = Session & {
@@ -89,6 +98,8 @@ export const DataProvider = ({
   // Bumped to open a fresh database after a sign-out that deleted it but then failed.
   const [generation, setGeneration] = useState(0)
   const deleting = useRef(false)
+  // Set once the server has deleted the account: the local cleanup then can't end signed in.
+  const accountDeleted = useRef(false)
   const pending = useMemo(browserPendingDeletes, [])
   const client = getClient(env)
 
@@ -143,12 +154,18 @@ export const DataProvider = ({
   useEffect(() => {
     if (signOutStep.step !== 'deleting' || !session || deleting.current) return
     deleting.current = true
-    void finishSignOut({
+    const deps = {
       db: session.ctx.db,
       engine: session.engine,
       pending,
       signOut: () => signOut(client),
-    })
+    }
+    // The session listener then replaces this provider with the sign-in screen.
+    if (accountDeleted.current) {
+      void finishAccountDeletion(deps)
+      return
+    }
+    void finishSignOut(deps)
       .catch((error: unknown) => {
         console.error('sign-out failed', error)
         return { ok: false }
@@ -195,8 +212,17 @@ export const DataProvider = ({
           contents: JSON.stringify(unsentExport(signOutStep.entries, now), null, 2),
         }
       },
+      deleteAccount: async (email, password) => {
+        const result = await deleteAccountOnServer(client, email, password)
+        // Unsent changes have nowhere to go now, so the local data goes without asking.
+        if (result.ok) {
+          accountDeleted.current = true
+          setSignOutStep({ step: 'deleting' })
+        }
+        return result
+      },
     }
-  }, [session, signOutStep])
+  }, [session, signOutStep, client])
 
   const value = useMemo(
     () =>

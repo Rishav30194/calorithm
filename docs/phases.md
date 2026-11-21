@@ -371,7 +371,7 @@ Check-in rules: decision 0021.
 **Acceptance criteria:**
 - [x] Export then import into a fresh account reproduces every row (round-trip test).
 - [x] A malformed or newer-version file is rejected with a clear message and writes nothing.
-- [ ] pgTAP proves account deletion leaves no rows for that user.
+- [x] pgTAP proves account deletion leaves no rows for that user.
 - [ ] A new deployment shows the update prompt without reloading on its own.
 
 **Implementation notes:**
@@ -391,6 +391,15 @@ Check-in rules: decision 0021.
   30 days from this device's last export, or from its oldest live log entry or weigh-in when
   it never exported. A synthetic seed user, `import.user`, receives imports in the browser
   tests.
+- PR 3: `public.delete_account()` (migration `20261121080000`), a `security definer`
+  function that deletes the caller's auth user, so every user table's cascade removes the
+  rows. It needs a password sign-in in the last 5 minutes in the JWT's `amr` claim, checked
+  against local Supabase Auth, including that a refreshed token keeps the sign-in time
+  (decision 0023). **Delete account** on the settings screen asks for the password, signs in
+  again with it, calls the function, then removes this device's data and session as
+  sign-out does. pgTAP covers the refusals and proves no rows are left in any table; the
+  end-to-end test deletes `delete.me@calorithm.test` and puts it back first through `psql` in
+  the local database container (`e2e/database.ts`).
 
 ## Phase 7 — Production
 
