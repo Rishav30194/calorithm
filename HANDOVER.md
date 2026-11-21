@@ -8,10 +8,8 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 1. Phase 5 (targets and the weekly check-in) is next: read its scope in `docs/phases.md`
    and present a plan first.
-2. The sync status fix (settings no longer says **Everything is synced** before the outbox
-   count loads) is on `fix/sync-status-while-loading`. Ask the user before pushing it.
-   Found in its review, not fixed: if the outbox query itself fails, `useOutbox` throws
-   during render and the signed-in shell has no error state with a retry for it.
+2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
+   no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
    from the installed app.
 4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
@@ -45,9 +43,8 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - The sign-out end-to-end tests change `second.user@calorithm.test`'s profile and skip the
   phone project, as `sync.spec.ts` does for the seed user.
 - `e2e/sync.spec.ts:52` (an offline change reaches the server, desktop) failed once and passed
-  on retry in CI on PRs #11 to #14. It predates phase 4. The `useOutbox` loading fix likely
-  doesn't explain it: that test keeps the settings screen open, so its outbox count has
-  already loaded. Read the trace from a failed attempt before changing it.
+  on retry in CI on PRs #11 to #15. It predates phase 4, and the `useOutbox` loading fix
+  (PR #15) didn't stop it. Read the trace CI records on the first retry before changing it.
 - An editor formatter reformatted the Markdown tables in `docs/architecture.md` outside
   any edit during PR 1; check `git diff` for unrelated doc changes before committing.
 - `/security-review` needs `origin/HEAD`; in a fresh setup run `git remote set-head origin main`.
