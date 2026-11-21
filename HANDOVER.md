@@ -6,11 +6,11 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 5 is done once PR 4 (the check-in screen and progress bars) merges; it's on
-   `feature/phase-5-checkin-screen`. Phase 6 (export, import, account deletion, and updates)
-   is next: read its scope in `docs/phases.md` and present a plan first. The check-in's
-   30-day export reminder (PLAN.md, "Features") waits for export in phase 6. End-to-end tests
-   that look for a status message should scope it to a region: the settings screen has two.
+1. Phase 5 (targets and the weekly check-in) is done, merged as #17 to #20. Phase 6
+   (export, import, account deletion, and updates) is next: read its scope in
+   `docs/phases.md` and present a plan first. The check-in's 30-day export reminder
+   (PLAN.md, "Features") waits for export in phase 6. End-to-end tests that look for a status
+   message should scope it to a region: the settings screen has two.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file

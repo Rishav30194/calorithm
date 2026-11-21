@@ -265,7 +265,7 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 
 ## Phase 5 — Targets and the weekly check-in
 
-**Status:** In progress: PR 4 is the last, and completes the phase when merged
+**Status:** Done (2026-11-21)
 
 **Goal:** the app sets your targets from your own data each week.
 
@@ -286,7 +286,7 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 - [x] A week with fewer than 4 complete days leaves targets unchanged and says why.
   (`src/domain/maintenance.test.ts`, `src/ui/checkin/checkin.test.tsx`, and `e2e/checkin.spec.ts`)
 
-**Plan** (approved 2026-11-21): four PRs; PRs 1 to 3 merged as #17 to #19.
+**Plan** (approved 2026-11-21): four PRs, merged as #17 to #20.
 
 1. **Schema:** `checkins` migration and pgTAP tests, generated types, `checkinsSpec` last in
    push order, Dexie schema version 4 with an upgrade test, and decision 0021.
