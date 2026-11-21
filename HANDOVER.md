@@ -6,10 +6,12 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 4, PR 2 (trend, unit conversion, and weigh-in storage) is on
-   `feature/phase-4-trend-and-storage`. Run `/code-review` and ask the user before pushing it.
-2. Then phase 4, PR 3: the weight screen. Map the profile's `metric` and `imperial` to `kg`
-   and `lb`, parse entry with Zod, and enter weights through `toKg`.
+1. Phase 4, PR 3 (the weight screen) is on `feature/phase-4-weight-screen`. Ask the user
+   before pushing it. Once merged, mark phase 4 done in `docs/phases.md`.
+2. Bug, found in phase 4 PR 3: `useOutbox` in `src/data/DataProvider.tsx` returns an empty
+   outbox while its query loads, so the settings screen flashes **Everything is synced** even
+   with changes waiting. Fix it with a loading state; ask the user first, since it's outside
+   phase 4. `e2e/weight.spec.ts` reads IndexedDB instead of that text because of it.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
    from the installed app.
 4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
@@ -42,6 +44,9 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
   because the local database keeps rows between runs and both projects share users.
 - The sign-out end-to-end tests change `second.user@calorithm.test`'s profile and skip the
   phone project, as `sync.spec.ts` does for the seed user.
+- `e2e/sync.spec.ts:52` (an offline change reaches the server, desktop) failed once and passed
+  on retry in CI on PRs #11 and #12. It predates phase 4; check whether it's the `useOutbox`
+  flash above.
 - An editor formatter reformatted the Markdown tables in `docs/architecture.md` outside
   any edit during PR 1; check `git diff` for unrelated doc changes before committing.
 - `/security-review` needs `origin/HEAD`; in a fresh setup run `git remote set-head origin main`.

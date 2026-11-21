@@ -29,3 +29,15 @@ export const trend = (weighIns: readonly WeighIn[], from: string, to: string): T
   }
   return points
 }
+
+// How far the trend moved in the `days` days up to `date`: negative for a loss. Null when
+// either end has no trend, for example in the first week of weigh-ins.
+export const trendChange = (
+  points: readonly TrendPoint[],
+  date: string,
+  days: number,
+): number | null => {
+  const end = points.find((point) => point.date === date)
+  const start = points.find((point) => point.date === addDays(date, -days))
+  return end && start ? end.trendKg - start.trendKg : null
+}

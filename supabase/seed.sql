@@ -1,10 +1,13 @@
 -- Synthetic local data only. Never put real data here.
 --
--- Two signed-up users for local development and the end-to-end tests, both with the
--- password Local-Seed-Pass-2026:
+-- Signed-up users for local development and the end-to-end tests, all with the password
+-- Local-Seed-Pass-2026:
 --   seed.user@calorithm.test     d0000000-0000-4000-8000-000000000001
 --   second.user@calorithm.test   d0000000-0000-4000-8000-000000000002 (two users on one
 --                                device, and sign-out tests that change its profile)
+--   weight.user@calorithm.test   d0000000-0000-4000-8000-000000000003 (weight tests; its
+--                                units never change)
+--   units.user@calorithm.test    d0000000-0000-4000-8000-000000000004 (the units switch test)
 --
 -- Sign-ups are off, so the user is written straight into the auth schema. Auth needs the
 -- matching auth.identities row to sign in, and empty strings rather than nulls in the token
@@ -42,6 +45,34 @@ values
     now(),
     now(),
     '', '', '', ''
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000',
+    'd0000000-0000-4000-8000-000000000003',
+    'authenticated',
+    'authenticated',
+    'weight.user@calorithm.test',
+    extensions.crypt('Local-Seed-Pass-2026', extensions.gen_salt('bf')),
+    now(),
+    '{"provider": "email", "providers": ["email"]}',
+    '{}',
+    now(),
+    now(),
+    '', '', '', ''
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000',
+    'd0000000-0000-4000-8000-000000000004',
+    'authenticated',
+    'authenticated',
+    'units.user@calorithm.test',
+    extensions.crypt('Local-Seed-Pass-2026', extensions.gen_salt('bf')),
+    now(),
+    '{"provider": "email", "providers": ["email"]}',
+    '{}',
+    now(),
+    now(),
+    '', '', '', ''
   );
 
 insert into auth.identities (
@@ -52,4 +83,4 @@ select
   json_build_object('sub', u.id, 'email', u.email, 'email_verified', true),
   now(), now(), now()
 from auth.users u
-where u.email in ('seed.user@calorithm.test', 'second.user@calorithm.test');
+where u.email like '%@calorithm.test';
