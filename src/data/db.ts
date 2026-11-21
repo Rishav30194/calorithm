@@ -28,6 +28,9 @@ export type SyncState = {
   unreadable: string[]
 }
 
+// Local-only settings for this device, never synced.
+export type MetaEntry = { key: 'lastExportDay'; value: string }
+
 export type SchemaVersion = { version: number; stores: Record<string, string | null> }
 
 // One entry per local schema change, never edited once released. A new version lists only
@@ -63,6 +66,12 @@ export const schemaVersions: readonly SchemaVersion[] = [
       checkins: 'id, date',
     },
   },
+  {
+    version: 5,
+    stores: {
+      meta: 'key',
+    },
+  },
 ]
 
 export const dbNameFor = (userId: string): string => `calorithm-${userId}`
@@ -70,6 +79,7 @@ export const dbNameFor = (userId: string): string => `calorithm-${userId}`
 export class LocalDb extends Dexie {
   declare outbox: Table<OutboxEntry, number>
   declare sync_state: Table<SyncState, string>
+  declare meta: Table<MetaEntry, MetaEntry['key']>
 
   constructor(name: string, versions: readonly SchemaVersion[] = schemaVersions) {
     super(name)

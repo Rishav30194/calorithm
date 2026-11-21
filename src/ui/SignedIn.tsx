@@ -28,6 +28,8 @@ const loadWeightScreen = () =>
   lazy(() => import('./weight/screens').then((module) => ({ default: module.WeightScreen })))
 const loadCheckinScreen = () =>
   lazy(() => import('./checkin/screens').then((module) => ({ default: module.CheckinScreen })))
+const loadBackupScreen = () =>
+  lazy(() => import('./backup/screens').then((module) => ({ default: module.BackupScreen })))
 const loadProfileScreen = () =>
   lazy(() =>
     import('./profile/screens').then((module) => ({ default: module.ProfileSettingsScreen })),
@@ -57,6 +59,7 @@ const SyncSettings = () => {
   const discard = useDiscard()
   const now = useNow()
   const [ProfileScreen, setProfileScreen] = useState(loadProfileScreen)
+  const [BackupScreen, setBackupScreen] = useState(loadBackupScreen)
   return (
     <>
       <ScreenErrorBoundary onRetry={() => setProfileScreen(() => loadProfileScreen())}>
@@ -72,6 +75,11 @@ const SyncSettings = () => {
         locale={navigator.language}
         onDiscard={discard}
       />
+      <ScreenErrorBoundary onRetry={() => setBackupScreen(() => loadBackupScreen())}>
+        <Suspense fallback={<p className="text-muted">{strings.loading}</p>}>
+          <BackupScreen locale={navigator.language} />
+        </Suspense>
+      </ScreenErrorBoundary>
     </>
   )
 }

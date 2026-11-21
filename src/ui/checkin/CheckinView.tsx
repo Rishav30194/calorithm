@@ -5,6 +5,7 @@ import type { CheckinFields } from '@/domain/checkin'
 import { addDays } from '@/domain/dates'
 import { strings } from '@/strings'
 
+import { longDate } from '../dates'
 import { routeHref } from '../routes'
 import { CheckinSummary } from './CheckinSummary'
 
@@ -12,13 +13,6 @@ type Props = {
   state: CheckinState
   locale: string
   onSave: (checkin: CheckinFields) => Promise<void>
-}
-
-const longDate = (date: string, locale: string): string => {
-  const [year = 0, month = 1, day = 1] = date.split('-').map(Number)
-  return new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(
-    new Date(year, month - 1, day),
-  )
 }
 
 const linkClass =

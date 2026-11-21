@@ -56,12 +56,13 @@ move unchanged into a Supabase Edge Function, a native app, or a reports job.
 ## Data model
 
 `PLAN.md`, "Data model", lists the tables and the rules every table follows. Dexie mirrors the
-Postgres tables with the same names and columns, plus two local-only tables:
+Postgres tables with the same names and columns, plus three local-only tables:
 
 | Local table | Holds |
 |---|---|
 | `outbox` | One row per pending write: table name, row ID, operation, payload, schema version, attempt count. |
-| `sync_state` | Per table: the last pull position. Also the signed-in user ID and the last export date. |
+| `sync_state` | Per table: the last pull position and the rows it couldn't read. |
+| `meta` | This device's settings that never sync: the local day of its last export. |
 
 Dexie's database name is `calorithm-<user_id>`. Signing out deletes it.
 
@@ -261,6 +262,10 @@ the result in `checkins` when you save it. Decision 0021 holds the rules.
 - **Import:** `importData` gives rows new ids when the file comes from another account, then
   writes each row newer than this device's copy, with its outbox entry, in one transaction.
   Rows keep the file's `client_updated_at`, so the server's trigger also keeps newer edits.
+- **Screens:** **Your data** on the settings screen exports and imports, asking before an
+  import with the file's export date and item count. The check-in screen shows a reminder once
+  the last export from this device is more than 30 days old, or, on a device that never
+  exported, once its oldest log entry or weigh-in is (`src/domain/backup.ts`).
 
 ## Offline and updates
 
