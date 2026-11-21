@@ -168,6 +168,40 @@ describe('saveProfileSettings', () => {
     })
   })
 
+  it('writes only the fields given, keeping the rest as stored', async () => {
+    await remote.upsert('profile', [
+      serverProfile({ height_cm: 180, activity_level: 'athlete', goal_rate_kg_per_week: -0.27 }),
+    ])
+
+    expect(await saveProfileSettings(ctx, userId, { calorieFloorKcal: 1600 }, today)).toEqual({
+      ok: true,
+    })
+
+    // A value this version doesn't know, and a rate pounds can't show exactly, survive.
+    expect(await readProfile(db, userId)).toMatchObject({
+      height_cm: 180,
+      activity_level: 'athlete',
+      goal_rate_kg_per_week: -0.27,
+      calorie_floor_kcal: 1600,
+    })
+  })
+
+  it('keeps a change another device synced in, when saving a different field', async () => {
+    await remote.upsert('profile', [serverProfile()])
+    await saveProfileSettings(ctx, userId, { heightCm: 175 }, today)
+    await db.table('profile').put({
+      ...(await readProfile(db, userId)),
+      calorie_floor_kcal: 1800,
+    })
+
+    await saveProfileSettings(ctx, userId, { heightCm: 176 }, today)
+
+    expect(await readProfile(db, userId)).toMatchObject({
+      height_cm: 176,
+      calorie_floor_kcal: 1800,
+    })
+  })
+
   it('refuses settings the database would reject, and writes nothing', async () => {
     const result = await saveProfileSettings(
       ctx,

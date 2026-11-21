@@ -35,7 +35,7 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 180.6 kB of the 200 kB budget (phase 5 PR 3); the log and food screens load as
+- First-load JavaScript is 180.7 kB of the 200 kB budget (phase 5 PR 3); the log and food screens load as
   their own chunks. Phase 3 will likely need to load
   screens on demand.
 - The browser tests run a production build, so React's development double-run isn't covered.

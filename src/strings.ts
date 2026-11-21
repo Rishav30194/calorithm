@@ -267,7 +267,7 @@ export const strings = {
     errors: {
       heightCm: 'Enter a height from 100 to 250 cm.',
       heightImperial: 'Enter a height from 3 ft 4 in to 8 ft 2 in, in whole feet and inches.',
-      birthDate: 'Pick a date from 1900 up to today.',
+      birthDate: 'Pick a date from 1900 up to yesterday.',
       goalRate: {
         kg: 'Enter an amount above 0, up to 2 kg a week.',
         lb: 'Enter an amount above 0, up to 4.4 lb a week.',

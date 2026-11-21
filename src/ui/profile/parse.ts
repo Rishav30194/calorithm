@@ -1,3 +1,6 @@
+import { z } from 'zod/mini'
+
+import { profileSettings } from '@/data/profile'
 import type { ActivityLevel, Sex } from '@/domain/maintenance'
 import { roundTo } from '@/domain/nutrition'
 import {
@@ -6,6 +9,7 @@ import {
   type GoalDirection,
   goalRateFromKg,
   goalRateToKg,
+  type ProfileField,
   type ProfileSettings,
   profileErrors,
 } from '@/domain/profile'
@@ -32,79 +36,107 @@ export type ProfileFormErrors = Partial<
 >
 
 export type ProfileFormResult =
-  | { ok: true; settings: ProfileSettings }
+  | { ok: true; changes: Partial<ProfileSettings> }
   | { ok: false; errors: ProfileFormErrors }
 
-const wholeNumber = (text: string): number | null => {
-  const value = toNumber(text)
-  return Number.isInteger(value) ? value : null
+const wholeNumber = z.int()
+const inchesInFoot = z.int().check(z.gte(0), z.lte(11))
+const centimeters = z.number()
+const amount = z.number().check(z.positive())
+const protein = z.number()
+
+// The parsed number, or NaN, which every range check refuses.
+const parsed = (schema: z.ZodMiniType<number>, value: number): number => {
+  const result = schema.safeParse(value)
+  return result.success ? result.data : Number.NaN
 }
 
-// Null for an empty height, NaN for one that can't be read.
+// Null for an empty height.
 const parseHeight = (values: ProfileFormValues, unit: WeightUnit): number | null => {
   if (unit === 'kg') {
     if (values.heightCm.trim() === '') return null
-    const cm = toNumber(values.heightCm)
-    return Number.isNaN(cm) ? Number.NaN : roundTo(cm, 1)
+    const cm = parsed(centimeters, toNumber(values.heightCm))
+    return Number.isNaN(cm) ? cm : roundTo(cm, 1)
   }
   const feetText = values.heightFeet.trim()
   const inchesText = values.heightInches.trim()
   if (feetText === '' && inchesText === '') return null
-  const feet = wholeNumber(feetText)
-  const inches = inchesText === '' ? 0 : wholeNumber(inchesText)
-  if (feet === null || inches === null || inches > 11) return Number.NaN
-  return cmFromFeetAndInches(feet, inches)
+  const feet = parsed(wholeNumber, toNumber(feetText))
+  const inches = inchesText === '' ? 0 : parsed(inchesInFoot, toNumber(inchesText))
+  return Number.isNaN(feet) || Number.isNaN(inches) ? Number.NaN : cmFromFeetAndInches(feet, inches)
 }
 
 const parseGoalRate = (values: ProfileFormValues, unit: WeightUnit): number => {
   if (values.goalDirection === 'maintain') return 0
-  const amount = toNumber(values.goalAmount)
-  return amount > 0 ? goalRateToKg(values.goalDirection, amount, unit) : Number.NaN
+  const value = parsed(amount, toNumber(values.goalAmount))
+  if (Number.isNaN(value)) return value
+  const kg = goalRateToKg(values.goalDirection, value, unit)
+  // An amount too small to store would save as keeping the weight.
+  return kg === 0 ? Number.NaN : kg
 }
 
-// Reads the form into stored units; the range checks are the profile table's, from
-// profileErrors, so the form refuses exactly what the database would.
+const changed = (
+  values: ProfileFormValues,
+  shown: ProfileFormValues,
+  fields: readonly (keyof ProfileFormValues)[],
+): boolean => fields.some((field) => values[field] !== shown[field])
+
+const errorFor: Record<ProfileField, keyof ProfileFormErrors | null> = {
+  heightCm: 'height',
+  birthDate: 'birthDate',
+  goalRateKgPerWeek: 'goalRate',
+  proteinGPerKg: 'protein',
+  calorieFloorKcal: 'calorieFloor',
+  // Sex and activity come from fixed choices.
+  sex: null,
+  activityLevel: null,
+}
+
+// Reads the fields that differ from what was shown into stored units. Untouched fields are
+// left out, so the save keeps their stored values exactly, including ones that display
+// rounded. The range checks are the profile table's, from profileErrors.
+const changedSettings = (
+  values: ProfileFormValues,
+  shown: ProfileFormValues,
+  unit: WeightUnit,
+): Partial<ProfileSettings> => {
+  const changes: Partial<ProfileSettings> = {}
+  const heightFields =
+    unit === 'kg' ? (['heightCm'] as const) : (['heightFeet', 'heightInches'] as const)
+  if (changed(values, shown, heightFields)) changes.heightCm = parseHeight(values, unit)
+  if (changed(values, shown, ['birthDate'])) {
+    changes.birthDate = values.birthDate.trim() || null
+  }
+  if (changed(values, shown, ['sex'])) changes.sex = values.sex || null
+  if (changed(values, shown, ['activityLevel']))
+    changes.activityLevel = values.activityLevel || null
+  if (changed(values, shown, ['goalDirection', 'goalAmount'])) {
+    changes.goalRateKgPerWeek = parseGoalRate(values, unit)
+  }
+  if (changed(values, shown, ['proteinGPerKg'])) {
+    changes.proteinGPerKg = parsed(protein, Number(values.proteinGPerKg || Number.NaN))
+  }
+  if (changed(values, shown, ['calorieFloorKcal'])) {
+    changes.calorieFloorKcal = parsed(wholeNumber, toNumber(values.calorieFloorKcal))
+  }
+  return changes
+}
+
 export const parseProfileForm = (
   values: ProfileFormValues,
+  shown: ProfileFormValues,
   unit: WeightUnit,
   today: string,
 ): ProfileFormResult => {
-  const heightCm = parseHeight(values, unit)
-  const settings: ProfileSettings = {
-    heightCm,
-    birthDate: values.birthDate.trim() === '' ? null : values.birthDate.trim(),
-    sex: values.sex === '' ? null : values.sex,
-    activityLevel: values.activityLevel === '' ? null : values.activityLevel,
-    goalRateKgPerWeek: parseGoalRate(values, unit),
-    proteinGPerKg: Number(values.proteinGPerKg),
-    calorieFloorKcal: wholeNumber(values.calorieFloorKcal) ?? Number.NaN,
-  }
+  const changes = changedSettings(values, shown, unit)
 
+  // Each check covers one field, so defaults fill the rest without hiding a change's error.
   const errors: ProfileFormErrors = {}
-  for (const field of profileErrors(settings, today)) {
-    switch (field) {
-      case 'heightCm':
-        errors.height = true
-        break
-      case 'birthDate':
-        errors.birthDate = true
-        break
-      case 'goalRateKgPerWeek':
-        errors.goalRate = true
-        break
-      case 'proteinGPerKg':
-        errors.protein = true
-        break
-      case 'calorieFloorKcal':
-        errors.calorieFloor = true
-        break
-      // Sex and activity come from fixed choices.
-      case 'sex':
-      case 'activityLevel':
-        break
-    }
+  for (const field of profileErrors({ ...profileSettings(null), ...changes }, today)) {
+    const error = errorFor[field]
+    if (field in changes && error !== null) errors[error] = true
   }
-  return Object.keys(errors).length > 0 ? { ok: false, errors } : { ok: true, settings }
+  return Object.keys(errors).length > 0 ? { ok: false, errors } : { ok: true, changes }
 }
 
 // Stored settings as form text, in the profile's units and the locale's decimal mark.

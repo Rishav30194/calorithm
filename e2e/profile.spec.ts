@@ -35,8 +35,9 @@ const waitForSync = async (page: Page) => {
 }
 
 test.describe('the profile form', () => {
-  // Writes the profile user's one profile row, so it runs in one project only.
+  // Each test writes the profile user's one profile row, so they run in one project, in turn.
   test.skip(({ isMobile }) => isMobile, 'Runs in the desktop project only')
+  test.describe.configure({ mode: 'serial' })
 
   test('saves every setting, and keeps them across a reload', async ({ page }) => {
     // A random floor, so a value left by an earlier run can't make the test pass.

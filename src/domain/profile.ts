@@ -34,8 +34,9 @@ const hasDecimals = (value: number, places: number): boolean =>
 
 const between = (value: number, min: number, max: number): boolean => value >= min && value <= max
 
-// The fields that break a profile migration check, in the type's order. Birth dates may be
-// today but not later, as the migration's trigger requires.
+// The fields that break a profile migration check, in the type's order. A birth date must be
+// before today: the migration's trigger compares with the server's date in UTC, which can be
+// a day behind the device's.
 export const profileErrors = (settings: ProfileSettings, today: string): ProfileField[] => {
   const errors: ProfileField[] = []
   const { heightCm, birthDate } = settings
@@ -47,7 +48,7 @@ export const profileErrors = (settings: ProfileSettings, today: string): Profile
   }
   if (
     birthDate !== null &&
-    !(isDay(birthDate) && birthDate >= EARLIEST_BIRTH_DATE && birthDate <= today)
+    !(isDay(birthDate) && birthDate >= EARLIEST_BIRTH_DATE && birthDate < today)
   ) {
     errors.push('birthDate')
   }

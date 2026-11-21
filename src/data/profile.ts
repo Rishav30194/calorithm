@@ -85,7 +85,7 @@ export type SaveProfileResult =
 const isSex = (value: string | null): value is Sex => value === 'female' || value === 'male'
 
 const isActivityLevel = (value: string | null): value is ActivityLevel =>
-  (activityLevels as readonly (string | null)[]).includes(value)
+  activityLevels.some((level) => level === value)
 
 // The editable settings, with the column defaults when there's no profile yet. A sex or
 // activity level this version doesn't know reads as not set.
@@ -102,32 +102,32 @@ export const profileSettings = (row: ProfileRow | null): ProfileSettings => {
   }
 }
 
-// Writes every setting and leaves the units alone. Settings the database would reject are
-// refused here, since a refused push would fail for good.
+// Writes only the settings given, onto the stored profile, and leaves the rest alone: an
+// older form's untouched fields can't undo another device's change, rounding for display
+// can't rewrite a stored value, and a value this version doesn't know survives. Settings the
+// database would reject are refused here, since a refused push would fail for good.
 export const saveProfileSettings = async (
   ctx: SyncContext,
   userId: string,
-  settings: ProfileSettings,
+  changes: Partial<ProfileSettings>,
   today: string,
 ): Promise<SaveProfileResult> => {
-  const fields = profileErrors(settings, today)
+  // Each check covers one field, so filling the rest with defaults checks only the changes.
+  const checked = { ...profileSettings(null), ...changes }
+  const fields = profileErrors(checked, today).filter((field) => field in changes)
   if (fields.length > 0) return { ok: false, reason: 'invalid', fields }
   const base = await baseProfile(ctx, userId)
   if (!base.ok) return base
-  await writeRow(
-    ctx.db,
-    profileSpec,
-    {
-      ...base.row,
-      height_cm: settings.heightCm,
-      birth_date: settings.birthDate,
-      sex: settings.sex,
-      activity_level: settings.activityLevel,
-      goal_rate_kg_per_week: settings.goalRateKgPerWeek,
-      protein_g_per_kg: settings.proteinGPerKg,
-      calorie_floor_kcal: settings.calorieFloorKcal,
-    },
-    ctx.clock,
-  )
+  const row = { ...base.row }
+  if (changes.heightCm !== undefined) row.height_cm = changes.heightCm
+  if (changes.birthDate !== undefined) row.birth_date = changes.birthDate
+  if (changes.sex !== undefined) row.sex = changes.sex
+  if (changes.activityLevel !== undefined) row.activity_level = changes.activityLevel
+  if (changes.goalRateKgPerWeek !== undefined) {
+    row.goal_rate_kg_per_week = changes.goalRateKgPerWeek
+  }
+  if (changes.proteinGPerKg !== undefined) row.protein_g_per_kg = changes.proteinGPerKg
+  if (changes.calorieFloorKcal !== undefined) row.calorie_floor_kcal = changes.calorieFloorKcal
+  await writeRow(ctx.db, profileSpec, row, ctx.clock)
   return { ok: true }
 }

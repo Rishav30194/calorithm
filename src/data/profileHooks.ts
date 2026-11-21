@@ -65,13 +65,13 @@ export const useProfileView = (): ProfileViewState => {
 
 // A save asks sync to run a few seconds later, as other writes do.
 export const useSaveProfile = (): ((
-  settings: ProfileSettings,
+  changes: Partial<ProfileSettings>,
   today: string,
 ) => Promise<SaveProfileResult>) => {
   const { ctx, userId, engine } = useData()
   return useCallback(
-    async (settings, today) => {
-      const result = await saveProfileSettings(ctx, userId, settings, today)
+    async (changes, today) => {
+      const result = await saveProfileSettings(ctx, userId, changes, today)
       if (result.ok) engine.request('write')
       return result
     },

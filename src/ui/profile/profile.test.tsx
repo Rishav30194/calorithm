@@ -108,6 +108,32 @@ describe('ProfileForm', () => {
     )
   })
 
+  it('saves only the fields changed since it opened or last saved', async () => {
+    const { onSave, user } = setup({ ...defaults, heightCm: 180, activityLevel: 'light' })
+    await user.clear(screen.getByLabelText(text.calorieFloor))
+    await user.type(screen.getByLabelText(text.calorieFloor), '1500')
+    await user.click(screen.getByRole('button', { name: text.save }))
+    expect(onSave).toHaveBeenLastCalledWith({ calorieFloorKcal: 1500 }, today)
+
+    await screen.findByText(text.saved)
+    await user.click(screen.getByLabelText(text.activityLevels.active))
+    await user.click(screen.getByRole('button', { name: text.save }))
+    expect(onSave).toHaveBeenLastCalledWith({ activityLevel: 'active' }, today)
+  })
+
+  it('marks both height fields invalid in imperial, with one message', async () => {
+    const { user } = setup(defaults, 'lb')
+    await user.type(screen.getByLabelText(text.feet), '5')
+    await user.type(screen.getByLabelText(text.inches), '12')
+    await user.click(screen.getByRole('button', { name: text.save }))
+
+    for (const label of [text.feet, text.inches]) {
+      expect(screen.getByLabelText(label)).toHaveAttribute('aria-invalid', 'true')
+      expect(screen.getByLabelText(label)).toHaveAccessibleDescription(text.errors.heightImperial)
+    }
+    expect(screen.getAllByText(text.errors.heightImperial)).toHaveLength(1)
+  })
+
   it('says why a save was refused while offline', async () => {
     const { user } = setup(defaults, 'kg', { ok: false, reason: 'offline' })
     await user.click(screen.getByRole('button', { name: text.save }))

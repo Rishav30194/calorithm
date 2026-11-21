@@ -1,6 +1,7 @@
 import { type FormEvent, type ReactNode, useId, useState } from 'react'
 
 import type { SaveProfileResult } from '@/data/profile'
+import { addDays } from '@/domain/dates'
 import { activityLevels } from '@/domain/maintenance'
 import { EARLIEST_BIRTH_DATE, type ProfileSettings, proteinOptions } from '@/domain/profile'
 import type { WeightUnit } from '@/domain/weight'
@@ -19,7 +20,7 @@ type Props = {
   unit: WeightUnit
   today: string
   locale: string
-  onSave: (settings: ProfileSettings, today: string) => Promise<SaveProfileResult>
+  onSave: (changes: Partial<ProfileSettings>, today: string) => Promise<SaveProfileResult>
 }
 
 type Status = 'idle' | 'busy' | 'saved' | 'failed' | 'offline' | 'signed_out'
@@ -56,9 +57,12 @@ export const ProfileForm = ({ settings, unit, today, locale, onSave }: Props) =>
   const text = strings.profile
   const titleId = useId()
   const proteinId = useId()
-  const [values, setValues] = useState<ProfileFormValues>(() =>
+  const heightErrorId = useId()
+  // What the form showed when opened or last saved; only fields that differ from it are saved.
+  const [shown, setShown] = useState<ProfileFormValues>(() =>
     profileFormValues(settings, unit, locale),
   )
+  const [values, setValues] = useState<ProfileFormValues>(shown)
   const [errors, setErrors] = useState<ProfileFormErrors>({})
   const [status, setStatus] = useState<Status>('idle')
 
@@ -69,7 +73,7 @@ export const ProfileForm = ({ settings, unit, today, locale, onSave }: Props) =>
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
-    const parsed = parseProfileForm(values, unit, today)
+    const parsed = parseProfileForm(values, shown, unit, today)
     if (!parsed.ok) {
       setErrors(parsed.errors)
       setStatus('idle')
@@ -78,9 +82,11 @@ export const ProfileForm = ({ settings, unit, today, locale, onSave }: Props) =>
     setErrors({})
     setStatus('busy')
     try {
-      const result = await onSave(parsed.settings, today)
-      if (result.ok) setStatus('saved')
-      else if (result.reason === 'offline' || result.reason === 'signed_out')
+      const result = await onSave(parsed.changes, today)
+      if (result.ok) {
+        setShown(values)
+        setStatus('saved')
+      } else if (result.reason === 'offline' || result.reason === 'signed_out')
         setStatus(result.reason)
       else setStatus('failed')
     } catch {
@@ -118,15 +124,23 @@ export const ProfileForm = ({ settings, unit, today, locale, onSave }: Props) =>
                 value={values.heightFeet}
                 onChange={(value) => set('heightFeet', value)}
                 inputMode="numeric"
-                error={heightError}
+                invalid={heightError !== undefined}
+                describedBy={heightError ? heightErrorId : undefined}
               />
               <TextField
                 label={text.inches}
                 value={values.heightInches}
                 onChange={(value) => set('heightInches', value)}
                 inputMode="numeric"
+                invalid={heightError !== undefined}
+                describedBy={heightError ? heightErrorId : undefined}
               />
             </div>
+            {heightError && (
+              <p id={heightErrorId} className="text-sm text-danger">
+                {heightError}
+              </p>
+            )}
           </fieldset>
         )}
 
@@ -134,7 +148,7 @@ export const ProfileForm = ({ settings, unit, today, locale, onSave }: Props) =>
           label={text.birthDate}
           type="date"
           min={EARLIEST_BIRTH_DATE}
-          max={today}
+          max={addDays(today, -1)}
           value={values.birthDate}
           onChange={(value) => set('birthDate', value)}
           error={errors.birthDate ? text.errors.birthDate : undefined}

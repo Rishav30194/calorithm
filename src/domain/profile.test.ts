@@ -92,6 +92,8 @@ describe('profileErrors', () => {
     ['heightCm', { heightCm: 180.25 }],
     ['birthDate', { birthDate: '1899-12-31' }],
     ['birthDate', { birthDate: '2026-11-22' }],
+    // The server checks against its own date in UTC, which can be a day behind the device.
+    ['birthDate', { birthDate: today }],
     ['birthDate', { birthDate: '2027-02-29' }],
     ['goalRateKgPerWeek', { goalRateKgPerWeek: -2.01 }],
     ['goalRateKgPerWeek', { goalRateKgPerWeek: 0.505 }],
@@ -104,10 +106,16 @@ describe('profileErrors', () => {
     expect(profileErrors({ ...valid, ...change }, today)).toEqual([field])
   })
 
-  it('accepts the ends of each range, and today as a birth date', () => {
+  it('accepts the ends of each range, and yesterday as a birth date', () => {
     expect(
       profileErrors(
-        { ...valid, heightCm: 100, birthDate: today, goalRateKgPerWeek: 2, calorieFloorKcal: 3000 },
+        {
+          ...valid,
+          heightCm: 100,
+          birthDate: '2026-11-20',
+          goalRateKgPerWeek: 2,
+          calorieFloorKcal: 3000,
+        },
         today,
       ),
     ).toEqual([])
