@@ -41,6 +41,16 @@ export const schemaVersions: readonly SchemaVersion[] = [
       sync_state: 'table',
     },
   },
+  {
+    version: 2,
+    stores: {
+      foods: 'id',
+      recipes: 'id',
+      recipe_items: 'id, recipe_id',
+      days: 'id, date',
+      log_entries: 'id, date',
+    },
+  },
 ]
 
 export const dbNameFor = (userId: string): string => `calorithm-${userId}`

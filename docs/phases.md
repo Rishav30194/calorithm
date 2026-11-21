@@ -129,7 +129,7 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 
 ## Phase 3 — Foods, recipes, and the daily log
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** logging a day's food takes seconds.
 
@@ -144,10 +144,40 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 - [ ] Logging a saved food takes at most two taps from the log screen.
 - [ ] Editing a food doesn't change any past log entry (unit and end-to-end tests).
 - [ ] A log made at 00:30 lands on that calendar day.
-- [ ] Constraints reject negative kcal, zero servings, and similar values (pgTAP).
+- [x] Constraints reject negative kcal, zero servings, and similar values (pgTAP).
 - [ ] axe passes on every new screen.
 
-**Implementation notes:** none yet.
+**Plan** (approved 2026-11-20): four PRs.
+
+1. **Schema:** migrations and pgTAP tests for the five tables, generated types, table specs in
+   push order, Dexie schema version 2 with an upgrade test, and sync case 4 on the real
+   `recipes` and `recipe_items` tables.
+2. **Calculations and storage:** `src/domain/nutrition.ts` with property tests, repository
+   functions, and a `days` id derived from the user and date. From the PR 1 review:
+   - Repositories round servings and serving size to two decimals, protein to one, and kcal
+     to a whole number before writing, so the server never rejects a stored value.
+   - Push holds a log entry or recipe item while its food or recipe has a failed change.
+     Without this, the child fails on the foreign key and stays failed after the parent is
+     fixed. Sent once the parent syncs or is discarded.
+   - From the PR 1 security review: a `days` id computed only from the user ID and date can
+     be computed by anyone who learns the user ID, who could then claim that id first and
+     block the day's sync. Since `id` is the table's only primary key, the derivation needs a
+     per-user secret, or the design changes to rely on the `(user_id, date)` unique key.
+3. **Foods and recipes screens**, loaded on demand.
+4. **The log screen:** meals, quick re-log, copy a meal, day complete, totals, and the
+   end-to-end journeys.
+
+**Implementation notes:**
+- References between tables include `user_id`, as foreign keys on `(id, user_id)`. Postgres
+  checks foreign keys without row-level security, so a key on `id` alone would let a row
+  point at another user's food or recipe.
+- Log entries copy the food or recipe's `name`, `kcal`, and `protein_g` (for the servings
+  logged) when written, so later edits never change a past day.
+- `meal` is one of `breakfast`, `lunch`, `dinner`, or `snacks`; a food is logged by servings.
+- The foreign keys have no `on delete` action, so phase 7's job that removes rows deleted
+  over 90 days ago must skip foods and recipes that live rows still reference, or remove
+  those first.
+- `days` and `log_entries` accept future dates on purpose, for logging ahead.
 
 ## Phase 4 — Weight and the trend chart
 

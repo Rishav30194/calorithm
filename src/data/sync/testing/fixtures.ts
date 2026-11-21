@@ -52,9 +52,10 @@ export const renamedSpec: TableSpec<RenamedRow> = {
   },
 }
 
+// Made-up tables go in a version after the app's own, so tests also have the real tables.
 export const testVersions: readonly SchemaVersion[] = [
   ...schemaVersions,
-  { version: 2, stores: { parent: 'id', child: 'id', renamed: 'id' } },
+  { version: schemaVersions.length + 1, stores: { parent: 'id', child: 'id', renamed: 'id' } },
 ]
 
 const opened: LocalDb[] = []

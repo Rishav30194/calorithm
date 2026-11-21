@@ -4,6 +4,7 @@ import { BACKOFF_MIN_MS } from '@/domain/backoff'
 
 import type { LocalDb } from '../db'
 import { writeRow } from '../repository'
+import { foodsSpec, recipeItemsSpec, recipesSpec, syncedTables } from '../tables'
 import { push, type SyncContext } from './push'
 import { FakeRemote } from './testing/fakeRemote'
 import {
@@ -79,6 +80,44 @@ describe('push', () => {
     await push(ctx)
 
     expect(remote.upserts.map((call) => call.table)).toEqual(['parent', 'child'])
+  })
+
+  // Sync case 4, with the real tables: a recipe item written before its recipe and food
+  // still goes after them.
+  it('pushes recipes and foods before the recipe items that use them', async () => {
+    const real = { ...ctx, tables: syncedTables }
+    const recipeId = crypto.randomUUID()
+    const foodId = crypto.randomUUID()
+    await writeRow(
+      db,
+      recipeItemsSpec,
+      { ...sync(), recipe_id: recipeId, food_id: foodId, servings: 1 },
+      time.clock,
+    )
+    await writeRow(
+      db,
+      foodsSpec,
+      {
+        ...sync({ id: foodId }),
+        name: 'Oats',
+        serving_size: 40,
+        serving_unit: 'g',
+        kcal: 150,
+        protein_g: 5,
+        archived_at: null,
+      },
+      time.clock,
+    )
+    await writeRow(
+      db,
+      recipesSpec,
+      { ...sync({ id: recipeId }), name: 'Porridge', servings: 2, archived_at: null },
+      time.clock,
+    )
+
+    await push(real)
+
+    expect(remote.upserts.map((call) => call.table)).toEqual(['foods', 'recipes', 'recipe_items'])
   })
 
   // Sync case 10.

@@ -27,7 +27,16 @@ describe('LocalDb', () => {
   it('opens with the synced tables plus outbox and sync_state', async () => {
     const db = open('calorithm-test-open')
     await db.open()
-    expect(db.tables.map((table) => table.name).sort()).toEqual(['outbox', 'profile', 'sync_state'])
+    expect(db.tables.map((table) => table.name).sort()).toEqual([
+      'days',
+      'foods',
+      'log_entries',
+      'outbox',
+      'profile',
+      'recipe_items',
+      'recipes',
+      'sync_state',
+    ])
   })
 
   it('allows one outbox entry per row', async () => {
@@ -55,6 +64,30 @@ describe('LocalDb', () => {
 
     const again = open('calorithm-test-upgrade')
     expect(await again.table('profile').get('p1')).toEqual({ id: 'p1', units: 'metric' })
+  })
+
+  it('keeps version 1 data when upgraded to version 2, which adds the food and log tables', async () => {
+    const [v1] = schemaVersions
+    if (!v1) throw new Error('no schema versions')
+    const before = open('calorithm-test-upgrade-v2', [v1])
+    await before.table('profile').put({ id: 'p1', units: 'imperial' })
+    await before.outbox.add({
+      table: 'profile',
+      rowId: 'p1',
+      row: { id: 'p1' },
+      schemaVersion: 1,
+      rev: 1,
+      attempts: 0,
+      nextAttemptAt: 0,
+      failure: null,
+    })
+    before.close()
+
+    const after = open('calorithm-test-upgrade-v2')
+    expect(await after.table('profile').get('p1')).toEqual({ id: 'p1', units: 'imperial' })
+    expect(await after.outbox.count()).toBe(1)
+    await after.table('log_entries').put({ id: 'l1', date: '2026-11-20' })
+    expect(await after.table('log_entries').where('date').equals('2026-11-20').count()).toBe(1)
   })
 
   it('keeps existing data across an upgrade that adds a table', async () => {
