@@ -6,11 +6,13 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 5 is in progress; the approved four-PR plan is in `docs/phases.md`. PR 1 (the
-   `checkins` schema) and PR 2 (the calculations) are merged as #17 and #18. PR 3 (the
-   profile form) is on `feature/phase-5-profile`. Next: PR 4, the check-in screen and the
-   progress bars. It closes the last acceptance criterion (a skipped week says why), maps
-   `CheckinFields` to the row, and should run them through `checkinsSpec` in a test.
+1. Phase 5 is in progress; the approved four-PR plan is in `docs/phases.md`. PRs 1 to 3
+   (the `checkins` schema, the calculations, and the profile form) are merged as #17 to #19.
+   Next: PR 4, the check-in screen and the progress bars, on
+   `feature/phase-5-checkin-screen`. It closes the last acceptance criterion (a skipped week
+   says why), maps `CheckinFields` to the row, and should run them through `checkinsSpec` in a
+   test. End-to-end tests that look for a status message should scope it to a region: the
+   settings screen has two.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
