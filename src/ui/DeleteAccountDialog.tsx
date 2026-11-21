@@ -38,7 +38,8 @@ export const DeleteAccountDialog = ({ email, onDelete, onClose }: Props) => {
   }
 
   return (
-    <Modal title={text.title} onClose={onClose}>
+    // Once started, a deletion can't be stopped, so the dialog stays until it ends.
+    <Modal title={text.title} onClose={() => (busy ? undefined : onClose())}>
       <p>{text.body}</p>
       <p>{text.exportFirst}</p>
       <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-3">
@@ -74,7 +75,12 @@ export const DeleteAccountDialog = ({ email, onDelete, onClose }: Props) => {
           >
             {busy ? text.deleting : text.confirm}
           </button>
-          <button type="button" onClick={onClose} className="min-h-11 rounded-lg px-4 font-medium">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={busy}
+            className="min-h-11 rounded-lg px-4 font-medium disabled:opacity-60"
+          >
             {text.cancel}
           </button>
         </div>

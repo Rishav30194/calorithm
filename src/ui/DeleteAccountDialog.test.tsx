@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -73,6 +73,30 @@ describe('DeleteAccountDialog', () => {
     await userEvent.type(screen.getByLabelText(text.password), 'Synthetic-Pass-1')
     await userEvent.click(confirmButton())
     expect(await screen.findByRole('alert')).toHaveTextContent(text.failures.unknown)
+  })
+
+  it('keeps Cancel and Escape from closing it while the deletion runs', async () => {
+    let finish: (result: DeleteAccountResult) => void = () => {}
+    const onDelete = vi.fn(
+      () =>
+        new Promise<DeleteAccountResult>((resolve) => {
+          finish = resolve
+        }),
+    )
+    const onClose = vi.fn()
+    render(
+      <DeleteAccountDialog email="someone@example.test" onDelete={onDelete} onClose={onClose} />,
+    )
+    await userEvent.type(screen.getByLabelText(text.password), 'Synthetic-Pass-1')
+    await userEvent.click(confirmButton())
+
+    expect(screen.getByRole('button', { name: text.cancel })).toBeDisabled()
+    fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }))
+    expect(onClose).not.toHaveBeenCalled()
+
+    finish({ ok: false, failure: 'network' })
+    expect(await screen.findByRole('alert')).toHaveTextContent(text.failures.network)
+    expect(screen.getByRole('button', { name: text.cancel })).toBeEnabled()
   })
 
   it('closes on Cancel without deleting', async () => {

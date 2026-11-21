@@ -2,6 +2,7 @@ import { type ReactNode, useState } from 'react'
 
 import type { SignOutControls } from '@/data/DataProvider'
 import { strings } from '@/strings'
+
 import { DeleteAccountDialog } from './DeleteAccountDialog'
 import { type FoodRoute, hrefFor, type Route, type Tab, tabs, useRoute } from './routes'
 import { SignOutDialog } from './SignOutDialog'

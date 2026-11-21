@@ -1,5 +1,9 @@
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 import { deleteAccountWith, refreshSession, signOut, toSignInFailure } from './auth'
 
@@ -85,6 +89,7 @@ describe('refreshSession', () => {
 describe('deleteAccountWith', () => {
   const signedIn = async () => ({ ok: true as const })
   const deleted = async () => ({ status: 204, error: null })
+  const stillThere = async () => false
 
   it('signs in again with the password, then deletes the account', async () => {
     const calls: string[] = []
@@ -97,6 +102,7 @@ describe('deleteAccountWith', () => {
         calls.push('delete')
         return { status: 204, error: null }
       },
+      accountGone: stillThere,
     })('someone@example.test', 'Synthetic-Pass-1')
 
     expect(result).toEqual({ ok: true })
@@ -113,6 +119,7 @@ describe('deleteAccountWith', () => {
           called = true
           return { status: 204, error: null }
         },
+        accountGone: stillThere,
       })('someone@example.test', 'wrong')
 
       expect(result).toEqual({ ok: false, failure })
@@ -129,23 +136,56 @@ describe('deleteAccountWith', () => {
     const result = await deleteAccountWith({
       signIn: signedIn,
       callDelete: async () => ({ status, error: { code, message: 'failed' } }),
+      accountGone: stillThere,
     })('someone@example.test', 'Synthetic-Pass-1')
     expect(result).toEqual({ ok: false, failure })
   })
 
-  it('reports a thrown call as a network failure', async () => {
+  it('reports a thrown call as unknown, since postgrest-js returns network errors', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     const result = await deleteAccountWith({
       signIn: signedIn,
       callDelete: async () => {
-        throw new TypeError('Failed to fetch')
+        throw new TypeError('unexpected response shape')
       },
+      accountGone: stillThere,
+    })('someone@example.test', 'Synthetic-Pass-1')
+    expect(result).toEqual({ ok: false, failure: 'unknown' })
+  })
+
+  it('succeeds when the response was lost but the account is gone', async () => {
+    const result = await deleteAccountWith({
+      signIn: signedIn,
+      callDelete: async () => ({ status: 0, error: { code: '', message: 'Failed to fetch' } }),
+      accountGone: async () => true,
+    })('someone@example.test', 'Synthetic-Pass-1')
+    expect(result).toEqual({ ok: true })
+  })
+
+  it('succeeds on a retry whose sign-in fails because the account is already gone', async () => {
+    const result = await deleteAccountWith({
+      signIn: async () => ({ ok: false, failure: 'invalid_credentials' }),
+      callDelete: deleted,
+      accountGone: async () => true,
+    })('someone@example.test', 'Synthetic-Pass-1')
+    expect(result).toEqual({ ok: true })
+  })
+
+  it('reports the failure when it cannot tell whether the account is gone', async () => {
+    const result = await deleteAccountWith({
+      signIn: signedIn,
+      callDelete: async () => ({ status: 0, error: { code: '', message: 'Failed to fetch' } }),
+      accountGone: async () => null,
     })('someone@example.test', 'Synthetic-Pass-1')
     expect(result).toEqual({ ok: false, failure: 'network' })
   })
 
   it('succeeds with no error from the server', async () => {
     expect(
-      await deleteAccountWith({ signIn: signedIn, callDelete: deleted })('a@example.test', 'x'),
+      await deleteAccountWith({ signIn: signedIn, callDelete: deleted, accountGone: stillThere })(
+        'a@example.test',
+        'x',
+      ),
     ).toEqual({ ok: true })
   })
 })

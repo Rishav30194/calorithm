@@ -47,6 +47,19 @@ export const finishSignOut = async ({
   return signOut()
 }
 
+// After the account is deleted on the server. Unlike a sign-out, a failure can't leave the user
+// signed in: the account is gone, and syncing it would fail on every push. So the session goes
+// regardless, and a failed delete stays recorded for the next start to finish.
+export const finishAccountDeletion = async (deps: SignOutDeps): Promise<void> => {
+  const result = await finishSignOut(deps).catch((error: unknown) => {
+    console.error('removing local data after account deletion failed', error)
+    return { ok: false }
+  })
+  if (result.ok) return
+  if (await Dexie.exists(deps.db.name).catch(() => true)) deps.pending.add(deps.db.name)
+  await deps.signOut()
+}
+
 // A failed delete drops its name from the list: the user stays signed in and goes on using
 // the database, so a later start must not delete it. Signing out again retries.
 const deleteDatabase = async (name: string, pending: PendingDeletes): Promise<boolean> => {
