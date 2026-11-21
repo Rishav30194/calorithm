@@ -357,7 +357,7 @@ Check-in rules: decision 0021.
 
 ## Phase 6 — Export, import, account deletion, and updates
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** you own your data and can leave with it.
 
@@ -374,7 +374,15 @@ Check-in rules: decision 0021.
 - [ ] pgTAP proves account deletion leaves no rows for that user.
 - [ ] A new deployment shows the update prompt without reloading on its own.
 
-**Implementation notes:** none yet.
+**Implementation notes:**
+- PR 1: `src/data/backup/`. `buildExport` writes every live row of every table, unsent
+  changes included, under a header with the format, version 1, export time, app version, and
+  the exporting account. `importData` checks the whole file first (`parseExport`): row shapes
+  through the table specs, the database's `CHECK` ranges the specs don't repeat, one row per
+  date for days, weigh-ins, and check-ins, and references inside the file. It then writes, in
+  one Dexie transaction, each row newer than this device's copy, keeping the file's edit time.
+  Another account gets new ids: version 5 UUIDs of the account and old id, so a second import
+  merges (decision 0022). The last export date waits for PR 2, with the reminder that reads it.
 
 ## Phase 7 — Production
 
