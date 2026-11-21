@@ -119,3 +119,42 @@ for (const colorScheme of ['light', 'dark'] as const) {
     })
   })
 }
+
+// A local calendar day, days before today, as the weight form takes it.
+const daysAgo = (days: number): string => {
+  const day = new Date()
+  day.setDate(day.getDate() - days)
+  return [day.getFullYear(), day.getMonth() + 1, day.getDate()]
+    .map((part) => String(part).padStart(2, '0'))
+    .join('-')
+}
+
+for (const colorScheme of ['light', 'dark'] as const) {
+  test.describe(`the export reminder in the ${colorScheme} theme`, () => {
+    test.use({ colorScheme })
+
+    // Each test starts on a new device, which has never exported.
+    test('shows on the check-in screen with old data, with no axe violations', async ({ page }) => {
+      await signInAs(page, importUser)
+      await page
+        .getByRole('navigation', { name: 'Main' })
+        .getByRole('link', { name: 'Weight' })
+        .click()
+      await page.getByLabel('Day').fill(daysAgo(40))
+      await page.getByLabel(/^Weight \(/).fill('82')
+      await page.getByRole('button', { name: 'Save' }).click()
+      await expect(page.getByText(/^Saved\./)).toBeVisible()
+
+      await page
+        .getByRole('navigation', { name: 'Main' })
+        .getByRole('link', { name: 'Check-in' })
+        .click()
+      const reminder = page.getByRole('complementary', { name: 'Your data' })
+      await expect(reminder).toContainText('You haven’t exported your data from this device yet.')
+      await expectNoAxeViolations(page)
+
+      await reminder.getByRole('link', { name: 'Export in Settings' }).click()
+      await expect(page.getByRole('heading', { name: 'Your data' })).toBeVisible()
+    })
+  })
+}

@@ -4,6 +4,7 @@ import type { LocalDb } from '../db'
 import { createFood } from '../foods'
 import { logFood, removeEntry } from '../log'
 import { closeAll, manualClock, openDb, userId } from '../sync/testing/fixtures'
+import type { SyncRow } from '../tables'
 import { removeWeighIn, setWeighIn } from '../weights'
 import { exportReminderOn, firstDataDay, lastExportDay, recordExport } from './reminder'
 
@@ -69,6 +70,25 @@ describe('firstDataDay', () => {
     await removeWeighIn(db, time.clock, userId, '2026-09-02')
     await setWeighIn(db, time.clock, userId, { date: '2026-10-09', kg: 82 })
     expect(await firstDataDay(db)).toBe('2026-10-09')
+  })
+})
+
+describe('firstDataDay with unreadable rows', () => {
+  it('skips a row it cannot read and finds the oldest readable one', async () => {
+    // A newer version's row: this version's spec can't read it.
+    const unreadable: SyncRow & { date: string } = {
+      id: 'e0000000-0000-4000-8000-000000000001',
+      user_id: userId,
+      date: '2026-08-01',
+      deleted_at: null,
+      updated_at: '',
+      client_updated_at: '',
+      schema_version: 2,
+    }
+    await db.rows('log_entries').put(unreadable)
+    const food = await oats()
+    await logFood(db, time.clock, userId, { date: '2026-09-15', meal: 'lunch', food, servings: 1 })
+    expect(await firstDataDay(db)).toBe('2026-09-15')
   })
 })
 

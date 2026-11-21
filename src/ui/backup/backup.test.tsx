@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import type { ExportFile, ParseExportResult } from '@/data/backup/format'
 import { MAX_EXPORT_CHARS } from '@/data/backup/format'
@@ -19,6 +19,10 @@ beforeAll(() => {
   HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
     this.open = false
   }
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
 })
 
 const exportFile: ExportFile = {
@@ -55,7 +59,7 @@ const setup = (overrides: Partial<Parameters<typeof BackupView>[0]> = {}) => {
     lastExportDay: null,
     locale: 'en-GB',
     onExport: vi.fn(async () => ({ name: 'calorithm-export-2026-11-21.json', contents: '{}' })),
-    onSave: vi.fn(),
+    onSave: vi.fn(async () => {}),
     onCheck: vi.fn((): ParseExportResult => ({ ok: true, file: exportFile })),
     onImport: vi.fn(async () => ({ ok: true as const, written: 1200, skipped: 3 })),
     ...overrides,
@@ -92,7 +96,16 @@ describe('BackupView', () => {
     expect(screen.getByRole('status')).toHaveTextContent(text.exported)
   })
 
+  it('reports a save that fails, which the caller then never records', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    setup({ onSave: vi.fn(async () => Promise.reject(new Error('blocked'))) })
+    await userEvent.click(screen.getByRole('button', { name: text.export }))
+    expect(screen.getByRole('alert')).toHaveTextContent(text.exportFailed)
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
   it('reports a failed export', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     setup({ onExport: vi.fn(async () => Promise.reject(new Error('quota'))) })
     await userEvent.click(screen.getByRole('button', { name: text.export }))
     expect(screen.getByRole('alert')).toHaveTextContent(text.exportFailed)
@@ -148,7 +161,39 @@ describe('BackupView', () => {
     expect(props.onCheck).not.toHaveBeenCalled()
   })
 
+  it('counts only live rows in the confirmation', async () => {
+    const weight = exportFile.tables.weights[0]
+    if (!weight) throw new Error('no weigh-in in the sample')
+    const withDeleted: ExportFile = {
+      ...exportFile,
+      tables: {
+        ...exportFile.tables,
+        foods: [
+          {
+            id: 'f0000000-0000-4000-8000-000000000001',
+            user_id: weight.user_id,
+            name: 'Old bar',
+            serving_size: 1,
+            serving_unit: 'bar',
+            kcal: 200,
+            protein_g: 10,
+            archived_at: null,
+            updated_at: weight.updated_at,
+            client_updated_at: weight.client_updated_at,
+            deleted_at: '2026-11-20T11:00:00.000Z',
+            schema_version: 1,
+          },
+        ],
+      },
+    }
+    setup({ onCheck: vi.fn((): ParseExportResult => ({ ok: true, file: withDeleted })) })
+    choose('{}')
+    const dialog = await screen.findByRole('dialog', { name: text.confirmTitle })
+    expect(dialog).toHaveTextContent(text.confirmBody('20 November 2026', '1 item'))
+  })
+
   it('reports an import that fails while writing', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     setup({ onImport: vi.fn(async () => Promise.reject(new Error('disk'))) })
     choose('{}')
     await screen.findByRole('dialog', { name: text.confirmTitle })

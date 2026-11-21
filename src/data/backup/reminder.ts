@@ -14,14 +14,17 @@ export const recordExport = async (db: LocalDb, day: string): Promise<void> => {
 export const lastExportDay = async (db: LocalDb): Promise<string | null> =>
   (await db.meta.get('lastExportDay'))?.value ?? null
 
+// Rows this version can't read, such as a newer version's, are skipped rather than ending the
+// search.
 const oldestLiveDate = async (db: LocalDb, spec: TableSpec): Promise<string | null> => {
-  const row = await db
-    .rows(spec.name)
-    .orderBy('date')
-    .filter((raw) => raw.deleted_at === null)
-    .first()
-  const parsed = spec.parse(row)
-  return parsed && 'date' in parsed && typeof parsed.date === 'string' ? parsed.date : null
+  const row = spec.parse(
+    await db
+      .rows(spec.name)
+      .orderBy('date')
+      .filter((raw) => spec.parse(raw)?.deleted_at === null)
+      .first(),
+  )
+  return row && 'date' in row && typeof row.date === 'string' ? row.date : null
 }
 
 // The oldest day with a live log entry or weigh-in on this device.

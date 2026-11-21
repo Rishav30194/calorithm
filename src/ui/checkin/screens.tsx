@@ -1,5 +1,5 @@
-import { useExportReminder } from '@/data/backupHooks'
 import { useCheckinState, useSaveCheckin } from '@/data/checkinHooks'
+import { useExportReminder } from '@/data/exportReminderHooks'
 import { strings } from '@/strings'
 
 import { ScreenErrorBoundary } from '../ScreenErrorBoundary'

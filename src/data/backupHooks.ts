@@ -1,45 +1,30 @@
-import { useLiveQuery } from 'dexie-react-hooks'
 import { useCallback } from 'react'
 
-import type { ExportReminder } from '@/domain/backup'
-
 import { buildExport, exportFileName, type ImportResult, importData } from './backup/backup'
-import { type ParseContext, type ParseExportResult, parseExport } from './backup/format'
-import { exportReminderOn, lastExportDay, recordExport } from './backup/reminder'
+import { type ParseExportResult, parseExport } from './backup/format'
 import { useData } from './DataProvider'
 
 export type ExportedFile = { name: string; contents: string }
 
-// The check-in screen's reminder; undefined while loading.
-export const useExportReminder = (today: string): ExportReminder | null | undefined => {
-  const { ctx } = useData()
-  return useLiveQuery(() => exportReminderOn(ctx.db, today), [ctx.db, today])
-}
-
-// The local day of this device's last export; null when it never exported, undefined while
-// loading.
-export const useLastExportDay = (): string | null | undefined => {
-  const { ctx } = useData()
-  return useLiveQuery(() => lastExportDay(ctx.db), [ctx.db])
-}
-
-// Builds the file and records the export. The browser gives no sign that the file was saved,
-// so asking for it counts as exporting. `today` is the device's local day.
+// Builds the file. Recording the export is left to the caller, once the file is saved
+// (useRecordExport). `today` is the device's local day.
 export const useExportData = (): ((today: string) => Promise<ExportedFile>) => {
   const { ctx, userId } = useData()
   return useCallback(
     async (today) => {
       const file = await buildExport(ctx.db, userId, ctx.clock(), __APP_VERSION__)
-      await recordExport(ctx.db, today)
       return { name: exportFileName(today), contents: JSON.stringify(file, null, 2) }
     },
     [ctx, userId],
   )
 }
 
-// Checks a file without writing anything, for the confirmation before an import.
-export const checkImportFile = (text: string, context: ParseContext): ParseExportResult =>
-  parseExport(text, context)
+// Checks a file without writing anything, for the confirmation before an import. Uses the
+// same clock as the import, so a file the check accepts isn't refused when imported.
+export const useCheckImportFile = (): ((text: string, today: string) => ParseExportResult) => {
+  const { ctx } = useData()
+  return useCallback((text, today) => parseExport(text, { now: ctx.clock(), today }), [ctx])
+}
 
 // Imports a file, then asks sync to send what it wrote.
 export const useImportData = (): ((text: string, today: string) => Promise<ImportResult>) => {

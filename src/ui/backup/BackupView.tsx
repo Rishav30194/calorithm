@@ -14,8 +14,9 @@ type Props = {
   lastExportDay: string | null | undefined
   locale: string
   onExport: () => Promise<ExportedFile>
-  // Saves the file on the device.
-  onSave: (file: ExportedFile) => void
+  // Saves the file on the device and records the export; an export counts only once this
+  // succeeds.
+  onSave: (file: ExportedFile) => Promise<void>
   onCheck: (text: string) => ParseExportResult
   onImport: (text: string) => Promise<ImportResult>
 }
@@ -44,8 +45,13 @@ const failureMessage = (reason: ImportFailure): string => {
   }
 }
 
+// Live rows only: deleted foods and recipes travel in the file only because live rows use them.
 const itemCount = (file: ExportFile): number =>
-  Object.values(file.tables).reduce((total, rows) => total + rows.length, 0)
+  Object.values(file.tables).reduce(
+    (total, rows: readonly { deleted_at: string | null }[]) =>
+      total + rows.filter((row) => row.deleted_at === null).length,
+    0,
+  )
 
 const buttonClass =
   'min-h-11 self-start rounded-lg border border-border px-4 font-medium disabled:opacity-60'
@@ -68,9 +74,10 @@ export const BackupView = ({
   const exportData = async () => {
     setStatus({ kind: 'busy', action: 'export' })
     try {
-      onSave(await onExport())
+      await onSave(await onExport())
       setStatus({ kind: 'exported' })
-    } catch {
+    } catch (error) {
+      console.error('export failed', error)
       setStatus({ kind: 'error', message: text.exportFailed })
     }
   }
@@ -96,7 +103,8 @@ export const BackupView = ({
       }
       setStatus({ kind: 'idle' })
       setPending({ text: contents, file: checked.file })
-    } catch {
+    } catch (error) {
+      console.error('reading the import file failed', error)
       setStatus({ kind: 'error', message: text.importFailed })
     }
   }
@@ -111,7 +119,8 @@ export const BackupView = ({
           ? { kind: 'imported', written: result.written, skipped: result.skipped }
           : { kind: 'error', message: failureMessage(result.reason) },
       )
-    } catch {
+    } catch (error) {
+      console.error('import failed', error)
       setStatus({ kind: 'error', message: text.importFailed })
     }
   }

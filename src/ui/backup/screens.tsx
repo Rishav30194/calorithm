@@ -1,4 +1,5 @@
-import { checkImportFile, useExportData, useImportData, useLastExportDay } from '@/data/backupHooks'
+import { useCheckImportFile, useExportData, useImportData } from '@/data/backupHooks'
+import { useLastExportDay, useRecordExport } from '@/data/exportReminderHooks'
 
 import { download } from '../download'
 import { useToday } from '../useToday'
@@ -10,14 +11,19 @@ export const BackupScreen = ({ locale }: { locale: string }) => {
   const today = useToday()
   const lastExportDay = useLastExportDay()
   const exportData = useExportData()
+  const recordExport = useRecordExport()
+  const checkFile = useCheckImportFile()
   const importData = useImportData()
   return (
     <BackupView
       lastExportDay={lastExportDay}
       locale={locale}
       onExport={() => exportData(today)}
-      onSave={download}
-      onCheck={(text) => checkImportFile(text, { now: new Date(), today })}
+      onSave={async (file) => {
+        download(file)
+        await recordExport(today)
+      }}
+      onCheck={(text) => checkFile(text, today)}
       onImport={(text) => importData(text, today)}
     />
   )
