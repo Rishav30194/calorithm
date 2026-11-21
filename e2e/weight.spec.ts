@@ -5,11 +5,15 @@ import { expectNoAxeViolations, signInAs, unitsUser, weightUser } from './helper
 // The local database keeps rows between runs, and the phone and desktop projects share the
 // weight user, so each test fixes the clock to its own random past day and deletes its
 // weigh-ins at the end. A past moment never makes the session look expired.
-const randomPastDay = (): string => {
-  const start = Date.UTC(2001, 0, 1)
-  const days = Math.floor(Math.random() * 8_800)
-  return new Date(start + days * 86_400_000).toISOString().slice(0, 10)
-}
+const randomDayBetween = (from: number, days: number): string =>
+  new Date(from + Math.floor(Math.random() * days) * 86_400_000).toISOString().slice(0, 10)
+
+const randomPastDay = (): string => randomDayBetween(Date.UTC(2001, 0, 1), 8_800)
+
+// The trend counts every earlier weigh-in, including any a failed test left behind, so the
+// trend test uses days in 2000, before any other test's: from 2000-01-02, so the day before
+// is still one the database accepts.
+const randomDayIn2000 = (): string => randomDayBetween(Date.UTC(2000, 0, 2), 360)
 
 const dayBefore = (day: string): string =>
   new Date(Date.parse(`${day}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10)
@@ -89,6 +93,8 @@ test('a second weigh-in on the same day replaces the first (phase 4 criterion)',
   await weighIn(page, today, '80.4')
   await expect(await row(page, today)).toContainText('80.4 kg')
 
+  // The hint describes the next save, so it shows once a new weight is typed.
+  await page.getByLabel('Weight (kg)').fill('79.8')
   await expect(
     page.getByText('This replaces the weigh-in already saved for this day.'),
   ).toBeVisible()
@@ -105,7 +111,7 @@ test('a second weigh-in on the same day replaces the first (phase 4 criterion)',
 })
 
 test('weigh-ins show the trend, the chart, and a summary', async ({ page }) => {
-  const today = randomPastDay()
+  const today = randomDayIn2000()
   const yesterday = dayBefore(today)
   await openWeight(page, today)
 
