@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(32);
+select plan(41);
 
 -- Two synthetic users. Tests act as one of them by setting the JWT claims PostgREST would set.
 insert into auth.users (id, email)
@@ -160,19 +160,31 @@ select is(
 
 -- Constraints -------------------------------------------------------------------------------
 
--- Each case reuses alice's 2026-11-27 id, so only the column under test is wrong.
+-- Each case uses alice's 2026-11-27 id, so only the columns under test are wrong.
+
+select lives_ok(
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "status": "skipped", "skip_reason": "too_few_complete_days", "method": null, "raw_maintenance_kcal": null, "trend_change_kg": null, "window_days": null, "complete_days_in_window": null, "average_intake_kcal": null, "maintenance_kcal": 2500}') $$,
+  'a skipped check-in carrying the previous estimate is accepted'
+);
+
+reset role;
+delete from public.checkins where id = '154fce82-1848-52c7-8c94-a7a415cb670e';
+select pg_temp.act_as('a0000000-0000-4000-8000-000000000001');
+
+select lives_ok(
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "method": "formula", "trend_change_kg": null, "window_days": null, "complete_days_in_window": null, "average_intake_kcal": null}') $$,
+  'a formula check-in without window fields is accepted'
+);
+
+reset role;
+delete from public.checkins where id = '154fce82-1848-52c7-8c94-a7a415cb670e';
+select pg_temp.act_as('a0000000-0000-4000-8000-000000000001');
+
 select throws_ok(
-  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "status": "updated", "method": null}') $$,
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "method": null}') $$,
   '23514',
   'new row for relation "checkins" violates check constraint "checkins_status_fields"',
   'an updated check-in needs a method'
-);
-
-select throws_ok(
-  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "status": "skipped", "method": null}') $$,
-  '23514',
-  'new row for relation "checkins" violates check constraint "checkins_status_fields"',
-  'a skipped check-in needs a reason'
 );
 
 select throws_ok(
@@ -182,37 +194,67 @@ select throws_ok(
   'an updated check-in has no skip reason'
 );
 
-select lives_ok(
-  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "status": "skipped",
-       "skip_reason": "too_few_complete_days", "method": null, "raw_maintenance_kcal": null, "calorie_floor_kcal": 2000}') $$,
-  'a skipped check-in keeps a target below a floor raised since'
-);
-
-reset role;
-delete from public.checkins where id = '154fce82-1848-52c7-8c94-a7a415cb670e';
-select pg_temp.act_as('a0000000-0000-4000-8000-000000000001');
-
 select throws_ok(
-  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "status": "skipped",
-       "skip_reason": "no_weigh_ins", "method": null}') $$,
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "status": "skipped", "skip_reason": "too_few_complete_days", "method": null, "raw_maintenance_kcal": null, "trend_change_kg": null, "window_days": null, "complete_days_in_window": null, "average_intake_kcal": null, "skip_reason": "no_weigh_ins", "maintenance_kcal": 2500}') $$,
   '23514',
   'new row for relation "checkins" violates check constraint "checkins_skip_reason_values"',
   'only a week with too few complete days is stored as skipped'
 );
 
 select throws_ok(
-  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "kcal_target": 1199}') $$,
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "status": "skipped", "skip_reason": "too_few_complete_days", "method": null, "raw_maintenance_kcal": null, "trend_change_kg": null, "window_days": null, "complete_days_in_window": null, "average_intake_kcal": null, "maintenance_kcal": 2500, "previous_maintenance_kcal": null}') $$,
   '23514',
-  'new row for relation "checkins" violates check constraint "checkins_kcal_target_floor"',
-  'an updated check-in cannot set a target below its calorie floor'
+  'new row for relation "checkins" violates check constraint "checkins_skipped_carries_previous"',
+  'a skipped check-in needs a previous estimate'
 );
 
 select throws_ok(
-  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "status": "skipped",
-       "skip_reason": "too_few_complete_days", "method": null, "kcal_target": 999}') $$,
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "status": "skipped", "skip_reason": "too_few_complete_days", "method": null, "raw_maintenance_kcal": null, "trend_change_kg": null, "window_days": null, "complete_days_in_window": null, "average_intake_kcal": null, "maintenance_kcal": 2450}') $$,
   '23514',
-  'new row for relation "checkins" violates check constraint "checkins_kcal_target_range"',
-  'a target below 1,000 kcal is rejected, even on a skipped week'
+  'new row for relation "checkins" violates check constraint "checkins_skipped_carries_previous"',
+  'a skipped check-in carries the previous estimate unchanged'
+);
+
+select throws_ok(
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "raw_maintenance_kcal": null}') $$,
+  '23514',
+  'new row for relation "checkins" violates check constraint "checkins_raw_when_updated"',
+  'an updated check-in needs a raw estimate'
+);
+
+select throws_ok(
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "window_days": null}') $$,
+  '23514',
+  'new row for relation "checkins" violates check constraint "checkins_window_when_adaptive"',
+  'an adaptive check-in needs its window'
+);
+
+select throws_ok(
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "method": "formula"}') $$,
+  '23514',
+  'new row for relation "checkins" violates check constraint "checkins_window_when_adaptive"',
+  'a formula check-in has no window'
+);
+
+select throws_ok(
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "maintenance_kcal": 2349}') $$,
+  '23514',
+  'new row for relation "checkins" violates check constraint "checkins_maintenance_step"',
+  'the estimate cannot move more than 150 kcal'
+);
+
+select throws_ok(
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "kcal_target": 1199}') $$,
+  '23514',
+  'new row for relation "checkins" violates check constraint "checkins_kcal_target_floor"',
+  'a target below the calorie floor is rejected'
+);
+
+select throws_ok(
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "kcal_target": 1300, "floor_applied": true}') $$,
+  '23514',
+  'new row for relation "checkins" violates check constraint "checkins_floor_applied"',
+  'the floor is reported applied only when the target equals it'
 );
 
 select throws_ok(
@@ -230,6 +272,27 @@ select throws_ok(
 );
 
 select throws_ok(
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "trend_weight_kg": 40.00, "protein_target_g": 72.0}') $$,
+  '23514',
+  'new row for relation "checkins" violates check constraint "checkins_goal_rate_applied_range"',
+  'the applied rate cannot exceed 1% of trend weight a week'
+);
+
+select throws_ok(
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "goal_rate_applied_kg_per_week": -0.40}') $$,
+  '23514',
+  'new row for relation "checkins" violates check constraint "checkins_rate_capped"',
+  'a lowered rate must be reported as capped'
+);
+
+select throws_ok(
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "rate_capped": true}') $$,
+  '23514',
+  'new row for relation "checkins" violates check constraint "checkins_rate_capped"',
+  'an unchanged rate is not reported as capped'
+);
+
+select throws_ok(
   $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "complete_days_in_window": 29}') $$,
   '23514',
   'new row for relation "checkins" violates check constraint "checkins_complete_days_in_window_range"',
@@ -244,7 +307,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "trend_weight_kg": 19.99}') $$,
+  $$ select pg_temp.insert_checkin('{"id": "154fce82-1848-52c7-8c94-a7a415cb670e", "date": "2026-11-27", "trend_weight_kg": 19.99, "goal_rate_requested_kg_per_week": 0, "goal_rate_applied_kg_per_week": 0}') $$,
   '23514',
   'new row for relation "checkins" violates check constraint "checkins_trend_weight_range"',
   'a trend weight below 20 kg is rejected'

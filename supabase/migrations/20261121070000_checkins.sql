@@ -1,7 +1,7 @@
 -- One weekly check-in per user and calendar day: the maintenance estimate, the targets it set,
 -- and the inputs used. The app derives the id from the user and date, like weights (decision
 -- 0020), so two devices running the same check-in offline write one row. A skipped week stores
--- why, and carries the previous estimate and targets forward.
+-- why, and carries the previous estimate and targets forward. Decision 0021 holds the rules.
 create table public.checkins (
   id uuid primary key,
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
@@ -47,27 +47,55 @@ create table public.checkins (
     (status = 'updated' and skip_reason is null and method is not null)
     or (status = 'skipped' and skip_reason is not null and method is null)
   ),
-  constraint checkins_maintenance_range check (maintenance_kcal between 500 and 10000),
+  -- A skipped week copies the previous check-in's estimate, targets, and settings, so every
+  -- rule below holds for it too. The first check-in has nothing to carry, so it's never
+  -- skipped (decision 0021).
+  constraint checkins_skipped_carries_previous check (
+    status = 'updated'
+    or (previous_maintenance_kcal is not null and maintenance_kcal = previous_maintenance_kcal)
+  ),
+  -- Every updated check-in has a raw estimate; only the adaptive method has a window.
+  constraint checkins_raw_when_updated check ((status = 'updated') = (raw_maintenance_kcal is not null)),
+  constraint checkins_window_when_adaptive check (
+    (method is not distinct from 'adaptive'
+      and trend_change_kg is not null and window_days is not null
+      and complete_days_in_window is not null and average_intake_kcal is not null)
+    or (method is distinct from 'adaptive'
+      and trend_change_kg is null and window_days is null
+      and complete_days_in_window is null and average_intake_kcal is null)
+  ),
+  -- The calculation clamps to these ranges, which every input the profile and weights tables
+  -- allow can reach, so a check-in never fails to push.
+  constraint checkins_maintenance_range check (maintenance_kcal between 0 and 20000),
   constraint checkins_previous_maintenance_range
-    check (previous_maintenance_kcal between 500 and 10000),
-  constraint checkins_raw_maintenance_range check (raw_maintenance_kcal between 0 and 20000),
-  constraint checkins_kcal_target_range check (kcal_target between 1000 and 10000),
-  -- A skipped week keeps the previous target, even if the floor has been raised since.
-  constraint checkins_kcal_target_floor
-    check (status = 'skipped' or kcal_target >= calorie_floor_kcal),
+    check (previous_maintenance_kcal between 0 and 20000),
+  constraint checkins_raw_maintenance_range
+    check (raw_maintenance_kcal between -100000 and 100000),
+  -- The estimate moves at most 150 kcal a check-in.
+  constraint checkins_maintenance_step
+    check (abs(maintenance_kcal - previous_maintenance_kcal) <= 150),
+  constraint checkins_kcal_target_range check (kcal_target between 1000 and 25000),
+  constraint checkins_kcal_target_floor check (kcal_target >= calorie_floor_kcal),
+  constraint checkins_floor_applied
+    check (not floor_applied or kcal_target = calorie_floor_kcal),
   constraint checkins_protein_target_range check (protein_target_g between 1 and 999.9),
   constraint checkins_trend_weight_range check (trend_weight_kg between 20 and 400),
+  constraint checkins_trend_change_range check (trend_change_kg between -380 and 380),
   constraint checkins_window_days_range check (window_days between 1 and 28),
   constraint checkins_complete_days_in_window_range
     check (complete_days_in_window between 0 and window_days),
-  constraint checkins_average_intake_range check (average_intake_kcal between 0 and 20000),
+  constraint checkins_average_intake_range check (average_intake_kcal between 0 and 100000),
   constraint checkins_complete_days_in_week_range check (complete_days_in_week between 0 and 7),
   constraint checkins_goal_rate_requested_range
     check (goal_rate_requested_kg_per_week between -2 and 2),
-  -- The applied rate is the requested one, capped at 1% of trend weight a week.
+  -- The applied rate is the requested one, capped at 1% of trend weight a week (decision 0009).
   constraint checkins_goal_rate_applied_range check (
     abs(goal_rate_applied_kg_per_week) <= abs(goal_rate_requested_kg_per_week)
+    and abs(goal_rate_applied_kg_per_week) <= trend_weight_kg * 0.01
     and sign(goal_rate_applied_kg_per_week) * sign(goal_rate_requested_kg_per_week) >= 0
+  ),
+  constraint checkins_rate_capped check (
+    rate_capped = (goal_rate_applied_kg_per_week <> goal_rate_requested_kg_per_week)
   ),
   constraint checkins_protein_range check (protein_g_per_kg between 1.6 and 2.2),
   constraint checkins_calorie_floor_range check (calorie_floor_kcal between 1000 and 3000),

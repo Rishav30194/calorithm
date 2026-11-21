@@ -155,7 +155,12 @@ const skipped: CheckinRow = {
   status: 'skipped',
   skip_reason: 'too_few_complete_days',
   method: null,
+  maintenance_kcal: 2500,
   raw_maintenance_kcal: null,
+  trend_change_kg: null,
+  window_days: null,
+  complete_days_in_window: null,
+  average_intake_kcal: null,
 }
 
 describe('food and log table specs', () => {
@@ -258,6 +263,60 @@ describe('checkinsSpec', () => {
     expect(checkinsSpec.parse({ ...checkin, method: null })).toBeNull()
     expect(checkinsSpec.parse({ ...skipped, skip_reason: null })).toBeNull()
     expect(checkinsSpec.parse({ ...checkin, skip_reason: 'too_few_complete_days' })).toBeNull()
+  })
+
+  // Each mirrors a CHECK constraint in the migration, so a bad row fails here, not on push.
+  it.each([
+    ['a skipped week without a previous estimate', { ...skipped, previous_maintenance_kcal: null }],
+    ['a skipped week that changes the estimate', { ...skipped, maintenance_kcal: 2450 }],
+    ['an updated week without a raw estimate', { ...checkin, raw_maintenance_kcal: null }],
+    ['an adaptive week without its window', { ...checkin, window_days: null }],
+    ['a formula week with a window', { ...checkin, method: 'formula' }],
+    ['a move of more than 150 kcal', { ...checkin, maintenance_kcal: 2349 }],
+    ['a target below the floor', { ...checkin, kcal_target: 1199 }],
+    ['the floor reported but not applied', { ...checkin, floor_applied: true }],
+    ['an applied rate faster than requested', { ...checkin, goal_rate_applied_kg_per_week: -0.6 }],
+    ['an applied rate of the opposite sign', { ...checkin, goal_rate_applied_kg_per_week: 0.3 }],
+    ['an applied rate above 1% of trend weight', { ...checkin, trend_weight_kg: 40 }],
+    ['a lowered rate not reported', { ...checkin, goal_rate_applied_kg_per_week: -0.4 }],
+    ['an unchanged rate reported as capped', { ...checkin, rate_capped: true }],
+    ['more complete days than the window', { ...checkin, complete_days_in_window: 29 }],
+    ['more than 7 complete days in a week', { ...checkin, complete_days_in_week: 8 }],
+    ['a window longer than 28 days', { ...checkin, window_days: 29 }],
+    [
+      'an estimate above 20,000 kcal',
+      { ...checkin, maintenance_kcal: 20001, previous_maintenance_kcal: null },
+    ],
+    ['a target above 25,000 kcal', { ...checkin, kcal_target: 25001 }],
+    [
+      'a trend weight below 20 kg',
+      {
+        ...checkin,
+        trend_weight_kg: 19.99,
+        goal_rate_requested_kg_per_week: 0,
+        goal_rate_applied_kg_per_week: 0,
+      },
+    ],
+    ['a protein setting outside 1.6 to 2.2', { ...checkin, protein_g_per_kg: 2.3 }],
+    ['a calorie floor above 3,000', { ...checkin, calorie_floor_kcal: 3001, kcal_target: 3001 }],
+    ['a requested rate above 2 kg a week', { ...checkin, goal_rate_requested_kg_per_week: 2.01 }],
+  ])('rejects %s', (_, row) => {
+    expect(checkinsSpec.parse(row)).toBeNull()
+  })
+
+  it('accepts a first check-in by the formula, with no previous estimate', () => {
+    const first = {
+      ...checkin,
+      method: 'formula',
+      previous_maintenance_kcal: null,
+      raw_maintenance_kcal: 2600,
+      maintenance_kcal: 2600,
+      trend_change_kg: null,
+      window_days: null,
+      complete_days_in_window: null,
+      average_intake_kcal: null,
+    }
+    expect(checkinsSpec.parse(first)).toEqual(first)
   })
 
   it('rejects values the columns can’t store', () => {

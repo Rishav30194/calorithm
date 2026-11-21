@@ -285,20 +285,17 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 **Plan** (approved 2026-11-21): four PRs.
 
 1. **Schema:** `checkins` migration and pgTAP tests, generated types, `checkinsSpec` last in
-   push order, and Dexie schema version 4 with an upgrade test.
+   push order, Dexie schema version 4 with an upgrade test, and decision 0021.
 2. **Calculations:** `src/domain/maintenance.ts` (the Mifflin-St Jeor formula, the adaptive
    estimate, blending, and skip reasons) and `src/domain/targets.ts` (rate cap, calorie floor,
    protein), with every property in `docs/testing.md`, "Calculations", and 12-week synthetic
-   histories. Decision 0021 records the check-in rules.
+   histories.
 3. **Profile screen** on the settings tab: height, birth date, sex, activity, goal rate,
    protein g per kg, and calorie floor.
 4. **The check-in screen**, loaded on demand, and progress bars on the log screen, with the
    end-to-end journeys and axe.
 
-Check-in rules (to be recorded in decision 0021): a check-in is due when none exists or 7 days
-have passed since the last; you save it with **Save check-in**; the formula is used until 14
-days of data exist; the new estimate moves halfway toward the raw one, at most 150 kcal; and a
-week with fewer than 4 complete days is stored as skipped, carrying the targets forward.
+Check-in rules: decision 0021.
 
 **Implementation notes:**
 - PR 1: a check-in's id is a UUID v5 of the user and date in its own namespace (`checkinId`),
@@ -307,10 +304,12 @@ week with fewer than 4 complete days is stored as skipped, carrying the targets 
   `adaptive`), the previous, raw, and new estimates, the targets, trend weight and change, the
   window and its complete days, average intake, requested and applied goal rate, protein
   setting, calorie floor, and which limits applied. Only `too_few_complete_days` is a stored
-  skip reason: missing weigh-ins or profile fields block a check-in instead. An updated
-  check-in's target is at least its floor; a skipped one keeps the previous target even if the
-  floor has been raised since. `checkinsSpec` mirrors the enums, the status rules, and the
-  columns' precision.
+  skip reason: missing weigh-ins or profile fields block a check-in instead. A skipped week
+  copies the previous estimate, targets, and settings; the first check-in is never skipped.
+  The database enforces the 150 kcal step, the floor, the 1% rate cap, and which fields each
+  method and status carry, with wide ranges the calculation clamps to (decision 0021).
+  `checkinsSpec` mirrors every one of those rules and the columns' precision, so a bad row
+  fails before it's queued.
 
 ## Phase 6 — Export, import, account deletion, and updates
 
