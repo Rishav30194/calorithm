@@ -36,6 +36,7 @@ describe('LocalDb', () => {
       'recipe_items',
       'recipes',
       'sync_state',
+      'weights',
     ])
   })
 
@@ -88,6 +89,32 @@ describe('LocalDb', () => {
     expect(await after.outbox.count()).toBe(1)
     await after.table('log_entries').put({ id: 'l1', date: '2026-11-20' })
     expect(await after.table('log_entries').where('date').equals('2026-11-20').count()).toBe(1)
+  })
+
+  it('keeps version 2 data when upgraded to version 3, which adds weights', async () => {
+    const [v1, v2] = schemaVersions
+    if (!v1 || !v2) throw new Error('missing schema versions')
+    const before = open('calorithm-test-upgrade-v3', [v1, v2])
+    await before.table('profile').put({ id: 'p1', units: 'imperial' })
+    await before.table('log_entries').put({ id: 'l1', date: '2026-11-20' })
+    await before.outbox.add({
+      table: 'log_entries',
+      rowId: 'l1',
+      row: { id: 'l1' },
+      schemaVersion: 1,
+      rev: 1,
+      attempts: 0,
+      nextAttemptAt: 0,
+      failure: null,
+    })
+    before.close()
+
+    const after = open('calorithm-test-upgrade-v3')
+    expect(await after.table('profile').get('p1')).toEqual({ id: 'p1', units: 'imperial' })
+    expect(await after.table('log_entries').get('l1')).toEqual({ id: 'l1', date: '2026-11-20' })
+    expect(await after.outbox.count()).toBe(1)
+    await after.table('weights').put({ id: 'w1', date: '2026-11-20' })
+    expect(await after.table('weights').where('date').equals('2026-11-20').count()).toBe(1)
   })
 
   it('keeps existing data across an upgrade that adds a table', async () => {

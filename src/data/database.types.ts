@@ -145,6 +145,20 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"weights": {
+                  Row: {
+                    "client_updated_at": string,"date": string,"deleted_at": string | null,"id": string,"schema_version": number,"updated_at": string,"user_id": string,"weight_kg": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "client_updated_at": string,"date": string,"deleted_at"?: string | null,"id": string,"schema_version": number,"updated_at"?: string,"user_id"?: string,"weight_kg": number
+                  }
+                  Update: {
+                    "client_updated_at"?: string,"date"?: string,"deleted_at"?: string | null,"id"?: string,"schema_version"?: number,"updated_at"?: string,"user_id"?: string,"weight_kg"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
                 }
           }
           Views: {

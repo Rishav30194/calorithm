@@ -15,6 +15,8 @@ import {
   recipeItemsSpec,
   recipesSpec,
   syncedTables,
+  type WeightRow,
+  weightsSpec,
 } from './tables'
 
 const profile: ProfileRow = {
@@ -113,6 +115,13 @@ const logEntry: LogEntryRow = {
   logged_at: '2026-11-20T08:00:00.000Z',
 }
 
+const weight: WeightRow = {
+  ...syncColumns,
+  id: '90000000-0000-4000-8000-000000000001',
+  date: '2026-11-20',
+  weight_kg: 82.4,
+}
+
 describe('food and log table specs', () => {
   it('parse to exactly the generated row types', () => {
     expectTypeOf<FoodRow>().toEqualTypeOf<Tables<'foods'>>()
@@ -120,6 +129,7 @@ describe('food and log table specs', () => {
     expectTypeOf<RecipeItemRow>().toEqualTypeOf<Tables<'recipe_items'>>()
     expectTypeOf<DayRow>().toEqualTypeOf<Tables<'days'>>()
     expectTypeOf<LogEntryRow>().toEqualTypeOf<Tables<'log_entries'>>()
+    expectTypeOf<WeightRow>().toEqualTypeOf<Tables<'weights'>>()
   })
 
   const cases = [
@@ -128,6 +138,7 @@ describe('food and log table specs', () => {
     { spec: recipeItemsSpec, row: recipeItem, column: 'food_id' },
     { spec: daysSpec, row: day, column: 'complete' },
     { spec: logEntriesSpec, row: logEntry, column: 'meal' },
+    { spec: weightsSpec, row: weight, column: 'weight_kg' },
   ] as const
 
   it.each(cases)('$spec.name accepts a valid row', ({ spec, row }) => {
@@ -164,13 +175,39 @@ describe('values the columns can’t store', () => {
   it('rejects a date that isn’t YYYY-MM-DD', () => {
     expect(daysSpec.parse({ ...day, date: '20/11/2026' })).toBeNull()
     expect(logEntriesSpec.parse({ ...logEntry, date: '2026-11-20T00:30:00' })).toBeNull()
+    expect(weightsSpec.parse({ ...weight, date: '20/11/2026' })).toBeNull()
+  })
+
+  it('rejects a weight outside 20 to 400 kg', () => {
+    expect(weightsSpec.parse({ ...weight, weight_kg: 19.99 })).toBeNull()
+    expect(weightsSpec.parse({ ...weight, weight_kg: 400.01 })).toBeNull()
+    expect(weightsSpec.parse({ ...weight, weight_kg: 20 })).toEqual({ ...weight, weight_kg: 20 })
+    expect(weightsSpec.parse({ ...weight, weight_kg: 400 })).toEqual({ ...weight, weight_kg: 400 })
+  })
+
+  it('rejects a weight that isn’t a finite number with at most 2 decimals', () => {
+    for (const weight_kg of [Number.NaN, Number.POSITIVE_INFINITY, '82.4', null, 82.345]) {
+      expect(weightsSpec.parse({ ...weight, weight_kg })).toBeNull()
+    }
+    expect(weightsSpec.parse({ ...weight, weight_kg: 82.35 })).toEqual({
+      ...weight,
+      weight_kg: 82.35,
+    })
   })
 })
 
 describe('syncedTables', () => {
   it('lists each table once, parents before the tables that reference them', () => {
     const names = syncedTables.map((spec) => spec.name)
-    expect(names).toEqual(['profile', 'foods', 'recipes', 'recipe_items', 'days', 'log_entries'])
+    expect(names).toEqual([
+      'profile',
+      'foods',
+      'recipes',
+      'recipe_items',
+      'days',
+      'log_entries',
+      'weights',
+    ])
     expect(new Set(names).size).toBe(names.length)
   })
 })

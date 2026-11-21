@@ -51,6 +51,12 @@ export const schemaVersions: readonly SchemaVersion[] = [
       log_entries: 'id, date',
     },
   },
+  {
+    version: 3,
+    stores: {
+      weights: 'id, date',
+    },
+  },
 ]
 
 export const dbNameFor = (userId: string): string => `calorithm-${userId}`

@@ -202,7 +202,7 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 
 ## Phase 4 — Weight and the trend chart
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** daily weigh-ins with a trend line you can trust.
 
@@ -219,7 +219,22 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 - [ ] A second weigh-in on the same day replaces the first.
 - [ ] Units switch without changing stored values.
 
-**Implementation notes:** none yet.
+**Plan** (approved 2026-11-21): three PRs.
+
+1. **Schema:** `weights` migration and pgTAP tests, generated types, `weightsSpec` last in
+   push order, and Dexie schema version 3 with an upgrade test.
+2. **Calculations and storage:** `src/domain/trend.ts` (an exponential moving average, 10% a
+   weigh-in, carried forward over missing days) with example and property tests, kg and lb
+   conversion with a round-trip property test, and the weigh-in repository and hooks.
+3. **The weight screen**, loaded on demand: weigh-in entry for any day in the profile's
+   units, recent weigh-ins to edit or delete, an SVG chart of the last 90 days, a text
+   summary, and the end-to-end journeys with axe.
+
+**Implementation notes:**
+- PR 1: a weigh-in's id is a UUID v5 of the user and date in its own namespace, checked by
+  the database (decision 0020), so a second weigh-in that day, from any device, replaces the
+  first. `weight_kg` is `numeric(5,2)` between 20 and 400; `weightsSpec` rejects values
+  outside that range before they're sent.
 
 ## Phase 5 — Targets and the weekly check-in
 
