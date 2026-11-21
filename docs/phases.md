@@ -406,6 +406,8 @@ Check-in rules: decision 0021.
   found), and turns off the plugin's reload on takeover. The end-to-end test serves its own
   copy of the build (`e2e/deployment.ts`), changes `sw.js` as a deployment would, and shows
   the banner in two tabs; the tab that selects **Update** reloads and the other doesn't.
+  Further tests: **Later** hides only the version put off, and **Update** works offline
+  once the new version has downloaded.
   Chromium refuses a worker update whose script Playwright intercepts, hence the server.
 
 ## Phase 7 — Production

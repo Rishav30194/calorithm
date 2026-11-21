@@ -15,6 +15,8 @@ const types: Record<string, string> = {
   '.woff2': 'font/woff2',
 }
 
+const base = '/calorithm/'
+
 export type Deployment = {
   url: string
   // Changes the deployed service worker, as a new deployment does.
@@ -32,7 +34,6 @@ export const serveBuildCopy = async (): Promise<Deployment> => {
 
   const server = createServer((request, response) => {
     const { pathname } = new URL(request.url ?? '/', 'http://localhost')
-    const base = '/calorithm/'
     const relative = pathname.startsWith(base) ? pathname.slice(base.length) : null
     const file = relative === null ? null : normalize(join(root, relative || 'index.html'))
     if (file === null || !(file === root || file.startsWith(root + sep))) {
@@ -58,7 +59,7 @@ export const serveBuildCopy = async (): Promise<Deployment> => {
   if (address === null || typeof address === 'string') throw new Error('the server has no port')
 
   return {
-    url: `http://localhost:${address.port}${'/calorithm/'}`,
+    url: `http://localhost:${address.port}${base}`,
     deployAgain: () => appendFile(join(root, 'sw.js'), '\n// a later deployment\n'),
     close: async () => {
       await new Promise<void>((resolve) => server.close(() => resolve()))

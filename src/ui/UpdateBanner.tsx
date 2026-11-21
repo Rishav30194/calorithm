@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { strings } from '@/strings'
 
@@ -10,6 +10,12 @@ const text = strings.update
 // own, so an entry in progress is never lost; Update reloads into the new version.
 export const UpdateBanner = ({ onUpdate, onDismiss }: Props) => {
   const [pending, setPending] = useState(false)
+  // The banner clears the notch itself, so the screen header below drops its own inset
+  // (Shell.tsx).
+  useEffect(() => {
+    document.documentElement.classList.add('update-banner')
+    return () => document.documentElement.classList.remove('update-banner')
+  }, [])
   const update = () => {
     setPending(true)
     void onUpdate()
@@ -20,9 +26,7 @@ export const UpdateBanner = ({ onUpdate, onDismiss }: Props) => {
       className="border-b border-border bg-bg px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3"
     >
       <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-4 gap-y-2">
-        <p aria-live="polite" className="min-w-0 flex-1 basis-60">
-          {text.available}
-        </p>
+        <p className="min-w-0 flex-1 basis-60">{text.available}</p>
         <div className="flex gap-2">
           <button
             type="button"

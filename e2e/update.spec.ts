@@ -70,7 +70,38 @@ for (const colorScheme of ['light', 'dark'] as const) {
   })
 }
 
-test('Later hides the prompt until the app starts again', async ({ browser }) => {
+test('Later hides the prompt until a newer deployment or the next start', async ({ browser }) => {
+  const deployment = await serveBuildCopy()
+  const context = await browser.newContext()
+  try {
+    const page = await openTab(context, deployment.url)
+    const foreground = () =>
+      page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
+    await deployment.deployAgain()
+    await foreground()
+    await expect(banner(page)).toBeVisible({ timeout: 15_000 })
+
+    await banner(page).getByRole('button', { name: 'Later' }).click()
+    await expect(banner(page)).toHaveCount(0)
+    await foreground()
+    await page.waitForTimeout(1_000)
+    await expect(banner(page)).toHaveCount(0)
+    expect(await stillLoaded(page)).toBe(true)
+
+    await deployment.deployAgain()
+    await foreground()
+    await expect(banner(page)).toBeVisible({ timeout: 15_000 })
+
+    await banner(page).getByRole('button', { name: 'Later' }).click()
+    await page.goto(deployment.url)
+    await expect(banner(page)).toBeVisible({ timeout: 15_000 })
+  } finally {
+    await context.close()
+    await deployment.close()
+  }
+})
+
+test('Update works offline once the new version has downloaded', async ({ browser }) => {
   const deployment = await serveBuildCopy()
   const context = await browser.newContext()
   try {
@@ -79,12 +110,12 @@ test('Later hides the prompt until the app starts again', async ({ browser }) =>
     await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
     await expect(banner(page)).toBeVisible({ timeout: 15_000 })
 
-    await banner(page).getByRole('button', { name: 'Later' }).click()
+    await context.setOffline(true)
+    const reloaded = page.waitForEvent('load')
+    await banner(page).getByRole('button', { name: 'Update' }).click()
+    await reloaded
+    expect(await stillLoaded(page)).toBe(false)
     await expect(banner(page)).toHaveCount(0)
-    expect(await stillLoaded(page)).toBe(true)
-
-    await page.goto(deployment.url)
-    await expect(banner(page)).toBeVisible({ timeout: 15_000 })
   } finally {
     await context.close()
     await deployment.close()

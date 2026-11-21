@@ -33,12 +33,30 @@ const waitForWaiting = (registration: ServiceWorkerRegistration): Promise<Servic
     registration.addEventListener('updatefound', () => watch(registration.installing))
   })
 
+// The waiting worker once any install in progress has finished, or null; a newer deployment
+// replaces the worker already waiting only when its install completes.
+const waitingAfterInstall = (registration: ServiceWorkerRegistration) =>
+  new Promise<ServiceWorker | null>((resolve) => {
+    const worker = registration.installing
+    if (!worker) {
+      resolve(registration.waiting)
+      return
+    }
+    const timer = setTimeout(() => resolve(registration.waiting), INSTALL_TIMEOUT_MS)
+    worker.addEventListener('statechange', () => {
+      if (worker.state === 'installed' || worker.state === 'redundant') {
+        clearTimeout(timer)
+        resolve(registration.waiting)
+      }
+    })
+  })
+
 export type PwaUpdate = {
   // A new deployment is waiting, and the banner hasn't been put off.
   available: boolean
   // Moves the app to the newest build, reloading it.
   update: () => Promise<void>
-  // Hides the banner until the app next starts.
+  // Hides the banner for the version now waiting; a later deployment shows it again.
   dismiss: () => void
 }
 
@@ -53,12 +71,19 @@ export const usePwaUpdate = (): PwaUpdate => {
   // worker is also read directly: at start, and after each check, as when another tab found it.
   const [waitingFound, setWaitingFound] = useState(false)
   const [dismissed, setDismissed] = useState(false)
+  // The waiting worker the banner was put off for, so a newer deployment shows it again.
+  const dismissedWorker = useRef<ServiceWorker | null>(null)
+  // A waiting worker this tab found itself; a different one undoes Later.
+  const found = useCallback((worker: ServiceWorker) => {
+    setWaitingFound(true)
+    if (worker !== dismissedWorker.current) setDismissed(false)
+  }, [])
   const {
     needRefresh: [needRefresh],
   } = useRegisterSW({
     onRegisteredSW: (_url, reg) => {
       registration.current = reg
-      if (reg?.waiting) setWaitingFound(true)
+      if (reg?.waiting) found(reg.waiting)
     },
     // Without this the plugin reloads the page as soon as the new worker takes control, as it
     // does when another tab updates; an entry being typed would be lost. The banner stays up
@@ -66,18 +91,27 @@ export const usePwaUpdate = (): PwaUpdate => {
     onNeedReload: () => setControlledByNew(true),
   })
 
+  // The plugin reports a takeover only for an update its own tab found; any other tab's
+  // update reaches this page as a controller change.
+  useEffect(() => {
+    const takenOver = () => setControlledByNew(true)
+    navigator.serviceWorker?.addEventListener('controllerchange', takenOver)
+    return () => navigator.serviceWorker?.removeEventListener('controllerchange', takenOver)
+  }, [])
+
   useEffect(() => {
     const check = () => {
       if (!navigator.onLine) return
       const reg = registration.current
       if (!reg) return
-      // Offline or a server error rejects; the next check tries again.
       reg
         .update()
-        .then(() => {
-          if (reg.waiting) setWaitingFound(true)
+        .then(() => waitingAfterInstall(reg))
+        .then((waiting) => {
+          if (waiting) found(waiting)
         })
-        .catch(() => {})
+        // The next check tries again; a broken deployment shows up here.
+        .catch((error: unknown) => console.warn('checking for a new version failed', error))
     }
     const visible = () => {
       if (document.visibilityState === 'visible') check()
@@ -88,7 +122,7 @@ export const usePwaUpdate = (): PwaUpdate => {
       clearInterval(timer)
       document.removeEventListener('visibilitychange', visible)
     }
-  }, [])
+  }, [found])
 
   const update = useCallback(async () => {
     const reg = registration.current
@@ -96,8 +130,18 @@ export const usePwaUpdate = (): PwaUpdate => {
       window.location.reload()
       return
     }
-    await reg.update()
-    const waiting = await waitForWaiting(reg)
+    // A worker already waiting needs no network: updating works offline.
+    let waiting = reg.waiting
+    if (!waiting) {
+      const checked = await reg.update().then(
+        () => true,
+        (error: unknown) => {
+          console.warn('checking for a new version failed', error)
+          return false
+        },
+      )
+      waiting = checked || reg.installing ? await waitForWaiting(reg) : null
+    }
     if (!waiting) {
       // Nothing newer to install; a reload still picks up anything already activated.
       window.location.reload()
@@ -119,7 +163,10 @@ export const usePwaUpdate = (): PwaUpdate => {
     waiting.postMessage({ type: 'SKIP_WAITING' })
   }, [controlledByNew])
 
-  const dismiss = useCallback(() => setDismissed(true), [])
+  const dismiss = useCallback(() => {
+    dismissedWorker.current = registration.current?.waiting ?? null
+    setDismissed(true)
+  }, [])
 
   return {
     available: (needRefresh || waitingFound || controlledByNew) && !dismissed,

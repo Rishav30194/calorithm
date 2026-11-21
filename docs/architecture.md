@@ -284,7 +284,9 @@ the result in `checkins` when you save it. Decision 0021 holds the rules.
   foreground. It reads the registration's waiting worker itself, at start and after each
   check, because the plugin reports only an update its own tab found. Its `onNeedReload`
   turns off the plugin's reload when another tab's update takes control; the banner stays
-  instead. **Later** hides the banner until the app next starts.
+  instead, and it also listens for the controller change any other tab's update causes.
+  **Update** uses a worker that's already waiting, so it works offline. **Later** hides the
+  banner for that version only: a newer deployment, or the next start, shows it again.
 - On start, the app calls `navigator.storage.persist()` so the browser doesn't evict the local
   database.
 - The app reads `min_app_version` on each sync and blocks syncing when it's too old.

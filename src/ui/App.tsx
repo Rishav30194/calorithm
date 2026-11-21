@@ -53,7 +53,10 @@ export const App = () => {
   const pwa = usePwaUpdate()
   return (
     <>
-      {pwa.available && <UpdateBanner onUpdate={pwa.update} onDismiss={pwa.dismiss} />}
+      {/* Always present, so screen readers announce the banner when it appears. */}
+      <div aria-live="polite">
+        {pwa.available && <UpdateBanner onUpdate={pwa.update} onDismiss={pwa.dismiss} />}
+      </div>
       {env.ok ? (
         <Configured env={env.env} onUpdate={pwa.update} />
       ) : (
