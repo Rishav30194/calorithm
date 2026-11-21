@@ -6,20 +6,16 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 2 PR 3 (session) is built on `feature/session`: sign-out that syncs, warns with a
-   JSON export of unsent changes, deletes the local database, then signs out (decision 0017);
-   `storage.persist()` on start; cases 1, 14, 15, and 17 tested. `check:full` passed and
-   `/code-review` findings are fixed. `/security-review` was running when the session ended;
-   rerun it if no result is recorded in the PR description, then ask the user before pushing
-   and opening the PR.
-2. PR description must explain two review findings left as they are: the warning's count and
-   export are a snapshot taken when the dialog opens (a later sync can send some of them), and
-   counts in `src/strings.ts` aren't formatted with `Intl` (the existing sync strings do the
-   same; fix all of them together).
-3. When the PR merges, mark phase 2 done in `docs/phases.md`. Both acceptance criteria are
-   already ticked.
-4. On a real iPhone, check that **Export changes** saves the file from the installed app.
-   The Safari workaround (link attached, URL revoked after 40 seconds) is untested on a device.
+1. Phase 2 is done (PRs #2 to #4). The phase status change is a local commit on
+   `chore/phase-2-done`; ask the user before pushing it and opening its PR.
+2. Phase 3 (foods, recipes, and the daily log) is next. Read its scope in `docs/phases.md`,
+   then present a plan and wait for approval. It will likely need screens loaded on demand to
+   stay under the bundle budget.
+3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
+   from the installed app. The Safari workaround (link attached, URL revoked after 40
+   seconds) is untested on a device.
+4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
+   them all together in a small PR.
 5. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
 
 Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential'`
