@@ -6,20 +6,15 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 3 PR 3 (foods and recipes screens) is built on `feature/food-screens`. `check:full`
-   passed and `/code-review` findings are fixed; no `/security-review` needed (no auth,
-   row-level security, sync, or import change). Ask the user before pushing and opening the PR.
-   Both editors keep the user's typing when the row changes elsewhere; saving wins, as the
-   sync conflict rule does. Say so in the PR.
-2. Phase 3 PR 4 (the log screen): meals, the two-tap re-log picker, copy a meal, day
+1. Phase 3 PR 4 (the log screen) on `feature/log-screen`; present a plan first: meals, the two-tap re-log picker, copy a meal, day
    complete, totals, the 00:30 end-to-end test (check Playwright 1.65's clock API in its
    types first), and the edit-a-food-leaves-the-past end-to-end test. Then tick the
    remaining phase 3 criteria.
-3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
+2. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
    from the installed app.
-4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
+3. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
    them all together in a small PR.
-5. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+4. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
 
 Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential'`
 (then `push` or `fetch`), because git has no stored GitHub credentials and the global git config stays untouched.
