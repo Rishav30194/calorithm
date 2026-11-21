@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { z } from 'zod/mini'
 
+import { isDay } from '@/domain/dates'
+
 // Hash routes (#/weight): GitHub Pages serves one file, so a refresh on any screen still works.
 export const tabs = ['log', 'weight', 'checkin', 'settings'] as const
 
@@ -12,7 +14,8 @@ export type FoodRoute =
   | { tab: 'log'; screen: 'food' | 'recipe'; id: string | null }
 
 export type Route =
-  | { tab: 'log'; screen: 'log' }
+  // A date of null is today, read from the device when shown.
+  | { tab: 'log'; screen: 'log'; date: string | null }
   | FoodRoute
   | { tab: 'weight'; screen: 'weight' }
   | { tab: 'checkin'; screen: 'checkin' }
@@ -31,8 +34,10 @@ const parseEditor = (screen: 'food' | 'recipe', id: string | undefined): Route |
 }
 
 const parseLog = ([list, id]: string[]): Route => {
-  const fallback: Route = { tab: 'log', screen: 'log' }
+  const fallback: Route = { tab: 'log', screen: 'log', date: null }
   switch (list) {
+    case 'day':
+      return id !== undefined && isDay(id) ? { tab: 'log', screen: 'log', date: id } : fallback
     case 'foods':
       return id === undefined
         ? { tab: 'log', screen: 'foods' }
@@ -72,6 +77,8 @@ export const routeHref = (route: Route): string => {
       return `#/log/foods/${route.id ?? 'new'}`
     case 'recipe':
       return `#/log/recipes/${route.id ?? 'new'}`
+    case 'log':
+      return route.date ? `#/log/day/${route.date}` : '#/log'
     default:
       return `#/${route.tab}`
   }

@@ -6,15 +6,13 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 3 PR 3 (foods and recipes screens) is built on `feature/food-screens`. `check:full`
-   passed and `/code-review` findings are fixed; no `/security-review` needed (no auth,
-   row-level security, sync, or import change). Ask the user before pushing and opening the PR.
-   Both editors keep the user's typing when the row changes elsewhere; saving wins, as the
-   sync conflict rule does. Say so in the PR.
-2. Phase 3 PR 4 (the log screen): meals, the two-tap re-log picker, copy a meal, day
-   complete, totals, the 00:30 end-to-end test (check Playwright 1.65's clock API in its
-   types first), and the edit-a-food-leaves-the-past end-to-end test. Then tick the
-   remaining phase 3 criteria.
+1. Phase 3 PR 4 (the log screen) is built on `feature/log-screen`: all five phase 3
+   criteria are ticked, `check:full` passed, and `/code-review` findings are fixed. No
+   `/security-review` needed. Ask the user before pushing and opening the PR. After it
+   merges, mark phase 3 done in `docs/phases.md` (a small `chore/` PR, as for phase 2).
+2. Phase 4 (weight and the trend chart) after that; read its scope in `docs/phases.md` and
+   present a plan first. The chart likely needs a dependency, which needs the user's approval
+   and its bundle cost.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
    from the installed app.
 4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
@@ -34,12 +32,14 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 175.4 kB of the 200 kB budget; the food screens load as their own
-  chunk. Phase 3 will likely need to load
+- First-load JavaScript is 176.1 kB of the 200 kB budget; the log and food screens load as
+  their own chunks. Phase 3 will likely need to load
   screens on demand.
 - The browser tests run a production build, so React's development double-run isn't covered.
   After changing `DataProvider`, also check `npm run dev` for console errors. Another project's service worker
   at `localhost:4173/` can take over the page; use incognito or unregister it in DevTools.
+- End-to-end tests that write food or log rows use unique names and random far-future days,
+  because the local database keeps rows between runs and both projects share users.
 - The sign-out end-to-end tests change `second.user@calorithm.test`'s profile and skip the
   phone project, as `sync.spec.ts` does for the seed user.
 - An editor formatter reformatted the Markdown tables in `docs/architecture.md` outside

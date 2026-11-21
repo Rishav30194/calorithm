@@ -25,7 +25,7 @@ describe('parseRoute', () => {
   const id = 'f0000000-0000-4000-8000-000000000001'
 
   it('reads the food and recipe screens under the log tab', () => {
-    expect(parseRoute('#/log')).toEqual({ tab: 'log', screen: 'log' })
+    expect(parseRoute('#/log')).toEqual({ tab: 'log', screen: 'log', date: null })
     expect(parseRoute('#/log/foods')).toEqual({ tab: 'log', screen: 'foods' })
     expect(parseRoute('#/log/foods/new')).toEqual({ tab: 'log', screen: 'food', id: null })
     expect(parseRoute(`#/log/foods/${id}`)).toEqual({ tab: 'log', screen: 'food', id })
@@ -36,7 +36,7 @@ describe('parseRoute', () => {
 
   it('round-trips every route through its href', () => {
     const routes: Route[] = [
-      { tab: 'log', screen: 'log' },
+      { tab: 'log', screen: 'log', date: null },
       { tab: 'log', screen: 'foods' },
       { tab: 'log', screen: 'food', id: null },
       { tab: 'log', screen: 'food', id },
@@ -50,8 +50,21 @@ describe('parseRoute', () => {
     for (const route of routes) expect(parseRoute(routeHref(route))).toEqual(route)
   })
 
+  it('reads a day of the log, and falls back to today for a date that isn’t real', () => {
+    expect(parseRoute('#/log/day/2026-11-20')).toEqual({
+      tab: 'log',
+      screen: 'log',
+      date: '2026-11-20',
+    })
+    expect(routeHref({ tab: 'log', screen: 'log', date: '2026-11-20' })).toBe(
+      '#/log/day/2026-11-20',
+    )
+    expect(parseRoute('#/log/day/2027-02-29')).toEqual({ tab: 'log', screen: 'log', date: null })
+    expect(parseRoute('#/log/day')).toEqual({ tab: 'log', screen: 'log', date: null })
+  })
+
   it('treats an id that isn’t a UUID as an unknown screen', () => {
-    expect(parseRoute('#/log/foods/<script>')).toEqual({ tab: 'log', screen: 'log' })
-    expect(parseRoute('#/log/elsewhere')).toEqual({ tab: 'log', screen: 'log' })
+    expect(parseRoute('#/log/foods/<script>')).toEqual({ tab: 'log', screen: 'log', date: null })
+    expect(parseRoute('#/log/elsewhere')).toEqual({ tab: 'log', screen: 'log', date: null })
   })
 })

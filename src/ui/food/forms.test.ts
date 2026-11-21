@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { strings } from '@/strings'
 
-import { parseFoodForm, parseRecipeForm } from './forms'
+import { editableNumber, parseFoodForm, parseRecipeForm, toNumber } from './forms'
 
 const food = { name: 'Oats', servingSize: '40', servingUnit: 'g', kcal: '150', proteinG: '5' }
 
@@ -81,5 +81,20 @@ describe('parseRecipeForm', () => {
       errors: { servings: strings.recipes.errors.servings },
       itemErrors: { f1: strings.recipes.errors.itemServings },
     })
+  })
+})
+
+describe('editableNumber', () => {
+  it('prefills a value the parser reads back, in any locale', () => {
+    for (const locale of ['en-US', 'de-DE', 'fr-FR', 'ar-EG', 'fa-IR', 'hi-IN']) {
+      for (const value of [1.5, 40, 0.33, 1234.5]) {
+        expect(toNumber(editableNumber(value, locale))).toBe(value)
+      }
+    }
+  })
+
+  it('uses the locale’s decimal comma where it can', () => {
+    expect(editableNumber(1.5, 'de-DE')).toBe('1,5')
+    expect(editableNumber(1.5, 'en-US')).toBe('1.5')
   })
 })

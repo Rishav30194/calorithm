@@ -1,11 +1,12 @@
 import fc from 'fast-check'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import {
   type Entry,
   isMeal,
   meals,
   mostUsed,
+  type QuickPick,
   recipeEntryNutrients,
   recipePerServing,
   recipeTotals,
@@ -171,6 +172,10 @@ describe('totals', () => {
 })
 
 describe('mostUsed', () => {
+  it('returns the exported QuickPick type that the picker uses', () => {
+    expectTypeOf(mostUsed([], 1)).toEqualTypeOf<QuickPick[]>()
+  })
+
   it('ranks by times logged, then by most recent, then by name', () => {
     const oats = { kind: 'food', id: 'oats' } as const
     const yogurt = { kind: 'food', id: 'yogurt' } as const
