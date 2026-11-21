@@ -159,6 +159,10 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
    - Push holds a log entry or recipe item while its food or recipe has a failed change.
      Without this, the child fails on the foreign key and stays failed after the parent is
      fixed. Sent once the parent syncs or is discarded.
+   - From the PR 1 security review: a `days` id computed only from the user ID and date can
+     be computed by anyone who learns the user ID, who could then claim that id first and
+     block the day's sync. Since `id` is the table's only primary key, the derivation needs a
+     per-user secret, or the design changes to rely on the `(user_id, date)` unique key.
 3. **Foods and recipes screens**, loaded on demand.
 4. **The log screen:** meals, quick re-log, copy a meal, day complete, totals, and the
    end-to-end journeys.
