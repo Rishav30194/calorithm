@@ -42,6 +42,13 @@ export const checkinUser = {
   password: 'Local-Seed-Pass-2026',
 }
 
+// Receives imports in the backup tests; its data piles up between local runs.
+export const importUser = {
+  id: 'd0000000-0000-4000-8000-000000000007',
+  email: 'import.user@calorithm.test',
+  password: 'Local-Seed-Pass-2026',
+}
+
 type SeedUser = typeof seedUser
 
 export const signIn = (page: Page, password = seedUser.password) =>
