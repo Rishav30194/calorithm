@@ -35,6 +35,49 @@ export const signIn = async (
   }
 }
 
+// not_recent: the server found no password sign-in in the last 5 minutes, which shouldn't
+// happen right after signing in again, unless the device clock and the server disagree.
+export type DeleteAccountFailure = SignInFailure | 'not_recent'
+
+export type DeleteAccountResult = { ok: true } | { ok: false; failure: DeleteAccountFailure }
+
+type DeleteAccountDeps = {
+  signIn: (email: string, password: string) => Promise<SignInResult>
+  callDelete: () => PromiseLike<{ status: number; error: { code: string; message: string } | null }>
+}
+
+// Signs in again with the password, which proves it and gives the token the fresh password
+// sign-in that public.delete_account() requires, then deletes the account on the server.
+// Deleting this device's data and session is left to the caller.
+export const deleteAccountWith =
+  ({ signIn: signInWith, callDelete }: DeleteAccountDeps) =>
+  async (email: string, password: string): Promise<DeleteAccountResult> => {
+    const signedIn = await signInWith(email, password)
+    if (!signedIn.ok) return signedIn
+    try {
+      const { status, error } = await callDelete()
+      if (!error) return { ok: true }
+      if (error.code === '28000') return { ok: false, failure: 'not_recent' }
+      // postgrest-js reports a failed fetch as status 0; see decision 0014.
+      if (status === 0 || status === 408 || status === 429 || status >= 500) {
+        return { ok: false, failure: 'network' }
+      }
+      return { ok: false, failure: 'unknown' }
+    } catch {
+      return { ok: false, failure: 'network' }
+    }
+  }
+
+export const deleteAccount = (
+  client: Client,
+  email: string,
+  password: string,
+): Promise<DeleteAccountResult> =>
+  deleteAccountWith({
+    signIn: (address, secret) => signIn(client, address, secret),
+    callDelete: () => client.rpc('delete_account'),
+  })(email, password)
+
 type RefreshClient = {
   auth: {
     refreshSession: () => Promise<{ data: { session: unknown }; error: unknown }>

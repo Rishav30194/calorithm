@@ -11,7 +11,12 @@ import {
   useState,
 } from 'react'
 
-import { refreshSession, signOut } from './auth'
+import {
+  type DeleteAccountResult,
+  deleteAccount as deleteAccountOnServer,
+  refreshSession,
+  signOut,
+} from './auth'
 import { dbNameFor, LocalDb, type OutboxEntry } from './db'
 import type { Env } from './env'
 import { readProfile, type SetUnitsResult, setUnits, type Units } from './profile'
@@ -49,6 +54,9 @@ export type SignOutControls = {
   confirm: () => void
   cancel: () => void
   unsentFile: () => UnsentFile | null
+  // Deletes the account on the server after checking the password, then this device's data
+  // and session, the way a sign-out does.
+  deleteAccount: (email: string, password: string) => Promise<DeleteAccountResult>
 }
 
 type DataContextValue = Session & {
@@ -195,8 +203,14 @@ export const DataProvider = ({
           contents: JSON.stringify(unsentExport(signOutStep.entries, now), null, 2),
         }
       },
+      deleteAccount: async (email, password) => {
+        const result = await deleteAccountOnServer(client, email, password)
+        // Unsent changes have nowhere to go now, so the local data goes without asking.
+        if (result.ok) setSignOutStep({ step: 'deleting' })
+        return result
+      },
     }
-  }, [session, signOutStep])
+  }, [session, signOutStep, client])
 
   const value = useMemo(
     () =>

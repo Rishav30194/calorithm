@@ -401,6 +401,26 @@ export const strings = {
     link: 'Export in Settings',
   },
 
+  deleteAccount: {
+    open: 'Delete account',
+    title: 'Delete your account?',
+    body: 'This deletes your account and everything in it, from the server and from this device: your log, foods, recipes, weigh-ins, check-ins, and profile. It can’t be undone.',
+    exportFirst:
+      'To keep a copy, cancel and use Export data first. The export includes changes that haven’t synced yet.',
+    password: 'Password',
+    confirm: 'Delete account',
+    deleting: 'Deleting…',
+    cancel: 'Cancel',
+    failures: {
+      invalid_credentials: 'That password isn’t right. Nothing was deleted.',
+      rate_limited: 'Too many attempts. Wait a minute, then try again. Nothing was deleted.',
+      network: 'Can’t reach the server. Check your connection and try again.',
+      not_recent:
+        'Couldn’t confirm your password with the server. Check your device’s date and time, then try again. Nothing was deleted.',
+      unknown: 'Couldn’t delete your account. Try again.',
+    },
+  },
+
   signOutWarning: {
     title: 'Sign out and lose unsent changes?',
     body: (count: number) =>

@@ -23,6 +23,7 @@ const controls = (state: SignOutState, overrides: Partial<SignOutControls> = {})
   confirm: vi.fn(),
   cancel: vi.fn(),
   unsentFile: vi.fn(() => ({ name: 'calorithm-unsent-changes-2026-11-20.json', contents: '{}' })),
+  deleteAccount: vi.fn(async () => ({ ok: true as const })),
   ...overrides,
 })
 
