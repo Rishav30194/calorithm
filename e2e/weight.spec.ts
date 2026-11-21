@@ -171,6 +171,10 @@ test.describe('units', () => {
     await page.getByRole('radio', { name }).check()
     await expect(page.getByRole('radio', { name })).toBeChecked()
     await page.goto('./#/weight')
+    // The radio shows the choice before it's stored; the weight screen reads the stored unit,
+    // and a unit change clears typed text, so typing must wait for the new unit's label.
+    const unit = name === 'Metric (kg)' ? 'kg' : 'lb'
+    await expect(page.getByLabel(`Weight (${unit})`)).toBeVisible()
   }
 
   test('switch without changing stored values (phase 4 criterion)', async ({ page }) => {
