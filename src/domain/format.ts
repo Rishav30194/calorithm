@@ -16,6 +16,9 @@ const number = (value: number, decimals: number, locale: string): string =>
 export const formatKcal = (kcal: number, locale: string): string =>
   `${number(kcal, 0, locale)} kcal`
 
+// Serving sizes and servings: stored with two decimals.
+export const formatAmount = (value: number, locale: string): string => number(value, 2, locale)
+
 export const formatProtein = (grams: number, locale: string): string =>
   `${number(grams, 1, locale)} g`
 

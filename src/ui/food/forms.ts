@@ -4,7 +4,7 @@ import type { FoodInput, RecipeInput } from '@/data/foods'
 import { strings } from '@/strings'
 
 // Form fields hold text as typed. A decimal comma is accepted, since many locales use one.
-const toNumber = (text: string): number => {
+export const toNumber = (text: string): number => {
   const clean = text.trim().replace(',', '.')
   return /^\d+(\.\d+)?$/.test(clean) ? Number(clean) : Number.NaN
 }

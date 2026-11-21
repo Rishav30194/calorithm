@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import type { SignOutControls } from '@/data/DataProvider'
 import { strings } from '@/strings'
 
-import { hrefFor, type Tab, tabs, useTab } from './routes'
+import { type FoodRoute, hrefFor, type Route, routeHref, type Tab, tabs, useRoute } from './routes'
 import { SignOutDialog } from './SignOutDialog'
 
 type Props = {
@@ -12,6 +12,8 @@ type Props = {
   // Filled by the signed-in app with live sync state; empty in tests of the shell alone.
   badge?: ReactNode
   settings?: ReactNode
+  // The food and recipe screens, loaded on demand by the signed-in app.
+  foodScreens?: (route: FoodRoute) => ReactNode
 }
 
 const ComingSoon = ({ text }: { text: string }) => <p className="text-muted">{text}</p>
@@ -51,10 +53,35 @@ const Settings = ({ email, signOut, settings }: Props) => {
   )
 }
 
-const screen = (tab: Tab, props: Props) => {
-  switch (tab) {
+const LogHome = () => (
+  <div className="flex flex-col gap-4">
+    <nav aria-label={strings.logLinks.label} className="flex gap-3">
+      <a
+        href={routeHref({ tab: 'log', screen: 'foods' })}
+        className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 font-medium"
+      >
+        {strings.logLinks.foods}
+      </a>
+      <a
+        href={routeHref({ tab: 'log', screen: 'recipes' })}
+        className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 font-medium"
+      >
+        {strings.logLinks.recipes}
+      </a>
+    </nav>
+    <ComingSoon text={strings.comingSoon.log} />
+  </div>
+)
+
+const screen = (route: Route, props: Props) => {
+  switch (route.screen) {
     case 'log':
-      return <ComingSoon text={strings.comingSoon.log} />
+      return <LogHome />
+    case 'foods':
+    case 'recipes':
+    case 'food':
+    case 'recipe':
+      return props.foodScreens?.(route) ?? null
     case 'weight':
       return <ComingSoon text={strings.comingSoon.weight} />
     case 'checkin':
@@ -65,7 +92,8 @@ const screen = (tab: Tab, props: Props) => {
 }
 
 export const Shell = (props: Props) => {
-  const tab = useTab()
+  const route = useRoute()
+  const tab: Tab = route.tab
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="border-b border-border px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3">
@@ -74,7 +102,7 @@ export const Shell = (props: Props) => {
           {props.badge}
         </div>
       </header>
-      <main className="flex-1 px-4 py-4 pb-24">{screen(tab, props)}</main>
+      <main className="flex-1 px-4 py-4 pb-24">{screen(route, props)}</main>
       <nav
         aria-label={strings.navigation}
         className="fixed inset-x-0 bottom-0 border-t border-border bg-bg pb-[env(safe-area-inset-bottom)]"

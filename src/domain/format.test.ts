@@ -1,7 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 
-import { formatAgo, formatKcal, formatProtein, formatWeight } from './format'
+import { formatAgo, formatAmount, formatKcal, formatProtein, formatWeight } from './format'
 
 describe('formatKcal', () => {
   it('rounds to a whole number with grouping', () => {
@@ -82,5 +82,15 @@ describe('formatAgo', () => {
         }
       }),
     )
+  })
+})
+
+describe('formatAmount', () => {
+  it('shows up to two decimals, grouped for the locale', () => {
+    expect(formatAmount(40, 'en-US')).toBe('40')
+    expect(formatAmount(1.5, 'en-US')).toBe('1.5')
+    expect(formatAmount(0.333, 'en-US')).toBe('0.33')
+    expect(formatAmount(1.5, 'de-DE')).toBe('1,5')
+    expect(formatAmount(10_000, 'en-US')).toBe('10,000')
   })
 })

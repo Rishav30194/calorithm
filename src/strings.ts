@@ -103,6 +103,7 @@ export const strings = {
       addIngredient: 'Add ingredient',
       ingredientServings: (name: string) => `Servings of ${name}`,
       remove: (name: string) => `Remove ${name}`,
+      removeLabel: 'Remove',
       totals: 'Whole recipe',
       perServing: 'Per serving',
       save: 'Save',

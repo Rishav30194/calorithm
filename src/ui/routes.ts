@@ -7,9 +7,13 @@ export const tabs = ['log', 'weight', 'checkin', 'settings'] as const
 export type Tab = (typeof tabs)[number]
 
 // Food and recipe screens sit under the log tab. An id of null is a new row.
-export type Route =
-  | { tab: 'log'; screen: 'log' | 'foods' | 'recipes' }
+export type FoodRoute =
+  | { tab: 'log'; screen: 'foods' | 'recipes' }
   | { tab: 'log'; screen: 'food' | 'recipe'; id: string | null }
+
+export type Route =
+  | { tab: 'log'; screen: 'log' }
+  | FoodRoute
   | { tab: 'weight'; screen: 'weight' }
   | { tab: 'checkin'; screen: 'checkin' }
   | { tab: 'settings'; screen: 'settings' }
