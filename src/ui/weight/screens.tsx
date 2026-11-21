@@ -1,5 +1,4 @@
-import { useUnits } from '@/data/DataProvider'
-import { useWeighIns, useWeightActions } from '@/data/weightHooks'
+import { useWeighIns, useWeightActions, useWeightUnit } from '@/data/weightHooks'
 import { strings } from '@/strings'
 
 import { ScreenErrorBoundary } from '../ScreenErrorBoundary'
@@ -8,14 +7,14 @@ import { WeightView } from './WeightView'
 
 const Weight = ({ locale }: { locale: string }) => {
   const today = useToday()
-  const units = useUnits()
+  const unit = useWeightUnit()
   const weighIns = useWeighIns()
   const actions = useWeightActions()
-  if (!weighIns) return <p className="text-muted">{strings.loading}</p>
+  if (!weighIns || !unit) return <p className="text-muted">{strings.loading}</p>
   return (
     <WeightView
       today={today}
-      unit={units === 'imperial' ? 'lb' : 'kg'}
+      unit={unit}
       locale={locale}
       weighIns={weighIns}
       onSave={actions.set}

@@ -115,7 +115,7 @@ test('weigh-ins show the trend, the chart, and a summary', async ({ page }) => {
   // The trend: 81, then 81 + 0.1 × (80 − 81) = 80.9.
   await expect(page.getByText('Trend 80.9 kg')).toBeVisible()
   await expect(await row(page, today)).toContainText('80 kg80.9 kg')
-  const chart = page.getByRole('region', { name: 'Last 90 days' })
+  const chart = page.getByRole('region', { name: 'Weight chart' })
   await expect(chart).toContainText('weigh-ins between 80 kg and 81 kg')
 
   // Editing a listed weigh-in changes it in place.

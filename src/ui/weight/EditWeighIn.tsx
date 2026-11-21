@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 
 import type { SetWeighInResult } from '@/data/weights'
 import type { WeighIn } from '@/domain/trend'
@@ -22,13 +22,21 @@ type Props = {
   onClose: () => void
 }
 
-// Pounds are shown with one decimal, as everywhere else, so saving unchanged keeps the value.
+// Pounds are shown with one decimal, as everywhere else. That doesn't always convert back to
+// the stored kilograms, so the dialog saves only when the text changed.
 const shown = (kg: number, unit: WeightUnit, locale: string): string =>
   editableNumber(unit === 'kg' ? kg : Math.round(fromKg(kg, unit) * 10) / 10, locale)
 
 export const EditWeighIn = ({ weighIn, today, unit, locale, onSave, onRemove, onClose }: Props) => {
   const text = strings.weight
-  const [weight, setWeight] = useState(() => shown(weighIn.kg, unit, locale))
+  const initial = shown(weighIn.kg, unit, locale)
+  const [weight, setWeight] = useState(initial)
+
+  // A unit change from another device would reread the text in the new unit; show the stored
+  // weight in that unit instead.
+  useEffect(() => {
+    setWeight(initial)
+  }, [initial])
   const [error, setError] = useState(false)
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -48,6 +56,10 @@ export const EditWeighIn = ({ weighIn, today, unit, locale, onSave, onRemove, on
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
+    if (weight === initial) {
+      onClose()
+      return
+    }
     const parsed = parseWeighInForm({ day: weighIn.date, weight }, unit, today)
     if (!parsed.ok) {
       setError(true)
@@ -96,7 +108,8 @@ export const EditWeighIn = ({ weighIn, today, unit, locale, onSave, onRemove, on
           <button
             type="button"
             onClick={onClose}
-            className="min-h-11 flex-1 rounded-lg border border-border px-4 font-medium"
+            disabled={busy}
+            className="min-h-11 flex-1 rounded-lg border border-border px-4 font-medium disabled:opacity-60"
           >
             {text.cancel}
           </button>

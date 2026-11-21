@@ -1,5 +1,6 @@
 import { z } from 'zod/mini'
 
+import { EARLIEST_DAY } from '@/domain/dates'
 import type { WeighIn } from '@/domain/trend'
 import { isWeightKgInRange, toKg, type WeightUnit } from '@/domain/weight'
 
@@ -24,7 +25,7 @@ export const parseWeighInForm = (
   const errors: WeighInErrors = {}
   const parsedDay = day.safeParse(values.day)
   const validDay =
-    parsedDay.success && parsedDay.data >= '2000-01-01' && parsedDay.data <= today
+    parsedDay.success && parsedDay.data >= EARLIEST_DAY && parsedDay.data <= today
       ? parsedDay.data
       : null
   if (validDay === null) errors.day = true

@@ -2,14 +2,26 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo } from 'react'
 
 import type { WeighIn } from '@/domain/trend'
+import type { WeightUnit } from '@/domain/weight'
 
 import { useData } from './DataProvider'
+import { readProfile } from './profile'
 import { removeWeighIn, type SetWeighInResult, setWeighIn, weighIns } from './weights'
 
 // Every visible weigh-in, oldest first. Undefined while loading.
 export const useWeighIns = (): WeighIn[] | undefined => {
   const { ctx } = useData()
   return useLiveQuery(() => weighIns(ctx.db), [ctx.db])
+}
+
+// The profile's weight unit, or undefined while the profile loads, so a screen never reads a
+// typed weight in the default unit before the user's own unit is known.
+export const useWeightUnit = (): WeightUnit | undefined => {
+  const { ctx, userId } = useData()
+  return useLiveQuery(
+    async () => ((await readProfile(ctx.db, userId))?.units === 'imperial' ? 'lb' : 'kg'),
+    [ctx.db, userId],
+  )
 }
 
 export type WeightActions = {

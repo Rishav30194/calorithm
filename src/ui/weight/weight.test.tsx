@@ -36,6 +36,21 @@ const saved = (weighIn: WeighIn): SetWeighInResult => ({
   },
 })
 
+const view = (
+  weighIns: WeighIn[],
+  overrides: Partial<{ today: string; unit: WeightUnit }> = {},
+  onSave = vi.fn(async (w: WeighIn) => saved(w)),
+) => (
+  <WeightView
+    today={overrides.today ?? today}
+    unit={overrides.unit ?? 'kg'}
+    locale="en-GB"
+    weighIns={weighIns}
+    onSave={onSave}
+    onRemove={vi.fn(async () => {})}
+  />
+)
+
 const renderView = (
   weighIns: WeighIn[],
   {
@@ -175,5 +190,83 @@ describe('WeightView', () => {
     await userEvent.click(screen.getByRole('button', { name: text.edit('Sat 21 Nov') }))
     await userEvent.click(screen.getByRole('button', { name: text.remove }))
     expect(onRemove).toHaveBeenCalledWith(today)
+  })
+
+  it('shows no stale trend when the only weigh-ins are older than 90 days, but lists them on request', async () => {
+    renderView([{ date: '2026-06-01', kg: 85 }])
+    expect(screen.getByText(text.noneRecent)).toBeInTheDocument()
+    expect(screen.queryByText(/^Trend /)).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: text.chartTitle })).not.toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: text.showAll }))
+    expect(screen.getByRole('button', { name: text.edit('Mon 1 Jun') })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: text.showRecent }))
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+
+  it('lists older weigh-ins with the trend from the whole history', async () => {
+    renderView([{ date: '2026-06-01', kg: 85 }, ...week])
+    expect(screen.getAllByRole('row')).toHaveLength(3)
+    await userEvent.click(screen.getByRole('button', { name: text.showAll }))
+    const rows = screen.getAllByRole('row')
+    expect(rows).toHaveLength(4)
+    expect(rows[3]).toHaveTextContent('Mon 1 Jun85 kg85 kg')
+    // 85, then 85 + 0.1 × (80 − 85) = 84.5 on 11-14.
+    expect(rows[2]).toHaveTextContent('Sat 14 Nov80 kg84.5 kg')
+  })
+
+  it('moves the day to the new today at midnight, unless a day was picked', () => {
+    const { rerender } = render(view([]))
+    const field = screen.getByLabelText(text.day)
+    expect(field).toHaveValue(today)
+    rerender(view([], { today: '2026-11-22' }))
+    expect(field).toHaveValue('2026-11-22')
+  })
+
+  it('keeps a picked day across midnight', async () => {
+    const { rerender } = render(view([]))
+    const field = screen.getByLabelText(text.day)
+    await userEvent.clear(field)
+    await userEvent.type(field, '2026-11-19')
+    rerender(view([], { today: '2026-11-22' }))
+    expect(field).toHaveValue('2026-11-19')
+  })
+
+  it('clears a typed weight when the unit changes', async () => {
+    const onSave = vi.fn(async (w: WeighIn) => saved(w))
+    const { rerender } = render(view([], {}, onSave))
+    await userEvent.type(screen.getByLabelText(text.weight('kg')), '80')
+    rerender(view([], { unit: 'lb' }, onSave))
+    expect(screen.getByLabelText(text.weight('lb'))).toHaveValue('')
+  })
+
+  it('hides the replaces hint right after a save', async () => {
+    const onSave = vi.fn(async (w: WeighIn) => saved(w))
+    const { rerender } = render(view([], {}, onSave))
+    await userEvent.type(screen.getByLabelText(text.weight('kg')), '80')
+    await userEvent.click(screen.getByRole('button', { name: text.save }))
+    rerender(view([{ date: today, kg: 80 }], {}, onSave))
+    expect(screen.getByRole('status')).toHaveTextContent(text.saved)
+    expect(screen.queryByText(text.replaces)).not.toBeInTheDocument()
+  })
+
+  it('saves nothing when a pound weigh-in is saved unchanged', async () => {
+    const { onSave } = renderView([{ date: today, kg: 80 }], { unit: 'lb' })
+    await userEvent.click(screen.getByRole('button', { name: text.edit('Sat 21 Nov') }))
+    expect(screen.getByRole('dialog').querySelector('input')).toHaveValue('176.4')
+    await userEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: text.save }),
+    )
+    expect(onSave).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('shows the edited weigh-in in the new unit when the unit changes', async () => {
+    const { rerender } = render(view([{ date: today, kg: 81.65 }]))
+    await userEvent.click(screen.getByRole('button', { name: text.edit('Sat 21 Nov') }))
+    expect(screen.getByRole('dialog').querySelector('input')).toHaveValue('81.65')
+    rerender(view([{ date: today, kg: 81.65 }], { unit: 'lb' }))
+    expect(screen.getByRole('dialog').querySelector('input')).toHaveValue('180')
   })
 })

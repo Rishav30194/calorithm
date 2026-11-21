@@ -1,6 +1,7 @@
-import { type FormEvent, useId, useState } from 'react'
+import { type FormEvent, useEffect, useId, useState } from 'react'
 
 import type { SetWeighInResult } from '@/data/weights'
+import { EARLIEST_DAY } from '@/domain/dates'
 import { formatWeight } from '@/domain/format'
 import type { WeighIn } from '@/domain/trend'
 import { WEIGHT_KG_MAX, WEIGHT_KG_MIN, type WeightUnit } from '@/domain/weight'
@@ -29,11 +30,21 @@ export const WeighInForm = ({ today, unit, locale, savedDays, onSave }: Props) =
   const dayId = useId()
   const dayHintId = `${dayId}-hint`
   const dayErrorId = `${dayId}-error`
-  const [day, setDay] = useState(today)
+  // Null until a day is picked, so the field follows today across midnight.
+  const [picked, setPicked] = useState<string | null>(null)
+  const day = picked ?? today
   const [weight, setWeight] = useState('')
   const [errors, setErrors] = useState<WeighInErrors>({})
   const [status, setStatus] = useState<'idle' | 'busy' | 'saved' | 'failed'>('idle')
-  const replaces = savedDays.has(day)
+  // Right after a save the day is in savedDays, but the hint is about the next save.
+  const replaces = savedDays.has(day) && status !== 'saved'
+
+  // Text typed in one unit means something else in another, so a unit change clears it.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs only when the unit changes
+  useEffect(() => {
+    setWeight('')
+    setErrors({})
+  }, [unit])
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
@@ -76,11 +87,11 @@ export const WeighInForm = ({ today, unit, locale, savedDays, onSave }: Props) =
           <input
             id={dayId}
             type="date"
-            min="2000-01-01"
+            min={EARLIEST_DAY}
             max={today}
             value={day}
             onChange={(event) => {
-              setDay(event.target.value)
+              setPicked(event.target.value)
               setStatus('idle')
             }}
             aria-invalid={errors.day ? true : undefined}

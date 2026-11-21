@@ -206,7 +206,7 @@ export const strings = {
     down: (amount: string) => `Down ${amount} in the last 7 days`,
     up: (amount: string) => `Up ${amount} in the last 7 days`,
     steady: 'No change in the last 7 days',
-    chartTitle: 'Last 90 days',
+    chartTitle: 'Weight chart',
     // Read by screen readers instead of the chart, which shows the same data as the table.
     chartSummary: (from: string, to: string, low: string, high: string) =>
       `Chart from ${from} to ${to}: weigh-ins between ${low} and ${high}, and the trend line.`,
@@ -217,6 +217,8 @@ export const strings = {
     trendColumn: 'Trend',
     empty: 'No weigh-ins yet. Weigh in to start your trend.',
     noneRecent: 'No weigh-ins in the last 90 days.',
+    showAll: 'Show all weigh-ins',
+    showRecent: 'Show the last 90 days only',
     edit: (day: string) => `Edit weigh-in for ${day}`,
     editTitle: (day: string) => `Weigh-in for ${day}`,
     remove: 'Delete',

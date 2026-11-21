@@ -248,8 +248,13 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
   `src/data/weightHooks.ts` reads and writes for the screen.
 - PR 3: the weight screen (`src/ui/weight/`) loads on demand at `#/weight`. It shows the
   trend and its change over 7 days, a weigh-in form for today or an earlier day, a chart of
-  the last 90 days, and a table of those weigh-ins with their trend; a row opens an edit
-  dialog with **Delete**. The chart's axis starts at the first point in the window. The SVG
+  the last 90 days, and a table of those weigh-ins with their trend (**Show all weigh-ins**
+  lists older ones); a row opens an edit dialog with **Delete**. The chart's axis starts at
+  the first point in the window. Without a weigh-in in the window, the screen shows no trend,
+  since one carried from months ago isn't current. The form's day follows today until a day
+  is picked, typed text clears when the unit changes, and the screen waits for the profile's
+  unit (`useWeightUnit`) before showing the form. An unchanged pound edit saves nothing, since
+  one decimal in pounds doesn't always convert back to the stored kilograms. The SVG
   is hidden from screen readers; a visually hidden summary names its dates and the lowest and
   highest weigh-in, and the table holds the values. `trendChange` in `src/domain/trend.ts`
   gives the 7-day change. The plan's hidden data table became the visible weigh-ins table.

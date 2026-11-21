@@ -12,7 +12,7 @@ import { EditWeighIn } from './EditWeighIn'
 import { WeighInForm } from './WeighInForm'
 import { WeightChart } from './WeightChart'
 
-// The chart and table show the 90 days ending today.
+// The chart and table show the 90 days ending today; the table can show every weigh-in.
 export const WINDOW_DAYS = 90
 
 type Props = {
@@ -36,12 +36,20 @@ const changeText = (kg: number, unit: WeightUnit, locale: string): string => {
 export const WeightView = ({ today, unit, locale, weighIns, onSave, onRemove }: Props) => {
   const text = strings.weight
   const [editing, setEditing] = useState<WeighIn | null>(null)
+  const [showAll, setShowAll] = useState(false)
   const from = addDays(today, -(WINDOW_DAYS - 1))
-  const points = useMemo(() => trend(weighIns, from, today), [weighIns, from, today])
+  // The whole history, so older weigh-ins listed under "Show all" carry their own trend.
+  const all = useMemo(() => trend(weighIns, weighIns[0]?.date ?? today, today), [weighIns, today])
+  const points = useMemo(() => all.filter((point) => point.date >= from), [all, from])
   const savedDays = useMemo(() => new Set(weighIns.map((weighIn) => weighIn.date)), [weighIns])
-  const latest = points.at(-1)
-  const change = trendChange(points, today, 7)
-  const recent = points.filter((point) => point.weighInKg !== null).reverse()
+  const weighed = (list: typeof all) => list.filter((point) => point.weighInKg !== null).reverse()
+  const recent = weighed(points)
+  const listed = showAll ? weighed(all) : recent
+  const older = weighed(all).length > recent.length
+  // A trend carried from weigh-ins months ago isn't current, so the summary and chart need a
+  // weigh-in inside the window.
+  const latest = recent.length > 0 ? points.at(-1) : undefined
+  const change = latest ? trendChange(points, today, 7) : null
 
   return (
     <div className="flex flex-col gap-6">
@@ -64,9 +72,9 @@ export const WeightView = ({ today, unit, locale, weighIns, onSave, onRemove }: 
         onSave={onSave}
       />
 
-      <WeightChart points={points} from={from} to={today} unit={unit} locale={locale} />
+      {latest && <WeightChart points={points} from={from} to={today} unit={unit} locale={locale} />}
 
-      {recent.length > 0 && (
+      {listed.length > 0 && (
         <section className="flex flex-col gap-2">
           <table className="w-full text-left">
             <caption className="mb-2 text-left text-lg font-semibold">{text.history}</caption>
@@ -84,7 +92,7 @@ export const WeightView = ({ today, unit, locale, weighIns, onSave, onRemove }: 
               </tr>
             </thead>
             <tbody>
-              {recent.map((point) => {
+              {listed.map((point) => {
                 const day = formatDay(point.date, locale)
                 const kg = point.weighInKg ?? 0
                 return (
@@ -109,6 +117,16 @@ export const WeightView = ({ today, unit, locale, weighIns, onSave, onRemove }: 
             </tbody>
           </table>
         </section>
+      )}
+
+      {older && (
+        <button
+          type="button"
+          onClick={() => setShowAll(!showAll)}
+          className="min-h-11 self-start rounded-lg border border-border px-4 font-medium"
+        >
+          {showAll ? text.showRecent : text.showAll}
+        </button>
       )}
 
       {editing && (

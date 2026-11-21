@@ -1,5 +1,7 @@
 import { z } from 'zod/mini'
 
+import { EARLIEST_DAY } from '@/domain/dates'
+
 import type { Tables } from './database.types'
 
 // Columns every synced table has. See docs/architecture.md, "Sync".
@@ -146,9 +148,6 @@ export const logEntriesSpec: TableSpec<LogEntryRow> = {
   ),
   parents: (row) => [...ref('foods', row.food_id), ...ref('recipes', row.recipe_id)],
 }
-
-// The earliest date the database accepts for a weigh-in, its weights_date_range check.
-export const EARLIEST_DAY = '2000-01-01'
 
 export type WeightRow = Tables<'weights'>
 
