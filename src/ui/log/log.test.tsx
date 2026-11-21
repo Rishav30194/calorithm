@@ -255,6 +255,15 @@ describe('LogDay', () => {
 
     expect(onSetComplete).toHaveBeenCalledWith(true)
     expect(await screen.findByRole('alert')).toHaveTextContent(text.completeFailed)
+    expect(screen.getByLabelText(text.complete)).not.toBeChecked()
+  })
+
+  it('shows the box checked as soon as it’s tapped', async () => {
+    renderDay(vi.fn(() => new Promise<void>(() => {})))
+
+    await userEvent.click(screen.getByLabelText(text.complete))
+
+    expect(screen.getByLabelText(text.complete)).toBeChecked()
   })
 })
 

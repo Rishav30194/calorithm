@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 
 import type { LoggedEntry } from '@/data/log'
 import type { DayView } from '@/data/logHooks'
@@ -46,15 +46,21 @@ export const LogDay = ({
   const completeId = useId()
   const [saving, setSaving] = useState(false)
   const [failed, setFailed] = useState(false)
+  // Shows the choice at once; the stored value catches up after the local write, and a change
+  // synced from another device replaces it.
+  const [complete, setCompleteShown] = useState(day.complete)
+  useEffect(() => setCompleteShown(day.complete), [day.complete])
   const nutrients = ({ kcal, proteinG }: Nutrients) =>
     text.nutrients(formatKcal(kcal, locale), formatProtein(proteinG, locale))
 
-  const setComplete = async (complete: boolean) => {
+  const setComplete = async (value: boolean) => {
+    setCompleteShown(value)
     setSaving(true)
     setFailed(false)
     try {
-      await onSetComplete(complete)
+      await onSetComplete(value)
     } catch {
+      setCompleteShown(day.complete)
       setFailed(true)
     } finally {
       setSaving(false)
@@ -143,7 +149,7 @@ export const LogDay = ({
           <input
             id={completeId}
             type="checkbox"
-            checked={day.complete}
+            checked={complete}
             disabled={saving}
             onChange={(event) => void setComplete(event.target.checked)}
             className="size-5 accent-accent"
