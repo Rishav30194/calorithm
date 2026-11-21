@@ -153,9 +153,9 @@ export const changeServings = async (
   clock: Clock,
   id: string,
   servings: number,
-): Promise<void> => {
+): Promise<{ ok: true } | { ok: false; reason: 'not_found' }> => {
   const row = logEntriesSpec.parse(await db.rows('log_entries').get(id))
-  if (!row) return
+  if (!row || row.deleted_at !== null) return { ok: false, reason: 'not_found' }
   const rounded = roundServings(servings)
   const perServing = { kcal: row.kcal_per_serving, proteinG: row.protein_g_per_serving }
   const nutrients = scaleNutrients(perServing, rounded)
@@ -165,6 +165,7 @@ export const changeServings = async (
     { ...row, servings: rounded, kcal: nutrients.kcal, protein_g: nutrients.proteinG },
     clock,
   )
+  return { ok: true }
 }
 
 export const removeEntry = (db: LocalDb, clock: Clock, id: string): Promise<void> =>
@@ -179,7 +180,11 @@ export const copyMealTo = (
   { from, to }: { from: Target; to: Target },
 ): Promise<LogEntryRow[]> =>
   db.transaction('rw', db.rows('log_entries'), db.outbox, async () => {
-    const sources = (await liveRowsOn(db, from.date)).filter((row) => row.meal === from.meal)
+    // The same rows the day's view and the copy preview count: a row with no food or recipe,
+    // or a meal this version doesn't know, is never copied.
+    const sources = (await liveRowsOn(db, from.date)).filter(
+      (row) => row.meal === from.meal && toEntry(row) !== null,
+    )
     const start = clock().getTime()
     const written: LogEntryRow[] = []
     for (const [index, row] of sources.entries()) {

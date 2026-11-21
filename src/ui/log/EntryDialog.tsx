@@ -2,7 +2,7 @@ import { type FormEvent, useState } from 'react'
 
 import type { LoggedEntry } from '@/data/log'
 import { strings } from '@/strings'
-
+import { editableNumber } from '../food/forms'
 import { Modal } from '../Modal'
 import { TextField } from '../TextField'
 import { parseServings } from './parse'
@@ -10,28 +10,25 @@ import { parseServings } from './parse'
 type Props = {
   entry: LoggedEntry
   locale: string
-  onSave: (servings: number) => Promise<void>
+  // False when the entry is no longer stored, for example removed on another device.
+  onSave: (servings: number) => Promise<boolean>
   onRemove: () => Promise<void>
   onClose: () => void
 }
 
 export const EntryDialog = ({ entry, locale, onSave, onRemove, onClose }: Props) => {
   const text = strings.log.entry
-  const [servings, setServings] = useState(() =>
-    new Intl.NumberFormat(locale, { maximumFractionDigits: 2, useGrouping: false }).format(
-      entry.servings,
-    ),
-  )
+  const [servings, setServings] = useState(() => editableNumber(entry.servings, locale))
   const [error, setError] = useState<string | undefined>()
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
 
-  const run = async (write: () => Promise<void>) => {
+  const run = async (write: () => Promise<boolean>) => {
     setBusy(true)
     setFailed(false)
     try {
-      await write()
-      onClose()
+      if (await write()) onClose()
+      else setFailed(true)
     } catch {
       setFailed(true)
     } finally {
@@ -76,7 +73,12 @@ export const EntryDialog = ({ entry, locale, onSave, onRemove, onClose }: Props)
           <button
             type="button"
             disabled={busy}
-            onClick={() => void run(onRemove)}
+            onClick={() =>
+              void run(async () => {
+                await onRemove()
+                return true
+              })
+            }
             className="min-h-11 flex-1 rounded-lg border border-border px-4 font-medium text-danger disabled:opacity-60"
           >
             {text.remove}

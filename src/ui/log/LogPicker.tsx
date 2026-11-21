@@ -11,6 +11,8 @@ import { TextField } from '../TextField'
 
 type Props = {
   meal: Meal
+  // Whether the day being logged is the device's today, which names the first two rows.
+  isToday: boolean
   picks: QuickPicks | undefined
   foods: FoodView[] | undefined
   recipes: RecipeView[] | undefined
@@ -52,7 +54,16 @@ const PickList = ({
 
 // Opened from a meal's Add button: one more tap on any row logs it, so a saved food takes two
 // taps from the log screen.
-export const LogPicker = ({ meal, picks, foods, recipes, locale, onPick, onClose }: Props) => {
+export const LogPicker = ({
+  meal,
+  isToday,
+  picks,
+  foods,
+  recipes,
+  locale,
+  onPick,
+  onClose,
+}: Props) => {
   const text = strings.log.picker
   const [query, setQuery] = useState('')
   const [busy, setBusy] = useState(false)
@@ -92,7 +103,7 @@ export const LogPicker = ({ meal, picks, foods, recipes, locale, onPick, onClose
         source: { kind: 'recipe' as const, id: recipe.id },
         servings: 1,
         name: recipe.name,
-        detail: `${text.recipe} · ${nutrientText(recipe.perServing.kcal, recipe.perServing.proteinG)}`,
+        detail: text.recipeDetail(nutrientText(recipe.perServing.kcal, recipe.perServing.proteinG)),
       })),
   ]
     .filter((row) => row.name.toLocaleLowerCase().includes(needle))
@@ -134,9 +145,13 @@ export const LogPicker = ({ meal, picks, foods, recipes, locale, onPick, onClose
         <>
           {needle === '' && (
             <>
-              <PickList title={text.today} rows={quick('today', picks?.today)} onPick={pick} />
               <PickList
-                title={text.yesterday}
+                title={isToday ? text.today : text.thisDay}
+                rows={quick('today', picks?.today)}
+                onPick={pick}
+              />
+              <PickList
+                title={isToday ? text.yesterday : text.dayBefore}
                 rows={quick('yesterday', picks?.yesterday)}
                 onPick={pick}
               />

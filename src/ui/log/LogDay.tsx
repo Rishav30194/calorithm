@@ -133,7 +133,7 @@ export const LogDay = ({
               </button>
               <button
                 type="button"
-                aria-label={`${text.copyFrom} ${text.copyInto(name)}`}
+                aria-label={text.copyFromLabel(name)}
                 onClick={() => onCopy(meal)}
                 className="min-h-11 rounded-lg border border-border px-4 font-medium"
               >

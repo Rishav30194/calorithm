@@ -13,7 +13,7 @@ import { strings } from '@/strings'
 
 import { TextField } from '../TextField'
 import { FoodPicker } from './FoodPicker'
-import { parseRecipeForm, type RecipeField, toNumber } from './forms'
+import { editableNumber, parseRecipeForm, type RecipeField, toNumber } from './forms'
 
 type Props = {
   recipe: RecipeDetail | null
@@ -31,8 +31,7 @@ const byName = (a: { name: string }, b: { name: string }) =>
 
 export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArchived }: Props) => {
   const text = strings.recipes.editor
-  const show = (value: number) =>
-    new Intl.NumberFormat(locale, { maximumFractionDigits: 2, useGrouping: false }).format(value)
+  const show = (value: number) => editableNumber(value, locale)
   const [name, setName] = useState(recipe?.name ?? '')
   const [servings, setServings] = useState(recipe ? show(recipe.servings) : '')
   const [items, setItems] = useState<Item[]>(

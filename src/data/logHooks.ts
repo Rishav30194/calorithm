@@ -69,7 +69,7 @@ type Slot = { date: string; meal: Meal }
 
 export type LogActions = {
   log: (slot: Slot, source: Source, servings: number) => Promise<boolean>
-  changeServings: (id: string, servings: number) => Promise<void>
+  changeServings: (id: string, servings: number) => Promise<boolean>
   remove: (id: string) => Promise<void>
   copyMeal: (from: Slot, to: Slot) => Promise<number>
   setComplete: (date: string, complete: boolean) => Promise<void>
@@ -87,7 +87,8 @@ export const useLogActions = (): LogActions => {
     return {
       log: async (slot, source, servings) =>
         (await synced(logSource(ctx.db, ctx.clock, userId, { ...slot, source, servings }))).ok,
-      changeServings: (id, servings) => synced(changeServings(ctx.db, ctx.clock, id, servings)),
+      changeServings: async (id, servings) =>
+        (await synced(changeServings(ctx.db, ctx.clock, id, servings))).ok,
       remove: (id) => synced(removeEntry(ctx.db, ctx.clock, id)),
       copyMeal: async (from, to) =>
         (await synced(copyMealTo(ctx.db, ctx.clock, userId, { from, to }))).length,

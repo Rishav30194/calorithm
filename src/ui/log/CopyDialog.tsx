@@ -13,8 +13,11 @@ type Props = {
   onMealChange: (meal: Meal) => void
   // How many entries the chosen meal holds; undefined while it loads.
   count: number | undefined
+  // Why the chosen day and meal can't be copied from, or null when they can.
+  problem: string | null
   locale: string
-  onCopy: (from: { date: string; meal: Meal }) => Promise<void>
+  // Resolves with how many entries were copied.
+  onCopy: (from: { date: string; meal: Meal }) => Promise<number>
   onClose: () => void
 }
 
@@ -25,24 +28,28 @@ export const CopyDialog = ({
   onDateChange,
   onMealChange,
   count,
+  problem,
   locale,
   onCopy,
   onClose,
 }: Props) => {
   const text = strings.log.copy
   const [busy, setBusy] = useState(false)
+  const [emptied, setEmptied] = useState(false)
   const [failed, setFailed] = useState(false)
   const dateId = useId()
   const mealId = useId()
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
-    if (!count) return
+    if (!count || problem) return
     setBusy(true)
     setFailed(false)
+    setEmptied(false)
     try {
-      await onCopy({ date, meal })
-      onClose()
+      // The meal can empty between the preview and the copy, as a sync removes its entries.
+      if ((await onCopy({ date, meal })) === 0) setEmptied(true)
+      else onClose()
     } catch {
       setFailed(true)
     } finally {
@@ -85,21 +92,22 @@ export const CopyDialog = ({
           </select>
         </div>
         <p aria-live="polite" className="text-muted">
-          {count === undefined
-            ? strings.loading
-            : count === 0
-              ? text.none
-              : text.count(new Intl.NumberFormat(locale).format(count), count === 1)}
+          {problem ??
+            (count === undefined
+              ? strings.loading
+              : count === 0
+                ? text.none
+                : text.count(new Intl.NumberFormat(locale).format(count), count === 1))}
         </p>
-        {failed && (
+        {(failed || emptied) && (
           <p role="alert" className="text-danger">
-            {text.failed}
+            {emptied ? text.none : text.failed}
           </p>
         )}
         <div className="flex gap-2">
           <button
             type="submit"
-            disabled={busy || !count}
+            disabled={busy || !count || problem !== null}
             className="min-h-11 flex-1 rounded-lg bg-accent px-4 font-semibold text-accent-text disabled:opacity-60"
           >
             {text.copy}

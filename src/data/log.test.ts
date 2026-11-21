@@ -206,6 +206,36 @@ describe('changeServings precision', () => {
   })
 })
 
+describe('copying and changing what isn’t there', () => {
+  it('skips rows the app can’t show, so the preview count matches what’s copied', async () => {
+    const food = await addOats()
+    await logFood(db, time.clock, userId, { date: '2026-11-19', meal: 'lunch', food, servings: 1 })
+    const bad = await logFood(db, time.clock, userId, {
+      date: '2026-11-19',
+      meal: 'lunch',
+      food,
+      servings: 1,
+    })
+    await db.table('log_entries').update(bad.id, { food_id: null })
+
+    const copies = await copyMealTo(db, time.clock, userId, {
+      from: { date: '2026-11-19', meal: 'lunch' },
+      to: { date: '2026-11-20', meal: 'lunch' },
+    })
+
+    expect(copies).toHaveLength(1)
+  })
+
+  it('reports changing the servings of an entry that isn’t stored', async () => {
+    expect(await changeServings(db, time.clock, 'b0000000-0000-4000-8000-0000000000ff', 2)).toEqual(
+      {
+        ok: false,
+        reason: 'not_found',
+      },
+    )
+  })
+})
+
 describe('copyMealTo', () => {
   it('keeps the meal’s order in the copies', async () => {
     const food = await addOats()

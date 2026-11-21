@@ -68,6 +68,7 @@ describe('LogPicker', () => {
     render(
       <LogPicker
         meal="breakfast"
+        isToday
         picks={picks}
         foods={[oats, butter]}
         recipes={[chili]}
@@ -112,10 +113,28 @@ describe('LogPicker', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
+  it('names the first rows after the day being logged when it isn’t today', () => {
+    render(
+      <LogPicker
+        meal="lunch"
+        isToday={false}
+        picks={picks}
+        foods={[oats]}
+        recipes={[]}
+        locale="en-US"
+        onPick={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+    expect(screen.getByRole('heading', { name: text.picker.dayBefore })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: text.picker.yesterday })).not.toBeInTheDocument()
+  })
+
   it('shows loading, then the empty state when nothing is saved', () => {
     const { rerender } = render(
       <LogPicker
         meal="lunch"
+        isToday
         picks={undefined}
         foods={undefined}
         recipes={undefined}
@@ -129,6 +148,7 @@ describe('LogPicker', () => {
     rerender(
       <LogPicker
         meal="lunch"
+        isToday
         picks={{ today: [], yesterday: [], mostUsed: [] }}
         foods={[]}
         recipes={[]}
@@ -143,7 +163,7 @@ describe('LogPicker', () => {
 
 describe('EntryDialog', () => {
   it('saves parsed servings, rejects bad ones, and removes', async () => {
-    const onSave = vi.fn(async () => {})
+    const onSave = vi.fn(async () => true)
     const onRemove = vi.fn(async () => {})
     render(
       <EntryDialog
@@ -173,8 +193,32 @@ describe('EntryDialog', () => {
   })
 })
 
+describe('EntryDialog with a missing entry', () => {
+  it('says the save failed instead of closing', async () => {
+    const onClose = vi.fn()
+    render(
+      <EntryDialog
+        entry={entry()}
+        locale="en-US"
+        onSave={async () => false}
+        onRemove={vi.fn()}
+        onClose={onClose}
+      />,
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: text.entry.save }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(text.entry.failed)
+    expect(onClose).not.toHaveBeenCalled()
+  })
+})
+
 describe('CopyDialog', () => {
-  const renderCopy = (count: number | undefined, onCopy = vi.fn(async () => {})) => {
+  const renderCopy = (
+    count: number | undefined,
+    onCopy = vi.fn(async () => count ?? 0),
+    problem: string | null = null,
+  ) => {
     render(
       <CopyDialog
         into="lunch"
@@ -183,6 +227,7 @@ describe('CopyDialog', () => {
         onDateChange={vi.fn()}
         onMealChange={vi.fn()}
         count={count}
+        problem={problem}
         locale="en-US"
         onCopy={onCopy}
         onClose={vi.fn()}
@@ -198,6 +243,23 @@ describe('CopyDialog', () => {
     await userEvent.click(screen.getByRole('button', { name: text.copy.copy }))
 
     expect(onCopy).toHaveBeenCalledWith({ date: '2026-11-20', meal: 'lunch' })
+  })
+
+  it('explains why the chosen day and meal can’t be copied, and disables Copy', () => {
+    renderCopy(3, undefined, text.copy.sameMeal)
+    expect(screen.getByText(text.copy.sameMeal)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: text.copy.copy })).toBeDisabled()
+  })
+
+  it('says so when the meal emptied before the copy ran', async () => {
+    renderCopy(
+      2,
+      vi.fn(async () => 0),
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: text.copy.copy }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(text.copy.none)
   })
 
   it('disables Copy when the meal is empty', () => {
@@ -237,7 +299,7 @@ describe('LogDay', () => {
     expect(handlers.onAdd).toHaveBeenCalledWith('dinner')
 
     await userEvent.click(
-      screen.getByRole('button', { name: `${text.copyFrom} ${text.copyInto(text.meals.snacks)}` }),
+      screen.getByRole('button', { name: text.copyFromLabel(text.meals.snacks) }),
     )
     expect(handlers.onCopy).toHaveBeenCalledWith('snacks')
 

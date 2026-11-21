@@ -11,6 +11,17 @@ export const toNumber = (text: string): number => {
   return /^\d+([.,]\d{1,2})?$/.test(clean) ? Number(clean.replace(',', '.')) : Number.NaN
 }
 
+// A stored number as text the user can edit and toNumber reads back: the locale's decimal
+// comma where it has one, but always Latin digits, since toNumber reads no others.
+export const editableNumber = (value: number, locale: string): string => {
+  const text = new Intl.NumberFormat(locale, {
+    numberingSystem: 'latn',
+    maximumFractionDigits: 2,
+    useGrouping: false,
+  }).format(value)
+  return Number.isNaN(toNumber(text)) ? String(value) : text
+}
+
 const name = z.string().check(z.trim(), z.minLength(1), z.maxLength(100))
 const unit = z.string().check(z.trim(), z.minLength(1), z.maxLength(20))
 // Two decimals are stored, so anything below 0.01 would round to zero.

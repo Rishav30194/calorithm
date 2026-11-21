@@ -34,13 +34,15 @@ const Picker = ({
   locale: string
   onClose: () => void
 }) => {
-  const picks = useQuickPicks(today)
+  // Today and Yesterday are relative to the day being logged, not the device's date.
+  const picks = useQuickPicks(date)
   const foods = useFoods()
   const recipes = useRecipes()
   const actions = useLogActions()
   return (
     <LogPicker
       meal={meal}
+      isToday={date === today}
       picks={picks}
       foods={foods}
       recipes={recipes}
@@ -76,10 +78,15 @@ const Copy = ({
       onDateChange={setFromDate}
       onMealChange={setFromMeal}
       count={valid ? count : 0}
+      problem={
+        valid && fromDate > date
+          ? strings.log.copy.future
+          : fromDate === date && fromMeal === into
+            ? strings.log.copy.sameMeal
+            : null
+      }
       locale={locale}
-      onCopy={async (from) => {
-        await actions.copyMeal(from, { date, meal: into })
-      }}
+      onCopy={(from) => actions.copyMeal(from, { date, meal: into })}
       onClose={onClose}
     />
   )

@@ -139,7 +139,7 @@ test('a meal is copied from an earlier day', async ({ page }) => {
   await logFromSearch(page, 'Breakfast', egg)
 
   await openDay(page, nextDay(day))
-  await page.getByRole('button', { name: 'Copy from… Copy into Breakfast' }).click()
+  await page.getByRole('button', { name: 'Copy into Breakfast from another day or meal' }).click()
   const dialog = page.getByRole('dialog', { name: 'Copy into Breakfast' })
   await dialog.getByLabel('From date').fill(day)
   await expect(dialog.getByText('2 entries to copy')).toBeVisible()
@@ -211,7 +211,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await expectNoAxeViolations(page)
       await page.getByRole('button', { name: 'Cancel' }).click()
 
-      await page.getByRole('button', { name: 'Copy from… Copy into Snacks' }).click()
+      await page.getByRole('button', { name: 'Copy into Snacks from another day or meal' }).click()
       await expect(page.getByRole('dialog', { name: 'Copy into Snacks' })).toBeVisible()
       await expectNoAxeViolations(page)
     })

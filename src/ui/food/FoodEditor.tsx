@@ -4,7 +4,7 @@ import type { FoodInput, FoodView } from '@/data/foods'
 import { strings } from '@/strings'
 
 import { TextField } from '../TextField'
-import { type FoodField, type FoodFormValues, parseFoodForm } from './forms'
+import { editableNumber, type FoodField, type FoodFormValues, parseFoodForm } from './forms'
 
 type Props = {
   food: FoodView | null
@@ -15,9 +15,7 @@ type Props = {
 }
 
 const initialValues = (food: FoodView | null, locale: string): FoodFormValues => {
-  // Prefilled numbers use the locale's decimal mark, which parsing accepts back.
-  const show = (value: number) =>
-    new Intl.NumberFormat(locale, { maximumFractionDigits: 2, useGrouping: false }).format(value)
+  const show = (value: number) => editableNumber(value, locale)
   return food
     ? {
         name: food.name,
