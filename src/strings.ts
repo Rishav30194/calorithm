@@ -37,6 +37,44 @@ export const strings = {
     checkin: 'Targets and the weekly check-in arrive in phase 5.',
   },
 
+  units: {
+    legend: 'Units',
+    metric: 'Metric (kg)',
+    imperial: 'Imperial (lb)',
+    offline: 'Can’t change units until this device has synced once. Connect and try again.',
+    failed: 'Couldn’t save that change. Try again.',
+  },
+
+  sync: {
+    title: 'Sync',
+    syncing: 'Syncing…',
+    neverSynced: 'Not synced yet',
+    lastSynced: (ago: string) => `Last synced ${ago}`,
+    waiting: (count: number) =>
+      count === 1 ? '1 change waiting to sync' : `${count} changes waiting to sync`,
+    allSynced: 'Everything is synced',
+    offline: 'Offline. Changes are saved on this device and sync when you’re back online.',
+    signedOut: 'Your session expired. Sign out and sign in again to resume syncing.',
+    failedTitle: 'Changes the server refused',
+    failedReason: (message: string) => `Reason: ${message}`,
+    discard: 'Discard change',
+    discarding: 'Discarding…',
+    discardOffline: 'Can’t discard while offline. Try again when you’re connected.',
+    badge: {
+      syncing: 'Syncing',
+      offline: (count: number) => (count > 0 ? `Offline · ${count} waiting` : 'Offline'),
+      failed: (count: number) => (count === 1 ? '1 sync problem' : `${count} sync problems`),
+      signedOut: 'Sync paused',
+    },
+  },
+
+  update: {
+    title: 'Update required',
+    body: 'This version of Calorithm is too old to sync. Update to keep your data in step across devices.',
+    button: 'Update now',
+    updating: 'Updating…',
+  },
+
   settings: {
     signedInAs: 'Signed in as',
     signOut: 'Sign out',

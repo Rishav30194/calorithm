@@ -6,15 +6,14 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 2 PR 1 (engine) is built on `feature/local-sync` and passed both reviews. Ask the
-   user before pushing and opening its PR.
-2. Then PR 2 (live wiring). The Supabase adapter must:
-   - make `upsert` return the stored rows (`.select()`); rows skipped as older are missing
-     from the result, and push depends on that
-   - implement `getRows` by id
-   - map errors to `network`, `auth`, and `rejected` per decision 0014
-   - validate the cursor before building PostgREST `or()` filters: a UUID pattern for `id`,
-     and the `normalize()` timestamp check for `updated_at` (from the PR 1 security review)
+1. Phase 2 PR 2 (live wiring) is built on `feature/sync-wiring` and passed both reviews. Ask
+   the user before pushing and opening its PR.
+2. Then PR 3 (session), the last part of phase 2:
+   - sign-out that waits for `engine.whenIdle()`, syncs, warns about unsent changes with a
+     JSON export, then deletes the local database (cases 14 and 15)
+   - two users on one device never see each other's rows (case 17)
+   - `navigator.storage.persist()` on start
+   - cases 1 and the two-window check are already covered in `e2e/sync.spec.ts`
 3. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
 
 Pushes use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push`,
@@ -29,7 +28,11 @@ because git has no stored GitHub credentials and the global git config stays unt
 
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
-- The app and preview live under `/calorithm/`, also locally. Another project's service worker
+- The app and preview live under `/calorithm/`, also locally.
+- First-load JavaScript is 169.7 kB of the 200 kB budget. Phase 3 will likely need to load
+  screens on demand.
+- The browser tests run a production build, so React's development double-run isn't covered.
+  After changing `DataProvider`, also check `npm run dev` for console errors. Another project's service worker
   at `localhost:4173/` can take over the page; use incognito or unregister it in DevTools.
 - `/security-review` needs `origin/HEAD`; in a fresh setup run `git remote set-head origin main`.
 - npm 11 holds back `fsevents`'s install script; it's optional and not needed.

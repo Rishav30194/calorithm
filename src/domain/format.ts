@@ -24,3 +24,17 @@ export const formatWeight = (kg: number, unit: WeightUnit, locale: string): stri
   const value = unit === 'kg' ? kg : kg * POUNDS_PER_KG
   return `${number(value, 1, locale)} ${unit}`
 }
+
+const units: { unit: Intl.RelativeTimeFormatUnit; ms: number }[] = [
+  { unit: 'day', ms: 86_400_000 },
+  { unit: 'hour', ms: 3_600_000 },
+  { unit: 'minute', ms: 60_000 },
+]
+
+// How long ago something happened, in the largest whole unit: "5 minutes ago", "yesterday".
+export const formatAgo = (elapsedMs: number, locale: string): string => {
+  const format = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+  const match = units.find(({ ms }) => elapsedMs >= ms)
+  if (!match) return format.format(0, 'second')
+  return format.format(-Math.floor(elapsedMs / match.ms), match.unit)
+}

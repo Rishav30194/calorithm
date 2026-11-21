@@ -6,7 +6,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "types": ["vite/client", "vite-plugin-pwa/client"],
+    "types": ["vite/client", "vite-plugin-pwa/client", "vite-plugin-pwa/react"],
     "resolveJsonModule": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
@@ -25,5 +25,7 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  // Integration tests run in Node; tsconfig.integration.json checks them.
+  "exclude": ["src/**/*.integration.test.ts"]
 }

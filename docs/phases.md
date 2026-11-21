@@ -79,8 +79,9 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
 
 **Acceptance criteria:**
 - [ ] Every sync case in `docs/testing.md`, "Sync", has a passing test.
-- [ ] A Playwright test writes offline, goes online, and finds the row in Supabase.
-- [ ] Two browser contexts as the same user see each other's changes.
+- [x] A Playwright test writes offline, goes online, and finds the row in Supabase. (A second
+  device reads it back from Supabase: `e2e/sync.spec.ts`.)
+- [x] Two browser contexts as the same user see each other's changes.
 - [ ] After sign-out, IndexedDB holds no database for that user.
 
 **Plan** (approved 2026-11-20): three PRs.
@@ -102,7 +103,7 @@ Cases 4 and 12 use a made-up table until phase 3 adds parent and child tables an
 schema version. The server job that removes rows deleted over 90 days ago moves to phase 7.
 
 **Implementation notes:**
-- PR 1 (engine): `src/data/db.ts`, `tables.ts`, `repository.ts`, and `src/data/sync/` (push,
+- PR 1 (engine), merged in PR #2 on 2026-11-20: `src/data/db.ts`, `tables.ts`, `repository.ts`, and `src/data/sync/` (push,
   pull, `syncOnce`, and the in-memory `FakeRemote`). Sync cases 2 to 12, 16, and 18 have unit
   tests; each guard was checked by breaking it on purpose and watching its test fail.
 - A full resync pulls before removing anything, instead of clearing tables first (decision
@@ -114,6 +115,16 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
   delete rows they couldn't read, auth errors don't back off, pulls run during backoff, a
   clock jumping back can't stall sync, and failed changes can be discarded
   (`src/data/sync/discard.ts`).
+- PR 2 (live wiring): the Supabase adapter with 12 integration tests against local Supabase,
+  the engine schedule, the minimum-version check and **Update** screen (case 13), the sync
+  badge and Settings panel with **Discard**, and the **Units** setting. Browser tests already
+  cover case 1 (an offline change syncing once back online) and two windows seeing each
+  other's change, both planned for PR 3.
+- Integration tests confirmed on real Postgres that an upsert skipped as older is missing
+  from the returned rows, which push depends on. The library's own read retries are off
+  (decision 0016).
+- First-load JavaScript is 169.3 kB of the 200 kB budget, up from 129.8 kB. Phase 3 may need
+  to load screens on demand.
 
 ## Phase 3 — Foods, recipes, and the daily log
 
