@@ -7,8 +7,10 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 ## Next
 
 1. Phase 6 PRs 1 to 3 (#22 to #24) are merged, and PR 4 (the **Update available** banner)
-   is built: every phase 6 criterion is now met. Next: review PR 4, then mark the phase done
-   in a small PR. Run `npm run db:reset` once locally for the account deletion migration and
+   is built and its `/code-review` findings are fixed (Update works offline and after another
+   tab's update, Later hides one version only, the banner is announced and drops the header's
+   notch inset); no `/security-review` is needed, as it touches no auth, sync, or import. Every
+   phase 6 criterion is now met. Next: PR 4's PR, then mark the phase done in a small PR. Run `npm run db:reset` once locally for the account deletion migration and
    seed users. End-to-end tests that look for a status message should scope it to a region:
    the settings screen has three.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
