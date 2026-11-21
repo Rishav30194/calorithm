@@ -26,6 +26,10 @@ const loadLogScreen = () =>
   lazy(() => import('./log/screens').then((module) => ({ default: module.LogScreen })))
 const loadWeightScreen = () =>
   lazy(() => import('./weight/screens').then((module) => ({ default: module.WeightScreen })))
+const loadProfileScreen = () =>
+  lazy(() =>
+    import('./profile/screens').then((module) => ({ default: module.ProfileSettingsScreen })),
+  )
 
 // Re-renders every 30 seconds so "Last synced 5 minutes ago" stays current.
 const useNow = (): number => {
@@ -50,8 +54,14 @@ const SyncSettings = () => {
   const setUnits = useSetUnits()
   const discard = useDiscard()
   const now = useNow()
+  const [ProfileScreen, setProfileScreen] = useState(loadProfileScreen)
   return (
     <>
+      <ScreenErrorBoundary onRetry={() => setProfileScreen(() => loadProfileScreen())}>
+        <Suspense fallback={<p className="text-muted">{strings.loading}</p>}>
+          <ProfileScreen locale={navigator.language} />
+        </Suspense>
+      </ScreenErrorBoundary>
       <UnitsSetting units={units} onChange={setUnits} />
       <SyncPanel
         status={status}

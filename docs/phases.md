@@ -325,6 +325,16 @@ Check-in rules: decision 0021.
   The 12-week histories (noise-free, ±0.8 kg daily noise, and under-logged incomplete days)
   end within 2 kcal without noise and within 22 kcal with it. The early windows read low
   during weight loss while the trend catches up from its first weigh-in, then recover.
+- PR 3: the profile form (`src/ui/profile/`) loads on demand at the top of the settings
+  screen. Metric shows height in centimeters; imperial in whole feet and inches. The goal is
+  **Lose**, **Maintain**, or **Gain** plus an amount a week, since a phone's decimal keypad has
+  no minus key, and protein is a list of 1.6 to 2.2. `profileErrors` in
+  `src/domain/profile.ts` holds the profile table's checks, used by the form and by
+  `saveProfileSettings`, which writes every setting and keeps the units. A device without the
+  profile fetches the server's copy before showing the form (`loadProfile`), and offline it
+  says so with a retry: a form started from defaults would overwrite the server's profile on
+  save, which a 360-pixel screenshot caught and an end-to-end test now covers. The browser
+  tests use a new synthetic seed user, `profile.user`, desktop only for writes.
 
 ## Phase 6 — Export, import, account deletion, and updates
 

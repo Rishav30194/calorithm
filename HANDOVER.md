@@ -7,10 +7,10 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 ## Next
 
 1. Phase 5 is in progress; the approved four-PR plan is in `docs/phases.md`. PR 1 (the
-   `checkins` schema) and PR 2 (the calculations) are merged as #17 and #18. Next: PR 3, the
-   profile screen on the settings tab, on `feature/phase-5-profile`. The last acceptance
-   criterion (a skipped week says why) closes with the check-in screen in PR 4, which maps
-   `CheckinFields` to the row and should run them through `checkinsSpec` in a test.
+   `checkins` schema) and PR 2 (the calculations) are merged as #17 and #18. PR 3 (the
+   profile form) is on `feature/phase-5-profile`. Next: PR 4, the check-in screen and the
+   progress bars. It closes the last acceptance criterion (a skipped week says why), maps
+   `CheckinFields` to the row, and should run them through `checkinsSpec` in a test.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
@@ -35,7 +35,7 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 177.4 kB of the 200 kB budget; the log and food screens load as
+- First-load JavaScript is 180.6 kB of the 200 kB budget (phase 5 PR 3); the log and food screens load as
   their own chunks. Phase 3 will likely need to load
   screens on demand.
 - The browser tests run a production build, so React's development double-run isn't covered.

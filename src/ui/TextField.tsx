@@ -7,7 +7,9 @@ type Props = {
   error?: string | undefined
   hint?: string | undefined
   inputMode?: 'text' | 'decimal' | 'numeric' | 'search'
-  type?: 'text' | 'search'
+  type?: 'text' | 'search' | 'date'
+  min?: string
+  max?: string
   autoFocus?: boolean
 }
 
@@ -21,6 +23,8 @@ export const TextField = ({
   hint,
   inputMode = 'text',
   type = 'text',
+  min,
+  max,
   autoFocus = false,
 }: Props) => {
   const id = useId()
@@ -40,6 +44,8 @@ export const TextField = ({
       <input
         id={id}
         type={type}
+        min={min}
+        max={max}
         inputMode={inputMode}
         value={value}
         onChange={(event) => onChange(event.target.value)}
