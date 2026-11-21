@@ -6,20 +6,15 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 3 PR 1 (schema) is built on `feature/food-schema`: five migrations with pgTAP
-   tests, generated types, table specs, and Dexie schema version 2. `check:full` passed and
-   `/code-review` findings are fixed or recorded in `docs/phases.md`. `/security-review`
-   found nothing; its one note (how the `days` id is derived) is recorded under PR 2. Ask
-   the user before pushing and opening the PR.
-2. Phase 3 PR 2 (calculations and storage), as planned in `docs/phases.md`, including the
+1. Phase 3 PR 2 (calculations and storage) on `feature/food-storage`, as planned in `docs/phases.md`, including the
    two follow-ups from the PR 1 review: rounding at the boundary, and push holding children
    while their parent has a failed change. Holding children changes how push treats foreign
    key errors, so update decision 0014 or add a new decision.
-3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
+2. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
    from the installed app.
-4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
+3. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
    them all together in a small PR.
-5. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+4. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
 
 Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential'`
 (then `push` or `fetch`), because git has no stored GitHub credentials and the global git config stays untouched.
