@@ -129,7 +129,7 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 
 ## Phase 3 — Foods, recipes, and the daily log
 
-**Status:** In progress
+**Status:** Done (2026-11-21)
 
 **Goal:** logging a day's food takes seconds.
 

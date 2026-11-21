@@ -6,10 +6,8 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 3 PR 4 (the log screen) is built on `feature/log-screen`: all five phase 3
-   criteria are ticked, `check:full` passed, and `/code-review` findings are fixed. No
-   `/security-review` needed. Ask the user before pushing and opening the PR. After it
-   merges, mark phase 3 done in `docs/phases.md` (a small `chore/` PR, as for phase 2).
+1. Phase 3 is done (PRs #6 to #9). The phase status change is on `chore/phase-3-done`; ask
+   the user before pushing it and opening its PR.
 2. Phase 4 (weight and the trend chart) after that; read its scope in `docs/phases.md` and
    present a plan first. The chart likely needs a dependency, which needs the user's approval
    and its bundle cost.
