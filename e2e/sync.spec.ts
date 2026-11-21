@@ -57,14 +57,17 @@ test('a change made offline reaches the server once the connection returns', asy
 
   await phone.context.setOffline(true)
   await phone.page.getByRole('radio', { name: unit }).check()
-  await expect(phone.page.getByRole('status')).toHaveText('Offline · 1 waiting', {
-    timeout: 15_000,
-  })
+  await expect(phone.page.getByRole('banner').getByRole('status')).toHaveText(
+    'Offline · 1 waiting',
+    {
+      timeout: 15_000,
+    },
+  )
   await expect(phone.page.getByText('1 change waiting to sync')).toBeVisible()
 
   await phone.context.setOffline(false)
   await expect(phone.page.getByText('Everything is synced')).toBeVisible({ timeout: 15_000 })
-  await expect(phone.page.getByRole('status')).toHaveCount(0)
+  await expect(phone.page.getByRole('banner').getByRole('status')).toHaveCount(0)
 
   const laptop = await newDevice(browser)
   await expect(laptop.page.getByRole('radio', { name: unit })).toBeChecked({ timeout: 15_000 })
