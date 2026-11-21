@@ -19,7 +19,7 @@ export type SyncStatus =
   // This app version is older than app_config.min_app_version: syncing stops for good.
   | { state: 'update_required'; minimum: string }
 
-export type SyncTrigger = 'start' | 'online' | 'visible' | 'write'
+export type SyncTrigger = 'start' | 'online' | 'visible' | 'write' | 'sign_out'
 
 export type EngineDeps = {
   ctx: SyncContext
