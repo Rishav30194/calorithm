@@ -32,6 +32,7 @@ describe('LocalDb', () => {
       'days',
       'foods',
       'log_entries',
+      'meta',
       'outbox',
       'profile',
       'recipe_items',
@@ -140,6 +141,22 @@ describe('LocalDb', () => {
     expect(await after.outbox.count()).toBe(1)
     await after.table('checkins').put({ id: 'c1', date: '2026-11-20' })
     expect(await after.table('checkins').where('date').equals('2026-11-20').count()).toBe(1)
+  })
+
+  it('keeps version 4 data when upgraded to version 5, which adds meta', async () => {
+    const [v1, v2, v3, v4] = schemaVersions
+    if (!v1 || !v2 || !v3 || !v4) throw new Error('missing schema versions')
+    const before = open('calorithm-test-upgrade-v5', [v1, v2, v3, v4])
+    await before.table('checkins').put({ id: 'c1', date: '2026-11-20' })
+    before.close()
+
+    const after = open('calorithm-test-upgrade-v5')
+    expect(await after.table('checkins').get('c1')).toEqual({ id: 'c1', date: '2026-11-20' })
+    await after.meta.put({ key: 'lastExportDay', value: '2026-11-21' })
+    expect(await after.meta.get('lastExportDay')).toEqual({
+      key: 'lastExportDay',
+      value: '2026-11-21',
+    })
   })
 
   it('keeps existing data across an upgrade that adds a table', async () => {
