@@ -267,6 +267,28 @@ describe('estimateMaintenance properties', () => {
     )
   })
 
+  it('counts a repeated date once, using the last entry for it', () => {
+    fc.assert(
+      fc.property(anyInput, (values) => {
+        const repeated = [...values.days, ...values.days.map((day) => ({ ...day }))]
+        expect(estimateMaintenance({ ...values, days: repeated })).toEqual(
+          estimateMaintenance(values),
+        )
+        const result = estimateMaintenance({ ...values, days: repeated })
+        if (result.kind !== 'blocked') expect(result.completeDaysInWeek).toBeLessThanOrEqual(7)
+      }),
+    )
+  })
+
+  it('uses the last entry when a date repeats', () => {
+    const days = [...daysBack(28, 2000), ...daysBack(28, 2400)]
+    expect(estimateMaintenance(input({ days }))).toMatchObject({
+      rawKcal: 2400,
+      completeDaysInWeek: 7,
+      window: { completeDays: 28, averageIntakeKcal: 2400 },
+    })
+  })
+
   it('never lets incomplete days affect the result', () => {
     fc.assert(
       fc.property(anyInput, fc.integer({ min: 0, max: 8000 }), (values, kcal) => {

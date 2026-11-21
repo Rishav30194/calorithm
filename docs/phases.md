@@ -319,7 +319,9 @@ Check-in rules: decision 0021.
   up to 28 days from the trend the day before it; the trend weight includes today's weigh-in,
   so a new user gets targets on day one. The rate cap rounds down to whole hundredths, so the
   applied rate never exceeds the database's 1% check. Results are clamped to the `checkins`
-  ranges, and a property test runs chains of check-ins against every rule of the table.
+  ranges, and a property test runs a check-in and the next one, 7 to 21 days later, against
+  every range and rule of the table. A repeated date in the days passed in counts once, the
+  last entry winning.
   The 12-week histories (noise-free, ±0.8 kg daily noise, and under-logged incomplete days)
   end within 2 kcal without noise and within 22 kcal with it. The early windows read low
   during weight loss while the trend catches up from its first weigh-in, then recover.

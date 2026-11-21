@@ -27,6 +27,7 @@ export type Body = {
 }
 
 // One logged day: its total intake, and whether the user marked everything eaten as logged.
+// Repeated dates count once; the last entry wins.
 export type DayIntake = { date: string; kcal: number; complete: boolean }
 
 export type MaintenanceInput = {
@@ -141,7 +142,10 @@ export const estimateMaintenance = (input: MaintenanceInput): MaintenanceResult 
   const points = trend(input.weighIns, addDays(yesterday, -WINDOW_MAX_DAYS), today)
   const trendWeightKg = roundTo(trendOn(points, today) ?? 0, 2)
 
-  const complete = input.days.filter((day) => day.complete && day.date <= yesterday)
+  // One entry per date, the last one winning, as trend() does for weigh-ins. A repeated date
+  // would otherwise count twice and break the checkins table's day counts.
+  const byDate = new Map(input.days.map((day) => [day.date, day]))
+  const complete = [...byDate.values()].filter((day) => day.complete && day.date <= yesterday)
   const weekStart = addDays(yesterday, -(WEEK_DAYS - 1))
   const completeDaysInWeek = complete.filter((day) => day.date >= weekStart).length
   const enoughDays = completeDaysInWeek >= MIN_COMPLETE_DAYS_IN_WEEK

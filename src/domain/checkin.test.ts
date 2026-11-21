@@ -172,6 +172,28 @@ const satisfiesTableRules = (row: CheckinFields): void => {
   expect(
     window.every((value) => (row.method === 'adaptive' ? value !== null : value === null)),
   ).toBe(true)
+  // Single-column ranges and precision.
+  const within = (value: number | null, min: number, max: number, places: number) => {
+    if (value === null) return
+    expect(value).toBeGreaterThanOrEqual(min)
+    expect(value).toBeLessThanOrEqual(max)
+    expect(Math.abs(value * 10 ** places - Math.round(value * 10 ** places))).toBeLessThan(1e-6)
+  }
+  within(row.maintenanceKcal, 0, 20000, 0)
+  within(row.previousMaintenanceKcal, 0, 20000, 0)
+  within(row.rawMaintenanceKcal, -100000, 100000, 0)
+  within(row.kcalTarget, 1000, 25000, 0)
+  within(row.proteinTargetG, 1, 999.9, 1)
+  within(row.trendWeightKg, 20, 400, 2)
+  within(row.trendChangeKg, -380, 380, 2)
+  within(row.windowDays, 1, 28, 0)
+  within(row.completeDaysInWindow, 0, row.windowDays ?? 0, 0)
+  within(row.averageIntakeKcal, 0, 100000, 0)
+  within(row.completeDaysInWeek, 0, 7, 0)
+  within(row.goalRateRequestedKgPerWeek, -2, 2, 2)
+  within(row.goalRateAppliedKgPerWeek, -2, 2, 2)
+  within(row.proteinGPerKg, 1.6, 2.2, 1)
+  within(row.calorieFloorKcal, 1000, 3000, 0)
   if (row.previousMaintenanceKcal !== null) {
     expect(Math.abs(row.maintenanceKcal - row.previousMaintenanceKcal)).toBeLessThanOrEqual(150)
   }
@@ -199,18 +221,19 @@ describe('runCheckin properties', () => {
     weighIns: fc
       .array(
         fc.record({
-          offset: fc.integer({ min: 0, max: 60 }),
+          // Up to 21 days after the first check-in, for the next one.
+          offset: fc.integer({ min: -21, max: 60 }),
           kg: fc.integer({ min: 2000, max: 40000 }).map((h) => h / 100),
         }),
-        { minLength: 1, maxLength: 20 },
+        { minLength: 1, maxLength: 30 },
       )
       .map((items): WeighIn[] =>
         items.map(({ offset, kg }) => ({ date: addDays(today, -offset), kg })),
       ),
     days: fc
       .array(fc.record({ kcal: fc.integer({ min: 0, max: 8000 }), complete: fc.boolean() }), {
-        minLength: 35,
-        maxLength: 35,
+        minLength: 56,
+        maxLength: 56,
       })
       .map((items): DayIntake[] =>
         items.map((item, i) => ({ date: addDays(today, i - 35), ...item })),
@@ -225,13 +248,24 @@ describe('runCheckin properties', () => {
   })
 
   it('satisfies every rule of the checkins table, over a chain of check-ins', () => {
+    // Each check-in sees only the weigh-ins and days that existed on its date.
+    const asOf = (values: CheckinInput, date: string): CheckinInput => ({
+      ...values,
+      today: date,
+      weighIns: values.weighIns.filter((weighIn) => weighIn.date <= date),
+      days: values.days.filter((day) => day.date < date),
+    })
     fc.assert(
-      fc.property(anyInput, anySettings, (first, later) => {
-        const one = runCheckin({ ...first, previous: null })
+      fc.property(anyInput, anySettings, fc.integer({ min: 7, max: 21 }), (values, later, gap) => {
+        const one = runCheckin(asOf({ ...values, previous: null }, today))
         if (one.kind !== 'ready') return
         satisfiesTableRules(one.checkin)
-        const two = runCheckin({ ...first, settings: later, previous: toPrevious(one.checkin) })
+        const next = addDays(today, gap)
+        const two = runCheckin(
+          asOf({ ...values, settings: later, previous: toPrevious(one.checkin) }, next),
+        )
         if (two.kind !== 'ready') return
+        expect(two.checkin.date).toBe(next)
         satisfiesTableRules(two.checkin)
       }),
     )
