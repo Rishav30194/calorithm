@@ -91,6 +91,26 @@ describe('SyncPanel', () => {
     expect(screen.queryByText(strings.sync.allSynced)).not.toBeInTheDocument()
   })
 
+  // The outbox count loads after the first render; until then the panel can't know.
+  it('doesn’t say everything is synced before the outbox count loads', () => {
+    const { rerender } = panel({ pending: null })
+    expect(screen.queryByText(strings.sync.allSynced)).not.toBeInTheDocument()
+    expect(screen.getByText(strings.sync.lastSynced('5 minutes ago'))).toBeInTheDocument()
+
+    rerender(
+      <SyncPanel
+        status={synced}
+        pending={1}
+        failed={[]}
+        now={now}
+        locale="en-GB"
+        onDiscard={async () => ({ status: 'done' })}
+      />,
+    )
+    expect(screen.getByText(strings.sync.waiting(1))).toBeInTheDocument()
+    expect(screen.queryByText(strings.sync.allSynced)).not.toBeInTheDocument()
+  })
+
   it('lists refused changes with their reason and discards one', async () => {
     const onDiscard = vi.fn(async (): Promise<DiscardOutcome> => ({ status: 'done' }))
     panel({ failed: [refused], onDiscard })

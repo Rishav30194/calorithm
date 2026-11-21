@@ -8,7 +8,8 @@ import { strings } from '@/strings'
 
 type Props = {
   status: SyncStatus
-  pending: number
+  // Null until the outbox count loads.
+  pending: number | null
   failed: FailedChange[]
   now: number
   locale: string
@@ -60,7 +61,7 @@ const Refused = ({
 }
 
 // "Everything is synced" only after a sync succeeded, with nothing waiting or refused.
-const allSynced = (status: SyncStatus, pending: number, failed: number): boolean =>
+const allSynced = (status: SyncStatus, pending: number | null, failed: number): boolean =>
   status.state === 'idle' &&
   status.problem === null &&
   status.lastSyncedAt !== null &&
@@ -75,7 +76,9 @@ export const SyncPanel = ({ status, pending, failed, now, locale, onDiscard }: P
         {strings.sync.title}
       </h2>
       <p>{lastSyncedLine(status, now, locale)}</p>
-      {pending > 0 && <p className="text-muted">{strings.sync.waiting(pending)}</p>}
+      {pending !== null && pending > 0 && (
+        <p className="text-muted">{strings.sync.waiting(pending)}</p>
+      )}
       {allSynced(status, pending, failed.length) && (
         <p className="text-muted">{strings.sync.allSynced}</p>
       )}
