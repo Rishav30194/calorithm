@@ -6,9 +6,13 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 6 PR 1 (export format and import, `src/data/backup/`, decision 0022) is committed
-   on `feature/phase-6-export-format`, not pushed. Before the PR: run `/code-review` and
-   `/security-review` (import is in scope), then `npm run check:full`. PR 2 next: settings
+1. Phase 6 PR 1 (export format and import, `src/data/backup/`, decision 0022) is on
+   `feature/phase-6-export-format`. `/code-review` ran and all seven findings are fixed
+   (deleted parents still in use are exported, the export reads in one transaction, column
+   scales and far-future edit times are refused, edit times compare to the microsecond, birth
+   dates check against the earlier of the local and UTC days, and the unproven casts are
+   gone). `/security-review` and `npm run check:full` were running when this was written;
+   check their results before opening the PR. PR 2 next: settings
    screen export and import, the last export date (`docs/architecture.md` says `sync_state`;
    its `SyncState` type doesn't fit, so decide the store there), and the check-in's 30-day
    reminder. End-to-end tests that look for a status message should scope it to a region: the
