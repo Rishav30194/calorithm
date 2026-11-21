@@ -6,18 +6,13 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 6 PRs 1 (#22, merged) and 2 (export and import screens, the check-in's 30-day
-   reminder, the `meta` table, and the `import.user` seed user) are done. PR 2's
-   `/code-review` findings are all fixed: an export is recorded only after the file is saved,
-   the reminder hooks live apart from the export code, an unreadable row no longer hides the
-   reminder, the check and the import share one clock, the confirmation counts live rows, the
-   reminder has an axe test, and failures are logged. `/security-review` found nothing at
-   confidence 8 or higher. Run `npm run db:reset` once
-   locally for the new seed user. Next, PR 3: account deletion through `delete_account()`
-   checking a recent password sign-in in the JWT's `amr` claim (verify its format locally
-   first) plus a `delete.me@calorithm.test` seed user; then the **Update available** banner;
-   then mark the phase done. End-to-end tests that look for a status message should scope it
-   to a region: the settings screen has three.
+1. Phase 6 PRs 1 (#22) and 2 (#23) are merged. PR 3 (account deletion, decision 0023, the
+   `delete.me` seed user) is built; before its PR run `/code-review` and `/security-review`
+   (auth and row-level security). Run `npm run db:reset` once locally for the migration and
+   the seed user. **Before the user signs up anyone else on the hosted project, they run
+   `supabase db push` for the migration (Claude never does).** Next, PR 4: the **Update
+   available** banner; then mark the phase done. End-to-end tests that look for a status
+   message should scope it to a region: the settings screen has three.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
@@ -37,8 +32,15 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 
 - Does Supabase's free plan include downloadable backups? The user checks in the dashboard.
 - Exact rate limit of Supabase's built-in email sending. Matters only before friends join.
+- Whether `delete_account()` can delete from `auth.users` on the hosted project as it does
+  locally (the function's owner is `postgres`). Unverified until the migration is pushed;
+  check with a throwaway account before relying on it.
 
 ## Watch out for
+
+- `e2e/account.spec.ts` deletes `delete.me@calorithm.test`; `e2e/database.ts` puts it back
+  first with `docker exec supabase_db_calorithm psql`. The container name comes from
+  `project_id` in `supabase/config.toml`.
 
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.

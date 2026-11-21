@@ -233,6 +233,11 @@ A phone can stay offline for weeks with outbox entries in an old shape. To stay 
   security does the rest.
 - Sign-ups are off in the dashboard while there's one user. `PLAN.md`, "Before friends join",
   replaces this with invite codes.
+- **Delete account** on the settings screen signs in again with the password, then calls
+  `public.delete_account()`. The function deletes the auth user, and every user table's
+  `on delete cascade` removes the rows, only when the JWT's `amr` claim shows a password
+  sign-in in the last 5 minutes (decision 0023). The app then deletes this device's database
+  and session as sign-out does.
 
 ## Calculations
 
