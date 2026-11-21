@@ -29,7 +29,8 @@ import {
 import { createSupabaseRemote, fetchMinAppVersion } from './sync/supabaseRemote'
 import { syncedTables } from './tables'
 
-type Session = { ctx: SyncContext; engine: Engine }
+// `generation` is the one the session was opened for, so a stale one is never shown.
+type Session = { ctx: SyncContext; engine: Engine; generation: number }
 
 type SignOutStep =
   | { step: 'idle' | 'syncing' | 'deleting' | 'failed' }
@@ -115,7 +116,15 @@ export const DataProvider = ({
     }
     window.addEventListener('online', online)
     document.addEventListener('visibilitychange', visible)
-    setSession({ ctx, engine })
+    // Another tab signing out deletes this database. Dexie then closes it but would reopen it
+    // on the next query, recreating it; closing again turns that off. The screens wait on the
+    // loading screen until that tab's sign-out reaches this one.
+    db.on('versionchange', () => {
+      engine.stop()
+      db.close()
+      setSession(null)
+    })
+    setSession({ ctx, engine, generation })
     engine.request('start')
 
     return () => {
@@ -138,13 +147,18 @@ export const DataProvider = ({
       engine: session.engine,
       pending,
       signOut: () => signOut(client),
-    }).then((result) => {
-      // On success the session listener replaces this provider with the sign-in screen.
-      if (result.ok) return
-      deleting.current = false
-      setGeneration((value) => value + 1)
-      setSignOutStep({ step: 'failed' })
     })
+      .catch((error: unknown) => {
+        console.error('sign-out failed', error)
+        return { ok: false }
+      })
+      .then((result) => {
+        // On success the session listener replaces this provider with the sign-in screen.
+        if (result.ok) return
+        deleting.current = false
+        setGeneration((value) => value + 1)
+        setSignOutStep({ step: 'failed' })
+      })
   }, [signOutStep.step, session, pending, client])
 
   const signOutControls = useMemo((): SignOutControls | null => {
@@ -157,12 +171,17 @@ export const DataProvider = ({
       state,
       start: async () => {
         setSignOutStep({ step: 'syncing' })
-        const check = await syncBeforeSignOut({ db: session.ctx.db, engine: session.engine })
-        setSignOutStep(
-          check.status === 'clear'
-            ? { step: 'deleting' }
-            : { step: 'confirm', entries: check.entries },
-        )
+        try {
+          const check = await syncBeforeSignOut({ db: session.ctx.db, engine: session.engine })
+          setSignOutStep(
+            check.status === 'clear'
+              ? { step: 'deleting' }
+              : { step: 'confirm', entries: check.entries },
+          )
+        } catch (error) {
+          console.error('sync before sign-out failed', error)
+          setSignOutStep({ step: 'failed' })
+        }
       },
       confirm: () => setSignOutStep({ step: 'deleting' }),
       cancel: () => setSignOutStep({ step: 'idle' }),
@@ -183,7 +202,10 @@ export const DataProvider = ({
       session && signOutControls ? { ...session, userId, status, signOut: signOutControls } : null,
     [session, userId, status, signOutControls],
   )
-  if (!value || signOutStep.step === 'deleting') return loading
+  // After a failed sign-out, the deleted database stays hidden until the new one is open.
+  if (!value || value.generation !== generation || signOutStep.step === 'deleting') {
+    return loading
+  }
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>
 }
 

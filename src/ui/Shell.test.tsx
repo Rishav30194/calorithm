@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -91,19 +91,27 @@ describe('Sign-out warning', () => {
     expect(signOut.cancel).toHaveBeenCalledOnce()
   })
 
-  it('downloads the unsent changes', async () => {
+  it('downloads the unsent changes', () => {
     const createObjectURL = vi.fn(() => 'blob:unsent')
     const revokeObjectURL = vi.fn()
     vi.stubGlobal('URL', { createObjectURL, revokeObjectURL })
-    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      expect(this.isConnected).toBe(true)
+    })
     const signOut = controls({ step: 'confirm', count: 1 })
     renderShell(signOut)
+    vi.useFakeTimers()
 
-    await userEvent.click(screen.getByRole('button', { name: strings.signOutWarning.export }))
+    fireEvent.click(screen.getByRole('button', { name: strings.signOutWarning.export }))
 
     expect(signOut.unsentFile).toHaveBeenCalledOnce()
     expect(click).toHaveBeenCalledOnce()
+    expect(revokeObjectURL).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(40_000)
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:unsent')
+    vi.useRealTimers()
     vi.unstubAllGlobals()
     click.mockRestore()
   })

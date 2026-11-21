@@ -1,5 +1,5 @@
 import Dexie from 'dexie'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { dbNameFor, type LocalDb } from '../db'
 import { writeRow } from '../repository'
@@ -67,6 +67,7 @@ beforeEach(() => {
 })
 
 afterEach(async () => {
+  vi.restoreAllMocks()
   engine.stop()
   await engine.whenIdle()
   await closeAll()
@@ -140,6 +141,18 @@ describe('finishSignOut', () => {
     expect(remote.rows('parent')).toEqual([])
   })
 
+  it('stays signed in and forgets the delete when it fails', async () => {
+    const fail = vi.spyOn(Dexie, 'delete').mockRejectedValueOnce(new Error('UnknownError'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    expect(await finishSignOut(deps())).toEqual({ ok: false })
+
+    expect(calls).toEqual([`mark ${dbNameFor(userId)}`])
+    // A later start must not delete a database the user goes on writing to.
+    expect(pending.names.size).toBe(0)
+    fail.mockRestore()
+  })
+
   it('reports a failed sign-out after the database is gone', async () => {
     expect(await finishSignOut(deps(false))).toEqual({ ok: false })
     expect(await Dexie.exists(dbNameFor(userId))).toBe(false)
@@ -182,6 +195,28 @@ describe('deletePendingDatabases', () => {
     await deletePendingDatabases(pending)
 
     expect(await Dexie.exists(db.name)).toBe(false)
+    expect(pending.names.size).toBe(0)
+  })
+
+  it('drops a name it can’t delete and still deletes the rest', async () => {
+    const other = openDb(dbNameFor(otherUserId))
+    await other.open()
+    other.close()
+    db.close()
+    pending.names.add(db.name)
+    pending.names.add(other.name)
+    const real = Dexie.delete.bind(Dexie)
+    const fail = vi
+      .spyOn(Dexie, 'delete')
+      .mockImplementation((name) =>
+        name === db.name ? Promise.reject(new Error('UnknownError')) : real(name),
+      )
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    await deletePendingDatabases(pending)
+
+    fail.mockRestore()
+    expect(await Dexie.exists(other.name)).toBe(false)
     expect(pending.names.size).toBe(0)
   })
 

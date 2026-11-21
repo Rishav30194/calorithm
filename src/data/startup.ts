@@ -10,11 +10,10 @@ export const useLocalDataReady = (): boolean => {
   useEffect(() => {
     let live = true
     void requestPersistentStorage()
-    void deletePendingDatabases(browserPendingDeletes())
-      .catch((error: unknown) => console.error('couldn’t finish deleting a local database', error))
-      .then(() => {
-        if (live) setReady(true)
-      })
+    // Never rejects: a name it can't delete is dropped and logged.
+    void deletePendingDatabases(browserPendingDeletes()).then(() => {
+      if (live) setReady(true)
+    })
     return () => {
       live = false
     }

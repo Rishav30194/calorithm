@@ -39,6 +39,8 @@ test('sign-out deletes the database while another tab has it open', async ({ pag
   await openSettings(page)
   await expect(page.getByText('Everything is synced')).toBeVisible({ timeout: 15_000 })
   const otherTab = await page.context().newPage()
+  const errors: Error[] = []
+  otherTab.on('pageerror', (error) => errors.push(error))
   await otherTab.goto('./#/settings')
   await expect(otherTab.getByText('Everything is synced')).toBeVisible({ timeout: 15_000 })
 
@@ -47,6 +49,9 @@ test('sign-out deletes the database while another tab has it open', async ({ pag
   await expect(signInButton(page)).toBeVisible()
   expect(await localDatabases(page)).not.toContain(dbName(seedUser))
   await expect(signInButton(otherTab)).toBeVisible()
+  // The other tab must not have reopened, and so recreated, the deleted database.
+  expect(await localDatabases(otherTab)).not.toContain(dbName(seedUser))
+  expect(errors).toEqual([])
 })
 
 // Sync case 17.

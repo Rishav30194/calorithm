@@ -43,16 +43,28 @@ export const finishSignOut = async ({
   engine.stop()
   await engine.whenIdle()
   db.close()
-  pending.add(db.name)
-  await Dexie.delete(db.name)
-  pending.remove(db.name)
+  if (!(await deleteDatabase(db.name, pending))) return { ok: false }
   return signOut()
+}
+
+// A failed delete drops its name from the list: the user stays signed in and goes on using
+// the database, so a later start must not delete it. Signing out again retries.
+const deleteDatabase = async (name: string, pending: PendingDeletes): Promise<boolean> => {
+  pending.add(name)
+  try {
+    await Dexie.delete(name)
+    return true
+  } catch (error) {
+    console.error('couldn’t delete a local database', error)
+    return false
+  } finally {
+    pending.remove(name)
+  }
 }
 
 export const deletePendingDatabases = async (pending: PendingDeletes): Promise<void> => {
   for (const name of pending.list()) {
-    await Dexie.delete(name)
-    pending.remove(name)
+    await deleteDatabase(name, pending)
   }
 }
 
