@@ -144,7 +144,7 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 - [ ] Logging a saved food takes at most two taps from the log screen.
 - [ ] Editing a food doesn't change any past log entry (unit and end-to-end tests).
 - [ ] A log made at 00:30 lands on that calendar day.
-- [ ] Constraints reject negative kcal, zero servings, and similar values (pgTAP).
+- [x] Constraints reject negative kcal, zero servings, and similar values (pgTAP).
 - [ ] axe passes on every new screen.
 
 **Plan** (approved 2026-11-20): four PRs.
