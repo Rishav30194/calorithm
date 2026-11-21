@@ -16,7 +16,7 @@ import { CatalogList } from './CatalogList'
 import { FoodEditor } from './FoodEditor'
 import { RecipeEditor } from './RecipeEditor'
 
-const logHref = routeHref({ tab: 'log', screen: 'log' })
+const logHref = routeHref({ tab: 'log', screen: 'log', date: null })
 const foodsHref = routeHref({ tab: 'log', screen: 'foods' })
 const recipesHref = routeHref({ tab: 'log', screen: 'recipes' })
 
