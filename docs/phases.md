@@ -369,8 +369,8 @@ Check-in rules: decision 0021.
 - **Update available** prompt.
 
 **Acceptance criteria:**
-- [ ] Export then import into a fresh account reproduces every row (round-trip test).
-- [ ] A malformed or newer-version file is rejected with a clear message and writes nothing.
+- [x] Export then import into a fresh account reproduces every row (round-trip test).
+- [x] A malformed or newer-version file is rejected with a clear message and writes nothing.
 - [ ] pgTAP proves account deletion leaves no rows for that user.
 - [ ] A new deployment shows the update prompt without reloading on its own.
 
@@ -382,7 +382,15 @@ Check-in rules: decision 0021.
   date for days, weigh-ins, and check-ins, and references inside the file. It then writes, in
   one Dexie transaction, each row newer than this device's copy, keeping the file's edit time.
   Another account gets new ids: version 5 UUIDs of the account and old id, so a second import
-  merges (decision 0022). The last export date waits for PR 2, with the reminder that reads it.
+  merges (decision 0022).
+- PR 2: **Your data** on the settings screen (`src/ui/backup/`, loaded on demand) exports the
+  file and records the local day in a new local-only Dexie table, `meta` (schema version 5).
+  Import checks the file, asks with its export date and item count, then reports how many
+  items it added or updated and how many were already current, or why it refused the file. A
+  file over 75 MB is refused unread. The check-in screen's reminder (`exportReminder`) counts
+  30 days from this device's last export, or from its oldest live log entry or weigh-in when
+  it never exported. A synthetic seed user, `import.user`, receives imports in the browser
+  tests.
 
 ## Phase 7 — Production
 
