@@ -148,6 +148,16 @@ describe('saveCheckin and latestCheckin', () => {
   })
 })
 
+describe('latestCheckin with an unreadable row', () => {
+  it('skips a row this version can’t read, and returns the newest it can', async () => {
+    await saveCheckin(db, time.clock, userId, { ...fields, date: '2026-11-14' })
+    const newer = await checkinRow(userId, fields)
+    await db.table('checkins').put({ ...newer, status: 'paused' })
+
+    expect(await latestCheckin(db)).toMatchObject({ date: '2026-11-14' })
+  })
+})
+
 describe('checkinState', () => {
   const ctx = (): SyncContext => ({
     db,

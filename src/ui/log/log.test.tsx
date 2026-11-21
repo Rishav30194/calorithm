@@ -293,6 +293,43 @@ describe('LogDay', () => {
     expect(screen.getByRole('button', { name: /Oats/ })).toHaveTextContent('2 servings')
   })
 
+  it('measures today against the targets, beside the day total, and no other day', () => {
+    const handlers = {
+      onAdd: vi.fn(),
+      onCopy: vi.fn(),
+      onOpenEntry: vi.fn(),
+      onSetComplete: vi.fn(async () => {}),
+    }
+    const targets = { kcal: 1900, proteinG: 147.6 }
+    const { unmount } = render(
+      <LogDay
+        date="2026-11-21"
+        today="2026-11-21"
+        day={day}
+        targets={targets}
+        locale="en-US"
+        {...handlers}
+      />,
+    )
+    expect(screen.getByText(text.dayTotal)).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: strings.targets.title })).toHaveTextContent(
+      strings.targets.progress('300 kcal', '1,900 kcal'),
+    )
+    unmount()
+
+    render(
+      <LogDay
+        date="2026-11-20"
+        today="2026-11-21"
+        day={day}
+        targets={targets}
+        locale="en-US"
+        {...handlers}
+      />,
+    )
+    expect(screen.queryByRole('region', { name: strings.targets.title })).toBeNull()
+  })
+
   it('adds to, copies into, and opens entries of a meal', async () => {
     const handlers = renderDay()
     await userEvent.click(screen.getByRole('button', { name: text.addTo(text.meals.dinner) }))

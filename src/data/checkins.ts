@@ -90,10 +90,13 @@ export const fieldsFromRow = (row: CheckinRow): CheckinFields | null => {
   }
 }
 
+// The newest check-in this version can read; an unreadable row never hides older ones.
 export const latestCheckin = async (db: LocalDb): Promise<CheckinFields | null> => {
-  const rows = await visibleRows(db, checkinsSpec)
-  const latest = rows.sort((a, b) => b.date.localeCompare(a.date))[0]
-  return latest ? fieldsFromRow(latest) : null
+  const readable = (await visibleRows(db, checkinsSpec)).flatMap((row) => {
+    const fields = fieldsFromRow(row)
+    return fields ? [fields] : []
+  })
+  return readable.sort((a, b) => b.date.localeCompare(a.date))[0] ?? null
 }
 
 // Stored when the user saves the check-in screen. A second save the same day, from any device,

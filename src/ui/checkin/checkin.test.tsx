@@ -68,7 +68,9 @@ describe('CheckinView', () => {
     const { onSave, user } = setup(due(updated))
     expect(screen.getByText(text.perDay('2,400 kcal'))).toBeInTheDocument()
     expect(screen.getByText(text.down('100 kcal', '2,500 kcal'))).toBeInTheDocument()
-    expect(screen.getByText(text.adaptive(24, 28, text.trendDown('1.2 kg')))).toBeInTheDocument()
+    expect(
+      screen.getByText(text.adaptive('24', '28', text.trendDown('1.2 kg'))),
+    ).toBeInTheDocument()
     expect(screen.getByText('1,850 kcal')).toBeInTheDocument()
     expect(screen.getByText('147.6 g')).toBeInTheDocument()
 
@@ -105,16 +107,47 @@ describe('CheckinView', () => {
       }),
     )
     expect(screen.getByText(text.floorApplied('1,200 kcal'))).toBeInTheDocument()
-    expect(screen.getByText(text.rateCapped('0.8 kg'))).toBeInTheDocument()
+    // Two decimals, as stored: 0.8 would read above 1% of an 81 kg trend.
+    expect(screen.getByText(text.rateCapped('0.82 kg'))).toBeInTheDocument()
   })
 
   // Phase 5 criterion: a week with fewer than 4 complete days leaves targets unchanged and
   // says why.
   it('says why a skipped week leaves the targets unchanged', () => {
     setup(due(skipped))
-    expect(screen.getByText(text.skipped(2))).toBeInTheDocument()
+    expect(screen.getByText(text.skipped('2'))).toBeInTheDocument()
     expect(screen.queryByText(text.estimate)).toBeNull()
     expect(screen.getByText('1,850 kcal')).toBeInTheDocument()
+  })
+
+  it('rounds a capped rate in pounds down, so it never reads above the cap', () => {
+    setup({
+      ...due({
+        ...updated,
+        goalRateRequestedKgPerWeek: -1,
+        goalRateAppliedKgPerWeek: -0.82,
+        rateCapped: true,
+      }),
+      unit: 'lb',
+    })
+    // 0.82 kg is 1.8078 lb.
+    expect(screen.getByText(text.rateCapped('1.8 lb'))).toBeInTheDocument()
+  })
+
+  it('clears the saved message when a new check-in becomes due', async () => {
+    const onSave = vi.fn(async () => {})
+    const { rerender } = render(<CheckinView state={due(updated)} locale="en-GB" onSave={onSave} />)
+    await userEvent.setup().click(screen.getByRole('button', { name: text.save }))
+    expect(await screen.findByRole('status')).toHaveTextContent(text.saved)
+
+    rerender(
+      <CheckinView
+        state={due({ ...updated, date: '2026-11-28' })}
+        locale="en-GB"
+        onSave={onSave}
+      />,
+    )
+    expect(screen.getByRole('status')).toHaveTextContent('')
   })
 
   it('points to what a blocked check-in needs', () => {

@@ -241,8 +241,8 @@ export const strings = {
     down: (amount: string, from: string) => `Down ${amount} from ${from}.`,
     unchanged: (from: string) => `Unchanged from ${from}.`,
     formula:
-      'From the starting formula, using your profile and trend weight, until 2 weeks of weigh-ins exist.',
-    adaptive: (days: number, window: number, change: string) =>
+      'From the starting formula, using your profile and trend weight. Your own intake takes over once there are 2 weeks of weigh-ins and at least 4 complete days in the last week.',
+    adaptive: (days: string, window: string, change: string) =>
       `From your intake on ${days} complete days out of the last ${window}, with your trend weight ${change}.`,
     trendDown: (amount: string) => `down ${amount}`,
     trendUp: (amount: string) => `up ${amount}`,
@@ -254,7 +254,7 @@ export const strings = {
       `Your calorie target was raised to your calorie floor of ${floor}.`,
     rateCapped: (rate: string) =>
       `Your goal rate was capped at ${rate} a week, 1% of your trend weight.`,
-    skipped: (complete: number) =>
+    skipped: (complete: string) =>
       `Skipped this week: only ${complete} of the last 7 days are marked complete, and the check-in needs at least 4. Your targets stay the same.`,
     noWeighIns: 'Weigh in first: the check-in needs at least one weigh-in.',
     goToWeight: 'Go to Weight',

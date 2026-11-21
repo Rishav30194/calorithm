@@ -265,7 +265,7 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 
 ## Phase 5 — Targets and the weekly check-in
 
-**Status:** Done (2026-11-21)
+**Status:** In progress: PR 4 is the last, and completes the phase when merged
 
 **Goal:** the app sets your targets from your own data each week.
 
@@ -286,7 +286,7 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 - [x] A week with fewer than 4 complete days leaves targets unchanged and says why.
   (`src/domain/maintenance.test.ts`, `src/ui/checkin/checkin.test.tsx`, and `e2e/checkin.spec.ts`)
 
-**Plan** (approved 2026-11-21): four PRs, merged as #17 to #20.
+**Plan** (approved 2026-11-21): four PRs; PRs 1 to 3 merged as #17 to #19.
 
 1. **Schema:** `checkins` migration and pgTAP tests, generated types, `checkinsSpec` last in
    push order, Dexie schema version 4 with an upgrade test, and decision 0021.
@@ -347,8 +347,11 @@ Check-in rules: decision 0021.
   latest check-in and the next date. `src/data/checkins.ts` gathers the inputs from Dexie
   (weigh-ins, each day's logged kcal and completion for the last 35 days, the profile, and
   the latest check-in) and maps `CheckinFields` to the row; a property test runs real
-  check-ins through `checkinsSpec`. The log screen shows kcal and protein bars against the
-  latest check-in's targets, with the day total and a link to the check-in before the first.
+  check-ins through `checkinsSpec`. Today's log shows kcal and protein bars against the
+  latest check-in's targets, under the day total, or a link to the check-in before the first.
+  Other days show the day total only, since their targets may have differed. Counts in the
+  check-in's text are formatted with `Intl`, and a capped rate shows two decimals rounded
+  down, so it never reads above 1%.
   The browser tests use a new synthetic seed user, `checkin.user`; since check-ins can't be
   deleted, each test fixes the clock 7 days past the latest stored check-in.
 

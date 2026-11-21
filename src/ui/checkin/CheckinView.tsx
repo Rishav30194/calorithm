@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { CheckinState } from '@/data/checkins'
 import type { CheckinFields } from '@/domain/checkin'
@@ -28,6 +28,11 @@ export const CheckinView = ({ state, locale, onSave }: Props) => {
   const text = strings.checkin
   const [status, setStatus] = useState<'idle' | 'busy' | 'saved' | 'failed'>('idle')
   const { latest, outcome, unit } = state
+  // A new check-in becoming due, such as on the next day, clears the last save's message.
+  const dueDate = outcome?.kind === 'ready' ? outcome.checkin.date : null
+  useEffect(() => {
+    if (dueDate !== null) setStatus('idle')
+  }, [dueDate])
 
   const save = async (checkin: CheckinFields) => {
     setStatus('busy')
