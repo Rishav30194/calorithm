@@ -36,3 +36,4 @@ change a decision, write a new record that supersedes the old one.
 | [0014](0014-push-error-classes.md) | Push error classes and shared backoff | Accepted |
 | [0015](0015-resync-pulls-before-removing.md) | Full resync pulls before removing anything | Accepted |
 | [0016](0016-one-retry-policy.md) | One retry policy: the sync engine's | Accepted |
+| [0017](0017-delete-local-data-before-signing-out.md) | Delete the local database before signing out | Accepted |

@@ -166,9 +166,22 @@ change had failed.
 
 ### Signing out
 
-Sign-out syncs first. If outbox entries remain, for example because the device is offline,
-the app warns that those changes will be lost and offers an export. Then it deletes the local
-database.
+`src/data/sync/session.ts` runs sign-out in this order:
+
+1. Sync once more and wait for it to finish.
+2. If outbox entries remain, including refused ones, show a warning with the count and three
+   choices: **Export changes** (a JSON file of the unsent rows), **Sign out anyway**, and
+   **Cancel**, which changes nothing and leaves sync running.
+3. Stop the engine, close the database, record its name in `localStorage`, delete it, and
+   clear the record.
+4. Sign out of Supabase with `scope: 'local'`, which removes the session without the
+   network.
+
+The database goes first so an interrupted sign-out leaves the user signed in rather than
+leaving data behind; on start, the app finishes any delete still recorded before it opens a
+database (decision 0017). `DataProvider` shows the loading screen while deleting, so no
+screen reads the database as it closes. Another tab with the database open closes it and
+returns to sign-in.
 
 ### When sync runs
 

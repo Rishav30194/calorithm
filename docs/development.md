@@ -91,7 +91,8 @@ and service-role keys are never used by the app.
 
 - **Ports:** the API runs on `55321` and Postgres on `55322`, instead of Supabase's defaults
   (`54321` and up), so this project can run beside another local Supabase project.
-- **Seed user:** `supabase/seed.sql` creates `seed.user@calorithm.test` with password
-  `Local-Seed-Pass-2026`. It's synthetic and exists only in local databases.
+- **Seed users:** `supabase/seed.sql` creates `seed.user@calorithm.test` and
+  `second.user@calorithm.test`, both with password `Local-Seed-Pass-2026`. They're synthetic
+  and exist only in local databases.
 - **Auth settings:** `supabase/config.toml` turns sign-ups off and requires passwords of at
   least 12 characters with upper case, lower case, and digits, matching the hosted project.
