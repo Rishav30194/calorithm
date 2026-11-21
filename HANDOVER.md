@@ -7,8 +7,12 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 ## Next
 
 1. Phase 6 PRs 1 (#22, merged) and 2 (export and import screens, the check-in's 30-day
-   reminder, the `meta` table, and the `import.user` seed user) are done; PR 2 needs
-   `/code-review`, `/security-review` (import), and its PR. Run `npm run db:reset` once
+   reminder, the `meta` table, and the `import.user` seed user) are done. PR 2's
+   `/code-review` findings are all fixed: an export is recorded only after the file is saved,
+   the reminder hooks live apart from the export code, an unreadable row no longer hides the
+   reminder, the check and the import share one clock, the confirmation counts live rows, the
+   reminder has an axe test, and failures are logged. Before its PR: check `/security-review`'s
+   result. Run `npm run db:reset` once
    locally for the new seed user. Next, PR 3: account deletion through `delete_account()`
    checking a recent password sign-in in the JWT's `amr` claim (verify its format locally
    first) plus a `delete.me@calorithm.test` seed user; then the **Update available** banner;
