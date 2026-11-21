@@ -45,6 +45,8 @@ export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArc
   const [saving, setSaving] = useState(false)
   const [failed, setFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
+  const [archiving, setArchiving] = useState(false)
+  const [archiveFailed, setArchiveFailed] = useState(false)
   const form = useRef<HTMLFormElement>(null)
   const addButton = useRef<HTMLButtonElement>(null)
 
@@ -54,6 +56,18 @@ export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArc
     if (invalid) invalid.focus()
     else addButton.current?.focus()
   }, [attempt])
+
+  const toggleArchived = async (archived: boolean) => {
+    setArchiving(true)
+    setArchiveFailed(false)
+    try {
+      await onSetArchived(archived)
+    } catch {
+      setArchiveFailed(true)
+    } finally {
+      setArchiving(false)
+    }
+  }
 
   // Foods by id, archived ones too, since a recipe can keep an archived ingredient.
   const foodById = new Map(foods.map((food) => [food.id, food]))
@@ -70,7 +84,10 @@ export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArc
       formatProtein(nutrients.proteinG, locale),
     )
   const describeFood = (food: FoodView) =>
-    `${strings.foods.serving(formatAmount(food.servingSize, locale), food.servingUnit)} · ${nutrientText(food)}`
+    strings.foods.detail(
+      strings.foods.serving(formatAmount(food.servingSize, locale), food.servingUnit),
+      nutrientText(food),
+    )
 
   // Totals follow the fields as typed, counting only servings that parse.
   const ingredients: Ingredient[] = items.flatMap((item) => {
@@ -181,7 +198,7 @@ export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArc
           <dt className="text-muted">{text.totals}</dt>
           <dd>{nutrientText(totals)}</dd>
           <dt className="text-muted">{text.perServing}</dt>
-          <dd>{perServing ? nutrientText(perServing) : '–'}</dd>
+          <dd>{perServing ? nutrientText(perServing) : text.noPerServing}</dd>
         </dl>
 
         {failed && (
@@ -198,13 +215,21 @@ export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArc
         </button>
       </form>
       {recipe && (
-        <button
-          type="button"
-          onClick={() => void onSetArchived(!recipe.archived)}
-          className="min-h-11 self-start rounded-lg border border-border px-4 font-medium"
-        >
-          {recipe.archived ? text.restore : text.archive}
-        </button>
+        <>
+          {archiveFailed && (
+            <p role="alert" className="text-danger">
+              {text.archiveFailed}
+            </p>
+          )}
+          <button
+            type="button"
+            disabled={archiving}
+            onClick={() => void toggleArchived(!recipe.archived)}
+            className="min-h-11 self-start rounded-lg border border-border px-4 font-medium disabled:opacity-60"
+          >
+            {recipe.archived ? text.restore : text.archive}
+          </button>
+        </>
       )}
       {picking && (
         <FoodPicker

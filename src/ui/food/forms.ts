@@ -3,10 +3,12 @@ import { z } from 'zod/mini'
 import type { FoodInput, RecipeInput } from '@/data/foods'
 import { strings } from '@/strings'
 
-// Form fields hold text as typed. A decimal comma is accepted, since many locales use one.
+// Form fields hold text as typed. One decimal mark, a point or a comma, may follow with up to
+// two digits; three digits after it ("1,000") are a thousands separator in some locales and a
+// decimal in others, so they're refused rather than guessed.
 export const toNumber = (text: string): number => {
-  const clean = text.trim().replace(',', '.')
-  return /^\d+(\.\d+)?$/.test(clean) ? Number(clean) : Number.NaN
+  const clean = text.trim()
+  return /^\d+([.,]\d{1,2})?$/.test(clean) ? Number(clean.replace(',', '.')) : Number.NaN
 }
 
 const name = z.string().check(z.trim(), z.minLength(1), z.maxLength(100))

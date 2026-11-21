@@ -36,7 +36,10 @@ const go = (href: string) => {
 }
 
 const foodDetail = (food: FoodView, locale: string) =>
-  `${strings.foods.serving(formatAmount(food.servingSize, locale), food.servingUnit)} · ${strings.foods.nutrients(formatKcal(food.kcal, locale), formatProtein(food.proteinG, locale))}`
+  strings.foods.detail(
+    strings.foods.serving(formatAmount(food.servingSize, locale), food.servingUnit),
+    strings.foods.nutrients(formatKcal(food.kcal, locale), formatProtein(food.proteinG, locale)),
+  )
 
 const Foods = ({ locale }: { locale: string }) => {
   const foods = useFoods()
@@ -74,7 +77,13 @@ const Recipes = ({ locale }: { locale: string }) => {
         id: recipe.id,
         name: recipe.name,
         archived: recipe.archived,
-        detail: `${strings.recipes.makes(formatAmount(recipe.servings, locale))} · ${strings.recipes.perServing(formatKcal(recipe.perServing.kcal, locale), formatProtein(recipe.perServing.proteinG, locale))}`,
+        detail: strings.recipes.detail(
+          strings.recipes.makes(formatAmount(recipe.servings, locale)),
+          strings.recipes.perServing(
+            formatKcal(recipe.perServing.kcal, locale),
+            formatProtein(recipe.perServing.proteinG, locale),
+          ),
+        ),
         href: routeHref({ tab: 'log', screen: 'recipe', id: recipe.id }),
       }))}
     />
@@ -112,8 +121,9 @@ const EditFood = ({ id, locale }: { id: string; locale: string }) => {
   }
   return (
     <FoodEditor
-      // A food changed on another device reloads the form with its new values.
-      key={JSON.stringify(food)}
+      // Keyed by id only: archiving or a synced change mustn't reset what the user is typing.
+      // Saving keeps the form's values, the later edit winning as everywhere in sync.
+      key={food.id}
       food={food}
       locale={locale}
       backHref={foodsHref}
@@ -182,5 +192,6 @@ export const FoodScreens = ({ route, locale }: { route: FoodRoute; locale: strin
         return <RecipeForm id={route.id} locale={locale} />
     }
   })()
-  return <ScreenErrorBoundary>{body}</ScreenErrorBoundary>
+  // Keyed by route, so an error on one screen doesn't follow the user to the next.
+  return <ScreenErrorBoundary key={routeHref(route)}>{body}</ScreenErrorBoundary>
 }

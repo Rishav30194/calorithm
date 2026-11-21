@@ -108,31 +108,47 @@ const writeRecipe = (
   draft: RecipeRow,
   items: RecipeInput['items'],
 ): Promise<RecipeRow> =>
-  db.transaction('rw', db.rows('recipes'), db.rows('recipe_items'), db.outbox, async () => {
-    const recipe = await writeRow(db, recipesSpec, draft, clock)
-    const unused = await liveItems(db, recipe.id)
-    for (const { foodId, servings } of items) {
-      const index = unused.findIndex((item) => item.food_id === foodId)
-      const [reused] = index >= 0 ? unused.splice(index, 1) : []
-      await writeRow(
-        db,
-        recipeItemsSpec,
-        {
-          ...syncDefaults(recipe.user_id),
-          ...reused,
-          id: reused?.id ?? crypto.randomUUID(),
-          recipe_id: recipe.id,
-          food_id: foodId,
-          servings: roundServings(servings),
-        },
-        clock,
-      )
-    }
-    for (const removed of unused) {
-      await writeRow(db, recipeItemsSpec, { ...removed, deleted_at: clock().toISOString() }, clock)
-    }
-    return recipe
-  })
+  db.transaction(
+    'rw',
+    db.rows('recipes'),
+    db.rows('recipe_items'),
+    db.rows('foods'),
+    db.outbox,
+    async () => {
+      const recipe = await writeRow(db, recipesSpec, draft, clock)
+      const unused = await liveItems(db, recipe.id)
+      for (const { foodId, servings } of items) {
+        const index = unused.findIndex((item) => item.food_id === foodId)
+        const [reused] = index >= 0 ? unused.splice(index, 1) : []
+        await writeRow(
+          db,
+          recipeItemsSpec,
+          {
+            ...syncDefaults(recipe.user_id),
+            ...reused,
+            id: reused?.id ?? crypto.randomUUID(),
+            recipe_id: recipe.id,
+            food_id: foodId,
+            servings: roundServings(servings),
+          },
+          clock,
+        )
+      }
+      for (const removed of unused) {
+        // An item whose food was deleted elsewhere never reached the editor, so leaving it out of
+        // the input doesn't mean the user removed it.
+        const food = foodsSpec.parse(await db.rows('foods').get(removed.food_id))
+        if (!food || food.deleted_at !== null) continue
+        await writeRow(
+          db,
+          recipeItemsSpec,
+          { ...removed, deleted_at: clock().toISOString() },
+          clock,
+        )
+      }
+      return recipe
+    },
+  )
 
 const recipeFields = (input: RecipeInput) => ({
   name: input.name.trim(),
@@ -252,8 +268,14 @@ export const foodById = async (db: LocalDb, id: string): Promise<FoodView | null
   return food && food.deleted_at === null ? toFoodView(food) : null
 }
 
-const recipeView = async (db: LocalDb, recipe: RecipeRow): Promise<RecipeDetail> => {
-  const foods = new Map((await liveFoods(db)).map((food) => [food.id, food]))
+const foodMap = async (db: LocalDb): Promise<Map<string, FoodRow>> =>
+  new Map((await liveFoods(db)).map((food) => [food.id, food]))
+
+const recipeView = async (
+  db: LocalDb,
+  recipe: RecipeRow,
+  foods: Map<string, FoodRow>,
+): Promise<RecipeDetail> => {
   const items = (await liveItems(db, recipe.id))
     .flatMap((item): RecipeItemView[] => {
       const food = foods.get(item.food_id)
@@ -287,9 +309,11 @@ export const listRecipes = async (db: LocalDb): Promise<RecipeView[]> => {
     const recipe = recipesSpec.parse(raw)
     return recipe && recipe.deleted_at === null ? [recipe] : []
   })
+  // Foods are read once for the whole list, not once per recipe.
+  const foods = await foodMap(db)
   const views: RecipeView[] = []
   for (const recipe of recipes) {
-    const { items: _, ...view } = await recipeView(db, recipe)
+    const { items: _, ...view } = await recipeView(db, recipe, foods)
     views.push(view)
   }
   return views.sort(byName)
@@ -297,5 +321,5 @@ export const listRecipes = async (db: LocalDb): Promise<RecipeView[]> => {
 
 export const recipeDetail = async (db: LocalDb, id: string): Promise<RecipeDetail | null> => {
   const recipe = recipesSpec.parse(await db.rows('recipes').get(id))
-  return recipe && recipe.deleted_at === null ? recipeView(db, recipe) : null
+  return recipe && recipe.deleted_at === null ? recipeView(db, recipe, await foodMap(db)) : null
 }

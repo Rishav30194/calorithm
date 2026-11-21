@@ -36,6 +36,8 @@ export const FoodEditor = ({ food, locale, backHref, onSave, onSetArchived }: Pr
   const [saving, setSaving] = useState(false)
   const [failed, setFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
+  const [archiving, setArchiving] = useState(false)
+  const [archiveFailed, setArchiveFailed] = useState(false)
   const form = useRef<HTMLFormElement>(null)
 
   // After a rejected save, focus moves to the first field with an error.
@@ -43,6 +45,18 @@ export const FoodEditor = ({ food, locale, backHref, onSave, onSetArchived }: Pr
     if (attempt === 0) return
     form.current?.querySelector<HTMLInputElement>('[aria-invalid="true"]')?.focus()
   }, [attempt])
+
+  const toggleArchived = async (archived: boolean) => {
+    setArchiving(true)
+    setArchiveFailed(false)
+    try {
+      await onSetArchived(archived)
+    } catch {
+      setArchiveFailed(true)
+    } finally {
+      setArchiving(false)
+    }
+  }
 
   const set = (key: FoodField) => (value: string) => setValues((old) => ({ ...old, [key]: value }))
 
@@ -120,13 +134,21 @@ export const FoodEditor = ({ food, locale, backHref, onSave, onSetArchived }: Pr
         </button>
       </form>
       {food && (
-        <button
-          type="button"
-          onClick={() => void onSetArchived(!food.archived)}
-          className="min-h-11 self-start rounded-lg border border-border px-4 font-medium"
-        >
-          {food.archived ? text.restore : text.archive}
-        </button>
+        <>
+          {archiveFailed && (
+            <p role="alert" className="text-danger">
+              {text.archiveFailed}
+            </p>
+          )}
+          <button
+            type="button"
+            disabled={archiving}
+            onClick={() => void toggleArchived(!food.archived)}
+            className="min-h-11 self-start rounded-lg border border-border px-4 font-medium disabled:opacity-60"
+          >
+            {food.archived ? text.restore : text.archive}
+          </button>
+        </>
       )}
     </div>
   )

@@ -134,6 +134,34 @@ describe('FoodEditor', () => {
   })
 })
 
+describe('archiving', () => {
+  it('disables the button while it runs and reports a failure', async () => {
+    let reject: (error: Error) => void = () => {}
+    const onSetArchived = vi.fn(
+      () =>
+        new Promise<void>((_, fail) => {
+          reject = fail
+        }),
+    )
+    render(
+      <FoodEditor
+        food={oats}
+        locale="en-US"
+        backHref="#/log/foods"
+        onSave={vi.fn()}
+        onSetArchived={onSetArchived}
+      />,
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: text.archive }))
+    expect(screen.getByRole('button', { name: text.archive })).toBeDisabled()
+
+    reject(new Error('quota'))
+    expect(await screen.findByRole('alert')).toHaveTextContent(text.archiveFailed)
+    expect(screen.getByRole('button', { name: text.archive })).toBeEnabled()
+  })
+})
+
 describe('RecipeEditor', () => {
   const recipeText = strings.recipes.editor
 
@@ -316,6 +344,25 @@ describe('ScreenErrorBoundary', () => {
     flaky.fail = false
     await userEvent.click(screen.getByRole('button', { name: strings.screenError.retry }))
 
+    expect(screen.getByText('loaded')).toBeInTheDocument()
+    vi.restoreAllMocks()
+  })
+
+  it('calls onRetry, so a failed lazy load can be attempted again', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    flaky.fail = true
+    const onRetry = vi.fn(() => {
+      flaky.fail = false
+    })
+    render(
+      <ScreenErrorBoundary onRetry={onRetry}>
+        <Flaky />
+      </ScreenErrorBoundary>,
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: strings.screenError.retry }))
+
+    expect(onRetry).toHaveBeenCalledOnce()
     expect(screen.getByText('loaded')).toBeInTheDocument()
     vi.restoreAllMocks()
   })

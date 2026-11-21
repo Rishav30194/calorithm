@@ -39,6 +39,16 @@ describe('parseFoodForm', () => {
     })
   })
 
+  it('rejects a thousands separator instead of reading it as a decimal mark', () => {
+    expect(parseFoodForm({ ...food, servingSize: '1,000' })).toMatchObject({ ok: false })
+    expect(parseFoodForm({ ...food, servingSize: '1.000' })).toMatchObject({ ok: false })
+    expect(parseFoodForm({ ...food, kcal: '1,250' })).toMatchObject({ ok: false })
+    expect(parseFoodForm({ ...food, servingSize: '1,25' })).toMatchObject({
+      ok: true,
+      input: { servingSize: 1.25 },
+    })
+  })
+
   it('rejects text that isn’t a number and values past the limits', () => {
     expect(parseFoodForm({ ...food, kcal: 'lots' })).toMatchObject({ ok: false })
     expect(parseFoodForm({ ...food, kcal: '10001' })).toMatchObject({ ok: false })

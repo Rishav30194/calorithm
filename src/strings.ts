@@ -54,6 +54,7 @@ export const strings = {
     noMatch: 'No foods match your search.',
     serving: (size: string, unit: string) => `${size} ${unit}`,
     nutrients: (kcal: string, protein: string) => `${kcal} · ${protein} protein`,
+    detail: (serving: string, nutrients: string) => `${serving} · ${nutrients}`,
     editor: {
       newTitle: 'New food',
       editTitle: 'Edit food',
@@ -71,13 +72,14 @@ export const strings = {
       archivedNote: 'Archived. It stays on past days and in recipes, but not in pickers.',
       notFound: 'This food isn’t on this device. It may have been removed on another device.',
       saveFailed: 'Couldn’t save. Try again.',
+      archiveFailed: 'Couldn’t change that. Try again.',
     },
     errors: {
       name: 'Enter a name of up to 100 characters.',
-      servingSize: 'Enter a serving size from 0.01 to 10,000.',
+      servingSize: 'Enter a serving size from 0.01 to 10000, with up to two decimals.',
       servingUnit: 'Enter a unit of up to 20 characters, such as g.',
-      kcal: 'Enter whole kcal from 0 to 10,000.',
-      proteinG: 'Enter protein from 0 to 1,000 g.',
+      kcal: 'Enter whole kcal from 0 to 10000, without separators.',
+      proteinG: 'Enter protein from 0 to 1000 g, with up to two decimals.',
     },
   },
 
@@ -92,6 +94,7 @@ export const strings = {
     noMatch: 'No recipes match your search.',
     makes: (servings: string) => `Makes ${servings}`,
     perServing: (kcal: string, protein: string) => `${kcal} · ${protein} protein a serving`,
+    detail: (makes: string, perServing: string) => `${makes} · ${perServing}`,
     editor: {
       newTitle: 'New recipe',
       editTitle: 'Edit recipe',
@@ -113,6 +116,8 @@ export const strings = {
       archivedNote: 'Archived. It stays on past days, but not in pickers.',
       notFound: 'This recipe isn’t on this device. It may have been removed on another device.',
       saveFailed: 'Couldn’t save. Try again.',
+      archiveFailed: 'Couldn’t change that. Try again.',
+      noPerServing: '–',
     },
     picker: {
       title: 'Add an ingredient',
@@ -123,9 +128,9 @@ export const strings = {
     },
     errors: {
       name: 'Enter a name of up to 100 characters.',
-      servings: 'Enter servings from 0.01 to 1,000.',
+      servings: 'Enter servings from 0.01 to 1000, with up to two decimals.',
       items: 'Add at least one ingredient.',
-      itemServings: 'Enter servings from 0.01 to 1,000.',
+      itemServings: 'Enter servings from 0.01 to 1000, with up to two decimals.',
     },
   },
 

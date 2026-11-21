@@ -2,7 +2,8 @@ import { Component, type ReactNode } from 'react'
 
 import { strings } from '@/strings'
 
-type Props = { children: ReactNode }
+// onRetry runs before the screen remounts, for example to start a failed lazy load again.
+type Props = { children: ReactNode; onRetry?: () => void }
 type State = { failed: boolean; attempt: number }
 
 // Live queries throw their errors while rendering. This catches them for one screen, shows a
@@ -19,6 +20,7 @@ export class ScreenErrorBoundary extends Component<Props, State> {
   }
 
   private retry = () => {
+    this.props.onRetry?.()
     this.setState(({ attempt }) => ({ failed: false, attempt: attempt + 1 }))
   }
 

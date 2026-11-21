@@ -269,3 +269,33 @@ describe('reading foods and recipes for the screens', () => {
     expect(await recipeDetail(db, 'e0000000-0000-4000-8000-0000000000ff')).toBeNull()
   })
 })
+
+describe('saving a recipe whose ingredient’s food was deleted elsewhere', () => {
+  it('leaves that ingredient alone, since the editor never showed it', async () => {
+    const oatsFood = await createFood(db, time.clock, userId, oats)
+    const gone = await createFood(db, time.clock, userId, { ...oats, name: 'Gone' })
+    const recipe = await createRecipe(db, time.clock, userId, {
+      name: 'Mix',
+      servings: 1,
+      items: [
+        { foodId: oatsFood.id, servings: 1 },
+        { foodId: gone.id, servings: 1 },
+      ],
+    })
+    await db.rows('foods').update(gone.id, { deleted_at: '2026-11-20T10:00:00.000Z' })
+    const shown = await recipeDetail(db, recipe.id)
+    expect(shown?.items.map((item) => item.name)).toEqual(['Oats'])
+
+    await updateRecipe(db, time.clock, recipe.id, {
+      name: 'Mix renamed',
+      servings: 1,
+      items: [{ foodId: oatsFood.id, servings: 1 }],
+    })
+
+    const items = (await db.rows('recipe_items').toArray()).flatMap((raw) => {
+      const item = recipeItemsSpec.parse(raw)
+      return item ? [item] : []
+    })
+    expect(items.find((item) => item.food_id === gone.id)?.deleted_at).toBeNull()
+  })
+})
