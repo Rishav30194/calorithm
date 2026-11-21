@@ -357,7 +357,7 @@ Check-in rules: decision 0021.
 
 ## Phase 6 — Export, import, account deletion, and updates
 
-**Status:** In progress
+**Status:** Done (2026-11-21)
 
 **Goal:** you own your data and can leave with it.
 
@@ -370,9 +370,15 @@ Check-in rules: decision 0021.
 
 **Acceptance criteria:**
 - [x] Export then import into a fresh account reproduces every row (round-trip test).
+  (`src/data/backup/backup.test.ts` and `e2e/backup.spec.ts`)
 - [x] A malformed or newer-version file is rejected with a clear message and writes nothing.
+  (`src/data/backup/format.test.ts`, `src/ui/backup/backup.test.tsx`, and `e2e/backup.spec.ts`)
 - [x] pgTAP proves account deletion leaves no rows for that user.
+  (`supabase/tests/delete_account.test.sql`, and `e2e/account.spec.ts` end to end)
 - [x] A new deployment shows the update prompt without reloading on its own.
+  (`e2e/update.spec.ts`)
+
+**Plan** (approved 2026-11-21): four PRs, merged as #22 to #25, then this status change.
 
 **Implementation notes:**
 - PR 1: `src/data/backup/`. `buildExport` writes every live row of every table, unsent
@@ -419,7 +425,9 @@ Check-in rules: decision 0021.
 **Scope:**
 - The user creates the hosted Supabase project, turns off sign-ups, and sets the GitHub
   Actions secrets.
-- The user applies migrations to the hosted project.
+- The user applies migrations to the hosted project, turns on **Secure password change** in
+  its Auth settings (decision 0023 relies on it), and deletes a throwaway account to check
+  that `delete_account()` works there as it does locally.
 - Deploy workflow to GitHub Pages.
 - Weekly keep-awake workflow.
 
