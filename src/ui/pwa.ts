@@ -1,8 +1,11 @@
 import { useRegisterSW } from 'virtual:pwa-register/react'
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const INSTALL_TIMEOUT_MS = 15_000
 const ACTIVATE_TIMEOUT_MS = 5_000
+// How often an open app asks the server for a new deployment; it also asks when it comes back
+// to the foreground.
+const CHECK_INTERVAL_MS = 60 * 60 * 1000
 
 // Resolves with the new worker once it has installed and is waiting, or null if none
 // arrives in time. update() resolves when the script is fetched, before installation ends,
@@ -30,20 +33,66 @@ const waitForWaiting = (registration: ServiceWorkerRegistration): Promise<Servic
     registration.addEventListener('updatefound', () => watch(registration.installing))
   })
 
-// Registers the service worker and returns a function that moves the app to the newest
-// build. Must be called once at the app root: importing this module stops vite-plugin-pwa
-// from injecting its own registration, so without it the app loses offline support.
-export const usePwaUpdate = (): (() => Promise<void>) => {
+export type PwaUpdate = {
+  // A new deployment is waiting, and the banner hasn't been put off.
+  available: boolean
+  // Moves the app to the newest build, reloading it.
+  update: () => Promise<void>
+  // Hides the banner until the app next starts.
+  dismiss: () => void
+}
+
+// Registers the service worker and reports new deployments. Must be called once at the app
+// root: importing this module stops vite-plugin-pwa from injecting its own registration, so
+// without it the app loses offline support.
+export const usePwaUpdate = (): PwaUpdate => {
   const registration = useRef<ServiceWorkerRegistration | undefined>(undefined)
-  useRegisterSW({
+  // Set when another tab's update already put the new worker in control of this page.
+  const [controlledByNew, setControlledByNew] = useState(false)
+  // The plugin reports only an update this tab found itself while running, so the waiting
+  // worker is also read directly: at start, and after each check, as when another tab found it.
+  const [waitingFound, setWaitingFound] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
+  const {
+    needRefresh: [needRefresh],
+  } = useRegisterSW({
     onRegisteredSW: (_url, reg) => {
       registration.current = reg
+      if (reg?.waiting) setWaitingFound(true)
     },
+    // Without this the plugin reloads the page as soon as the new worker takes control, as it
+    // does when another tab updates; an entry being typed would be lost. The banner stays up
+    // instead, and Update reloads.
+    onNeedReload: () => setControlledByNew(true),
   })
 
-  return useCallback(async () => {
+  useEffect(() => {
+    const check = () => {
+      if (!navigator.onLine) return
+      const reg = registration.current
+      if (!reg) return
+      // Offline or a server error rejects; the next check tries again.
+      reg
+        .update()
+        .then(() => {
+          if (reg.waiting) setWaitingFound(true)
+        })
+        .catch(() => {})
+    }
+    const visible = () => {
+      if (document.visibilityState === 'visible') check()
+    }
+    const timer = setInterval(check, CHECK_INTERVAL_MS)
+    document.addEventListener('visibilitychange', visible)
+    return () => {
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', visible)
+    }
+  }, [])
+
+  const update = useCallback(async () => {
     const reg = registration.current
-    if (!reg) {
+    if (!reg || controlledByNew) {
       window.location.reload()
       return
     }
@@ -68,5 +117,13 @@ export const usePwaUpdate = (): (() => Promise<void>) => {
     // The generated worker listens for this message in prompt mode (workbox-build's
     // sw-template: self.skipWaiting() on { type: 'SKIP_WAITING' }).
     waiting.postMessage({ type: 'SKIP_WAITING' })
-  }, [])
+  }, [controlledByNew])
+
+  const dismiss = useCallback(() => setDismissed(true), [])
+
+  return {
+    available: (needRefresh || waitingFound || controlledByNew) && !dismissed,
+    update,
+    dismiss,
+  }
 }

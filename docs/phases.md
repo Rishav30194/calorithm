@@ -372,7 +372,7 @@ Check-in rules: decision 0021.
 - [x] Export then import into a fresh account reproduces every row (round-trip test).
 - [x] A malformed or newer-version file is rejected with a clear message and writes nothing.
 - [x] pgTAP proves account deletion leaves no rows for that user.
-- [ ] A new deployment shows the update prompt without reloading on its own.
+- [x] A new deployment shows the update prompt without reloading on its own.
 
 **Implementation notes:**
 - PR 1: `src/data/backup/`. `buildExport` writes every live row of every table, unsent
@@ -400,6 +400,13 @@ Check-in rules: decision 0021.
   sign-out does. pgTAP covers the refusals and proves no rows are left in any table; the
   end-to-end test deletes `delete.me@calorithm.test` and puts it back first through `psql` in
   the local database container (`e2e/database.ts`).
+- PR 4: the **Update available** banner above every screen, signed in or not, with
+  **Update** and **Later**. `usePwaUpdate()` checks hourly and on returning to the
+  foreground, reads the waiting worker directly (the plugin misses updates another tab
+  found), and turns off the plugin's reload on takeover. The end-to-end test serves its own
+  copy of the build (`e2e/deployment.ts`), changes `sw.js` as a deployment would, and shows
+  the banner in two tabs; the tab that selects **Update** reloads and the other doesn't.
+  Chromium refuses a worker update whose script Playwright intercepts, hence the server.
 
 ## Phase 7 — Production
 
