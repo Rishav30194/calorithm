@@ -1,3 +1,6 @@
+import { type ActivityLevel, activityLevels, type Sex } from '@/domain/maintenance'
+import { type ProfileField, type ProfileSettings, profileErrors } from '@/domain/profile'
+
 import type { LocalDb } from './db'
 import { writeRow } from './repository'
 import type { SyncContext } from './sync/push'
@@ -47,6 +50,22 @@ const baseProfile = async (
   return { ok: true, row: server ?? newProfile(userId) }
 }
 
+// Makes sure this device holds the user's profile before it's shown for editing: a form
+// filled from defaults would overwrite the server's profile on save.
+export const loadProfile = async (
+  ctx: SyncContext,
+  userId: string,
+): Promise<
+  { ok: true; row: ProfileRow | null } | { ok: false; reason: 'offline' | 'signed_out' }
+> => {
+  const local = await readProfile(ctx.db, userId)
+  if (local) return { ok: true, row: local }
+  const base = await baseProfile(ctx, userId)
+  if (!base.ok) return base
+  // baseProfile stores the server's row; with none, there's nothing to show but defaults.
+  return { ok: true, row: await readProfile(ctx.db, userId) }
+}
+
 export const setUnits = async (
   ctx: SyncContext,
   userId: string,
@@ -55,5 +74,60 @@ export const setUnits = async (
   const base = await baseProfile(ctx, userId)
   if (!base.ok) return base
   await writeRow(ctx.db, profileSpec, { ...base.row, units }, ctx.clock)
+  return { ok: true }
+}
+
+export type SaveProfileResult =
+  | { ok: true }
+  | { ok: false; reason: 'offline' | 'signed_out' }
+  | { ok: false; reason: 'invalid'; fields: ProfileField[] }
+
+const isSex = (value: string | null): value is Sex => value === 'female' || value === 'male'
+
+const isActivityLevel = (value: string | null): value is ActivityLevel =>
+  activityLevels.some((level) => level === value)
+
+// The editable settings, with the column defaults when there's no profile yet. A sex or
+// activity level this version doesn't know reads as not set.
+export const profileSettings = (row: ProfileRow | null): ProfileSettings => {
+  const profile = row ?? newProfile('')
+  return {
+    heightCm: profile.height_cm,
+    birthDate: profile.birth_date,
+    sex: isSex(profile.sex) ? profile.sex : null,
+    activityLevel: isActivityLevel(profile.activity_level) ? profile.activity_level : null,
+    goalRateKgPerWeek: profile.goal_rate_kg_per_week,
+    proteinGPerKg: profile.protein_g_per_kg,
+    calorieFloorKcal: profile.calorie_floor_kcal,
+  }
+}
+
+// Writes only the settings given, onto the stored profile, and leaves the rest alone: an
+// older form's untouched fields can't undo another device's change, rounding for display
+// can't rewrite a stored value, and a value this version doesn't know survives. Settings the
+// database would reject are refused here, since a refused push would fail for good.
+export const saveProfileSettings = async (
+  ctx: SyncContext,
+  userId: string,
+  changes: Partial<ProfileSettings>,
+  today: string,
+): Promise<SaveProfileResult> => {
+  // Each check covers one field, so filling the rest with defaults checks only the changes.
+  const checked = { ...profileSettings(null), ...changes }
+  const fields = profileErrors(checked, today).filter((field) => field in changes)
+  if (fields.length > 0) return { ok: false, reason: 'invalid', fields }
+  const base = await baseProfile(ctx, userId)
+  if (!base.ok) return base
+  const row = { ...base.row }
+  if (changes.heightCm !== undefined) row.height_cm = changes.heightCm
+  if (changes.birthDate !== undefined) row.birth_date = changes.birthDate
+  if (changes.sex !== undefined) row.sex = changes.sex
+  if (changes.activityLevel !== undefined) row.activity_level = changes.activityLevel
+  if (changes.goalRateKgPerWeek !== undefined) {
+    row.goal_rate_kg_per_week = changes.goalRateKgPerWeek
+  }
+  if (changes.proteinGPerKg !== undefined) row.protein_g_per_kg = changes.proteinGPerKg
+  if (changes.calorieFloorKcal !== undefined) row.calorie_floor_kcal = changes.calorieFloorKcal
+  await writeRow(ctx.db, profileSpec, row, ctx.clock)
   return { ok: true }
 }

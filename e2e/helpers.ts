@@ -28,6 +28,13 @@ export const unitsUser = {
   password: 'Local-Seed-Pass-2026',
 }
 
+// The profile form test only, in the desktop project; other projects only read its profile.
+export const profileUser = {
+  id: 'd0000000-0000-4000-8000-000000000005',
+  email: 'profile.user@calorithm.test',
+  password: 'Local-Seed-Pass-2026',
+}
+
 type SeedUser = typeof seedUser
 
 export const signIn = (page: Page, password = seedUser.password) =>

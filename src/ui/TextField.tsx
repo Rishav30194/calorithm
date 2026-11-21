@@ -5,9 +5,14 @@ type Props = {
   value: string
   onChange: (value: string) => void
   error?: string | undefined
+  // For a field whose error is shown elsewhere, such as one message for several fields.
+  invalid?: boolean
+  describedBy?: string | undefined
   hint?: string | undefined
   inputMode?: 'text' | 'decimal' | 'numeric' | 'search'
-  type?: 'text' | 'search'
+  type?: 'text' | 'search' | 'date'
+  min?: string
+  max?: string
   autoFocus?: boolean
 }
 
@@ -18,15 +23,21 @@ export const TextField = ({
   value,
   onChange,
   error,
+  invalid = false,
+  describedBy: externalDescription,
   hint,
   inputMode = 'text',
   type = 'text',
+  min,
+  max,
   autoFocus = false,
 }: Props) => {
   const id = useId()
   const hintId = `${id}-hint`
   const errorId = `${id}-error`
-  const describedBy = [hint ? hintId : null, error ? errorId : null].filter(Boolean).join(' ')
+  const describedBy = [hint ? hintId : null, error ? errorId : null, externalDescription ?? null]
+    .filter(Boolean)
+    .join(' ')
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor={id} className="font-medium">
@@ -40,10 +51,12 @@ export const TextField = ({
       <input
         id={id}
         type={type}
+        min={min}
+        max={max}
         inputMode={inputMode}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        aria-invalid={error ? true : undefined}
+        aria-invalid={error || invalid ? true : undefined}
         aria-describedby={describedBy || undefined}
         // biome-ignore lint/a11y/noAutofocus: only the picker's search field, which opens on request
         autoFocus={autoFocus}
