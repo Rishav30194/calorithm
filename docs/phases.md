@@ -213,10 +213,11 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 - SVG chart of weigh-ins and the trend, with an accessible text summary.
 
 **Acceptance criteria:**
-- [ ] Trend matches hand-computed values for the test histories.
-- [ ] Property tests: the trend stays between the lowest and highest weigh-in, and missing days
-  carry it forward.
-- [ ] A second weigh-in on the same day replaces the first.
+- [x] Trend matches hand-computed values for the test histories. (`src/domain/trend.test.ts`)
+- [x] Property tests: the trend stays between the lowest and highest weigh-in, and missing days
+  carry it forward. (`src/domain/trend.test.ts`)
+- [x] A second weigh-in on the same day replaces the first. (`src/data/weights.test.ts`, and
+  the database test in `supabase/tests/weights.test.sql`)
 - [ ] Units switch without changing stored values.
 
 **Plan** (approved 2026-11-21): three PRs.
@@ -235,6 +236,15 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
   the database (decision 0020), so a second weigh-in that day, from any device, replaces the
   first. `weight_kg` is `numeric(5,2)` between 20 and 400; `weightsSpec` rejects values
   outside that range before they're sent.
+- PR 2: `trend()` in `src/domain/trend.ts` returns one point per day from the first weigh-in
+  (or the range start, if later) to the range end, with the trend unrounded; weigh-ins before
+  the range still count. It walks every day from the first weigh-in ever, which is cheap for
+  years of data; start from the last weigh-in before the range if the chart ever lags. Unit conversion lives in `src/domain/weight.ts`, not `format.ts`,
+  and uses the exact pound (0.45359237 kg); `formatWeight` now uses it too. A pound value
+  entered with one decimal shows back unchanged (property test). `src/data/weights.ts`
+  rounds to two decimals and refuses values outside 20 to 400 kg, and dates before 2000 or
+  not real, with a typed result;
+  `src/data/weightHooks.ts` reads and writes for the screen.
 
 ## Phase 5 — Targets and the weekly check-in
 

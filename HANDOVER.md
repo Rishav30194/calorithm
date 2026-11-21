@@ -6,16 +6,18 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 4, PR 1 (the `weights` schema) is on `feature/phase-4-weights-schema`. Ask the user
-   before pushing it and opening its PR. `/code-review` found five nits, all fixed; put them
-   and the `/security-review` result in the PR description.
-2. Then phase 4, PR 2: `src/domain/trend.ts`, kg and lb conversion, and the weigh-in
-   repository. See the plan in `docs/phases.md`.
+1. Phase 4, PR 2 (trend, unit conversion, and weigh-in storage) is on
+   `feature/phase-4-trend-and-storage`. Run `/code-review` and ask the user before pushing it.
+2. Then phase 4, PR 3: the weight screen. Map the profile's `metric` and `imperial` to `kg`
+   and `lb`, parse entry with Zod, and enter weights through `toKg`.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
    from the installed app.
 4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
    them all together in a small PR.
-5. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+5. `daysSpec` and `logEntriesSpec` accept dates before 2000-01-01, which the database refuses,
+   so such a change would fail on every push. The screens never offer those dates. Weigh-ins
+   are already checked (phase 4 PR 2); fix the other two together in a small PR.
+6. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
 
 Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential'`
 (then `push` or `fetch`), because git has no stored GitHub credentials and the global git config stays untouched.
