@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import type { SignOutControls } from '@/data/DataProvider'
 import { strings } from '@/strings'
 
-import { type FoodRoute, hrefFor, type Route, routeHref, type Tab, tabs, useRoute } from './routes'
+import { type FoodRoute, hrefFor, type Route, type Tab, tabs, useRoute } from './routes'
 import { SignOutDialog } from './SignOutDialog'
 
 type Props = {
@@ -14,6 +14,8 @@ type Props = {
   settings?: ReactNode
   // The food and recipe screens, loaded on demand by the signed-in app.
   foodScreens?: (route: FoodRoute) => ReactNode
+  // The day's log; a date of null is today.
+  logScreen?: (date: string | null) => ReactNode
 }
 
 const ComingSoon = ({ text }: { text: string }) => <p className="text-muted">{text}</p>
@@ -53,30 +55,10 @@ const Settings = ({ email, signOut, settings }: Props) => {
   )
 }
 
-const LogHome = () => (
-  <div className="flex flex-col gap-4">
-    <nav aria-label={strings.logLinks.label} className="flex gap-3">
-      <a
-        href={routeHref({ tab: 'log', screen: 'foods' })}
-        className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 font-medium"
-      >
-        {strings.logLinks.foods}
-      </a>
-      <a
-        href={routeHref({ tab: 'log', screen: 'recipes' })}
-        className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 font-medium"
-      >
-        {strings.logLinks.recipes}
-      </a>
-    </nav>
-    <ComingSoon text={strings.comingSoon.log} />
-  </div>
-)
-
 const screen = (route: Route, props: Props) => {
   switch (route.screen) {
     case 'log':
-      return <LogHome />
+      return props.logScreen?.(route.date) ?? null
     case 'foods':
     case 'recipes':
     case 'food':

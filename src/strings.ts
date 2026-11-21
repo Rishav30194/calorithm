@@ -31,6 +31,55 @@ export const strings = {
   },
   navigation: 'Main',
 
+  log: {
+    previousDay: 'Previous day',
+    nextDay: 'Next day',
+    today: 'Today',
+    yesterday: 'Yesterday',
+    dayTotal: 'Day total',
+    meals: { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snacks: 'Snacks' },
+    add: 'Add',
+    addTo: (meal: string) => `Add to ${meal}`,
+    copyFrom: 'Copy from…',
+    copyInto: (meal: string) => `Copy into ${meal}`,
+    emptyMeal: 'Nothing logged yet.',
+    servings: (amount: string, one: boolean) => (one ? `${amount} serving` : `${amount} servings`),
+    entryDetail: (servings: string, nutrients: string) => `${servings} · ${nutrients}`,
+    nutrients: (kcal: string, protein: string) => `${kcal} · ${protein} protein`,
+    complete: 'I logged everything I ate this day',
+    completeHint: 'Only complete days count toward your weekly estimate.',
+    completeFailed: 'Couldn’t save that. Try again.',
+    picker: {
+      today: 'Today',
+      yesterday: 'Yesterday',
+      mostUsed: 'Most used',
+      search: 'Search foods and recipes',
+      all: 'All foods and recipes',
+      recipe: 'Recipe',
+      empty: 'No foods or recipes yet. Add some from Foods and Recipes on the log screen.',
+      noMatch: 'Nothing matches your search.',
+      close: 'Close',
+      failed: 'Couldn’t log that. Try again.',
+    },
+    entry: {
+      servings: 'Servings',
+      save: 'Save',
+      remove: 'Remove',
+      cancel: 'Cancel',
+      failed: 'Couldn’t save that. Try again.',
+    },
+    copy: {
+      date: 'From date',
+      meal: 'From meal',
+      count: (count: string, one: boolean) =>
+        one ? `${count} entry to copy` : `${count} entries to copy`,
+      none: 'Nothing to copy from that meal.',
+      copy: 'Copy',
+      cancel: 'Cancel',
+      failed: 'Couldn’t copy. Try again.',
+    },
+  },
+
   logLinks: {
     label: 'Foods and recipes',
     foods: 'Foods',
@@ -135,7 +184,6 @@ export const strings = {
   },
 
   comingSoon: {
-    log: 'The daily log arrives soon. Set up your foods and recipes first.',
     weight: 'Weigh-ins and the trend chart arrive in phase 4.',
     checkin: 'Targets and the weekly check-in arrive in phase 5.',
   },
