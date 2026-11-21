@@ -37,6 +37,60 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"days": {
+                  Row: {
+                    "client_updated_at": string,"complete": boolean,"date": string,"deleted_at": string | null,"id": string,"schema_version": number,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "client_updated_at": string,"complete"?: boolean,"date": string,"deleted_at"?: string | null,"id": string,"schema_version": number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "client_updated_at"?: string,"complete"?: boolean,"date"?: string,"deleted_at"?: string | null,"id"?: string,"schema_version"?: number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"foods": {
+                  Row: {
+                    "archived_at": string | null,"client_updated_at": string,"deleted_at": string | null,"id": string,"kcal": number,"name": string,"protein_g": number,"schema_version": number,"serving_size": number,"serving_unit": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archived_at"?: string | null,"client_updated_at": string,"deleted_at"?: string | null,"id": string,"kcal": number,"name": string,"protein_g": number,"schema_version": number,"serving_size": number,"serving_unit": string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"client_updated_at"?: string,"deleted_at"?: string | null,"id"?: string,"kcal"?: number,"name"?: string,"protein_g"?: number,"schema_version"?: number,"serving_size"?: number,"serving_unit"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"log_entries": {
+                  Row: {
+                    "client_updated_at": string,"date": string,"deleted_at": string | null,"food_id": string | null,"id": string,"kcal": number,"meal": string,"name": string,"protein_g": number,"recipe_id": string | null,"schema_version": number,"servings": number,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "client_updated_at": string,"date": string,"deleted_at"?: string | null,"food_id"?: string | null,"id": string,"kcal": number,"meal": string,"name": string,"protein_g": number,"recipe_id"?: string | null,"schema_version": number,"servings": number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "client_updated_at"?: string,"date"?: string,"deleted_at"?: string | null,"food_id"?: string | null,"id"?: string,"kcal"?: number,"meal"?: string,"name"?: string,"protein_g"?: number,"recipe_id"?: string | null,"schema_version"?: number,"servings"?: number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "log_entries_food_fkey"
+      columns: ["food_id","user_id"]
+isOneToOne: false
+      referencedRelation: "foods"
+      referencedColumns: ["id","user_id"]
+    },{
+      foreignKeyName: "log_entries_recipe_fkey"
+      columns: ["recipe_id","user_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
                 },"profile": {
                   Row: {
                     "activity_level": string | null,"birth_date": string | null,"calorie_floor_kcal": number,"client_updated_at": string,"deleted_at": string | null,"goal_rate_kg_per_week": number,"height_cm": number | null,"id": string,"protein_g_per_kg": number,"schema_version": number,"sex": string | null,"units": string,"updated_at": string,"user_id": string
@@ -47,6 +101,46 @@ export type Database = {
                   }
                   Update: {
                     "activity_level"?: string | null,"birth_date"?: string | null,"calorie_floor_kcal"?: number,"client_updated_at"?: string,"deleted_at"?: string | null,"goal_rate_kg_per_week"?: number,"height_cm"?: number | null,"id"?: string,"protein_g_per_kg"?: number,"schema_version"?: number,"sex"?: string | null,"units"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"recipe_items": {
+                  Row: {
+                    "client_updated_at": string,"deleted_at": string | null,"food_id": string,"id": string,"recipe_id": string,"schema_version": number,"servings": number,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "client_updated_at": string,"deleted_at"?: string | null,"food_id": string,"id": string,"recipe_id": string,"schema_version": number,"servings": number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "client_updated_at"?: string,"deleted_at"?: string | null,"food_id"?: string,"id"?: string,"recipe_id"?: string,"schema_version"?: number,"servings"?: number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "recipe_items_food_fkey"
+      columns: ["food_id","user_id"]
+isOneToOne: false
+      referencedRelation: "foods"
+      referencedColumns: ["id","user_id"]
+    },{
+      foreignKeyName: "recipe_items_recipe_fkey"
+      columns: ["recipe_id","user_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"recipes": {
+                  Row: {
+                    "archived_at": string | null,"client_updated_at": string,"deleted_at": string | null,"id": string,"name": string,"schema_version": number,"servings": number,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archived_at"?: string | null,"client_updated_at": string,"deleted_at"?: string | null,"id": string,"name": string,"schema_version": number,"servings": number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"client_updated_at"?: string,"deleted_at"?: string | null,"id"?: string,"name"?: string,"schema_version"?: number,"servings"?: number,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     

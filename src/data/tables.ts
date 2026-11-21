@@ -58,5 +58,88 @@ export const profileSpec: TableSpec<ProfileRow> = {
   parse: parser(profileSchema),
 }
 
+export type FoodRow = Tables<'foods'>
+
+export const foodsSpec: TableSpec<FoodRow> = {
+  name: 'foods',
+  schemaVersion: 1,
+  parse: parser(
+    z.object({
+      ...syncColumns,
+      name: z.string(),
+      serving_size: z.number(),
+      serving_unit: z.string(),
+      kcal: z.number(),
+      protein_g: z.number(),
+      archived_at: z.nullable(z.string()),
+    }),
+  ),
+}
+
+export type RecipeRow = Tables<'recipes'>
+
+export const recipesSpec: TableSpec<RecipeRow> = {
+  name: 'recipes',
+  schemaVersion: 1,
+  parse: parser(
+    z.object({
+      ...syncColumns,
+      name: z.string(),
+      servings: z.number(),
+      archived_at: z.nullable(z.string()),
+    }),
+  ),
+}
+
+export type RecipeItemRow = Tables<'recipe_items'>
+
+export const recipeItemsSpec: TableSpec<RecipeItemRow> = {
+  name: 'recipe_items',
+  schemaVersion: 1,
+  parse: parser(
+    z.object({
+      ...syncColumns,
+      recipe_id: z.string(),
+      food_id: z.string(),
+      servings: z.number(),
+    }),
+  ),
+}
+
+export type DayRow = Tables<'days'>
+
+export const daysSpec: TableSpec<DayRow> = {
+  name: 'days',
+  schemaVersion: 1,
+  parse: parser(z.object({ ...syncColumns, date: z.string(), complete: z.boolean() })),
+}
+
+export type LogEntryRow = Tables<'log_entries'>
+
+export const logEntriesSpec: TableSpec<LogEntryRow> = {
+  name: 'log_entries',
+  schemaVersion: 1,
+  parse: parser(
+    z.object({
+      ...syncColumns,
+      date: z.string(),
+      meal: z.string(),
+      food_id: z.nullable(z.string()),
+      recipe_id: z.nullable(z.string()),
+      servings: z.number(),
+      name: z.string(),
+      kcal: z.number(),
+      protein_g: z.number(),
+    }),
+  ),
+}
+
 // Push order: a parent table comes before any table that references it.
-export const syncedTables: readonly TableSpec[] = [profileSpec]
+export const syncedTables: readonly TableSpec[] = [
+  profileSpec,
+  foodsSpec,
+  recipesSpec,
+  recipeItemsSpec,
+  daysSpec,
+  logEntriesSpec,
+]

@@ -44,11 +44,11 @@ flowchart LR
 
 ## Layers
 
-| Layer | Folder | May import | Never imports |
-|---|---|---|---|
-| Domain | `src/domain/` | Other domain modules | React, Dexie, Supabase, browser APIs, the clock |
-| Data | `src/data/` | Domain, Dexie, Supabase, Zod | UI |
-| UI | `src/ui/` | Domain, data hooks, strings | Dexie tables, the Supabase client |
+| Layer  | Folder          | May import                   | Never imports                                   |
+| ------ | --------------- | ---------------------------- | ----------------------------------------------- |
+| Domain | `src/domain/` | Other domain modules         | React, Dexie, Supabase, browser APIs, the clock |
+| Data   | `src/data/`   | Domain, Dexie, Supabase, Zod | UI                                              |
+| UI     | `src/ui/`     | Domain, data hooks, strings  | Dexie tables, the Supabase client               |
 
 The `check-edit.sh` hook enforces the domain rule on every edit. The domain module can then
 move unchanged into a Supabase Edge Function, a native app, or a reports job.
@@ -58,10 +58,10 @@ move unchanged into a Supabase Edge Function, a native app, or a reports job.
 `PLAN.md`, "Data model", lists the tables and the rules every table follows. Dexie mirrors the
 Postgres tables with the same names and columns, plus two local-only tables:
 
-| Local table | Holds |
-|---|---|
-| `outbox` | One row per pending write: table name, row ID, operation, payload, schema version, attempt count. |
-| `sync_state` | Per table: the last pull position. Also the signed-in user ID and the last export date. |
+| Local table    | Holds                                                                                             |
+| -------------- | ------------------------------------------------------------------------------------------------- |
+| `outbox`     | One row per pending write: table name, row ID, operation, payload, schema version, attempt count. |
+| `sync_state` | Per table: the last pull position. Also the signed-in user ID and the last export date.           |
 
 Dexie's database name is `calorithm-<user_id>`. Signing out deletes it.
 
@@ -121,8 +121,8 @@ away the microseconds would skip rows (decision 0013).
   pull fetches it again by id, and an upgraded app applies it.
 - **Pull while waiting:** a pull runs even when the push is in backoff. It never replaces a
   row with a queued change, so other devices' changes keep arriving. Each page continues after the last
-`(updated_at, id)` pair it received, so rows sharing a timestamp across a page boundary aren't
-skipped.
+  `(updated_at, id)` pair it received, so rows sharing a timestamp across a page boundary aren't
+  skipped.
 
 The overlap exists because the `updated_at` trigger stamps the transaction's start time. A
 slow transaction can commit after a pull has already passed its timestamp, and without the
@@ -230,12 +230,12 @@ A phone can stay offline for weeks with outbox entries in an old shape. To stay 
 
 All in `src/domain/`, as pure functions:
 
-| Module | Takes | Returns |
-|---|---|---|
-| `trend.ts` | Weigh-ins by date, a date range | Trend weight per day |
-| `maintenance.ts` | Complete days' intake, trend weights, previous estimate, profile | New estimate, or a reason it was skipped |
-| `targets.ts` | Maintenance, goal rate, trend weight, protein setting, calorie floor | kcal and protein targets, and any safety limit applied |
-| `dates.ts` | Date strings | Calendar-day arithmetic, with no time zones |
+| Module             | Takes                                                                | Returns                                                |
+| ------------------ | -------------------------------------------------------------------- | ------------------------------------------------------ |
+| `trend.ts`       | Weigh-ins by date, a date range                                      | Trend weight per day                                   |
+| `maintenance.ts` | Complete days' intake, trend weights, previous estimate, profile     | New estimate, or a reason it was skipped               |
+| `targets.ts`     | Maintenance, goal rate, trend weight, protein setting, calorie floor | kcal and protein targets, and any safety limit applied |
+| `dates.ts`       | Date strings                                                         | Calendar-day arithmetic, with no time zones            |
 
 The weekly check-in calls these with data from Dexie and today's local date, then stores the
 inputs and outputs in `checkins`.
@@ -253,24 +253,24 @@ inputs and outputs in `checkins`.
 
 ## Hosting and environments
 
-| Environment | Front end | Database |
-|---|---|---|
-| Local | `npm run dev` | Local Supabase in Docker |
-| CI | Production build served by Playwright | Local Supabase in the CI runner |
-| Production | GitHub Pages, `/calorithm/` base path, hash routes | Hosted Supabase free plan |
+| Environment | Front end                                            | Database                        |
+| ----------- | ---------------------------------------------------- | ------------------------------- |
+| Local       | `npm run dev`                                      | Local Supabase in Docker        |
+| CI          | Production build served by Playwright                | Local Supabase in the CI runner |
+| Production  | GitHub Pages, `/calorithm/` base path, hash routes | Hosted Supabase free plan       |
 
 A staging Supabase project and a host that can send security headers come later. See the growth
 checklists in `PLAN.md`.
 
 ## Failure modes
 
-| Failure | Effect | Handling |
-|---|---|---|
-| No connection | Nothing visible | Writes queue in the outbox and sync later. |
-| Supabase paused or down | Sync fails | The app keeps working; a quiet status shows the last sync time. |
-| Constraint or policy rejects a write | One entry can't sync | Marked failed and shown to the user with the reason. |
-| Local storage evicted | Local data lost | Pulled again from Supabase after sign-in; unsent writes are lost, which `storage.persist()` guards against. |
-| Two devices edit one row offline | One edit lost | The later `client_updated_at` wins. |
-| Device offline more than 90 days | Missed deletes | Full resync before the next sync. |
-| Sign-out with unsent changes | Changes lost | Warning and an export offer first. |
-| App too old | Sync stops | A required **Update** screen. |
+| Failure                              | Effect               | Handling                                                                                                      |
+| ------------------------------------ | -------------------- | ------------------------------------------------------------------------------------------------------------- |
+| No connection                        | Nothing visible      | Writes queue in the outbox and sync later.                                                                    |
+| Supabase paused or down              | Sync fails           | The app keeps working; a quiet status shows the last sync time.                                               |
+| Constraint or policy rejects a write | One entry can't sync | Marked failed and shown to the user with the reason.                                                          |
+| Local storage evicted                | Local data lost      | Pulled again from Supabase after sign-in; unsent writes are lost, which `storage.persist()` guards against. |
+| Two devices edit one row offline     | One edit lost        | The later `client_updated_at` wins.                                                                         |
+| Device offline more than 90 days     | Missed deletes       | Full resync before the next sync.                                                                             |
+| Sign-out with unsent changes         | Changes lost         | Warning and an export offer first.                                                                            |
+| App too old                          | Sync stops           | A required **Update** screen.                                                                           |
