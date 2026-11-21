@@ -1,4 +1,13 @@
-import { type Ingredient, roundKcal, roundProtein, roundServings } from '@/domain/nutrition'
+import {
+  type Ingredient,
+  type Nutrients,
+  recipePerServing,
+  recipeTotals,
+  roundKcal,
+  roundProtein,
+  roundServings,
+  scaleNutrients,
+} from '@/domain/nutrition'
 
 import type { LocalDb } from './db'
 import { type Clock, writeRow } from './repository'
@@ -72,9 +81,17 @@ export const updateFood = async (
   }
 }
 
-export const archiveFood = async (db: LocalDb, clock: Clock, id: string): Promise<void> => {
+// Archived rows stay on past entries and recipes but leave the pickers; restoring brings them back.
+export const setFoodArchived = async (
+  db: LocalDb,
+  clock: Clock,
+  id: string,
+  archived: boolean,
+): Promise<void> => {
   const food = foodsSpec.parse(await db.rows('foods').get(id))
-  if (food) await writeRow(db, foodsSpec, { ...food, archived_at: clock().toISOString() }, clock)
+  if (!food) return
+  const archivedAt = archived ? clock().toISOString() : null
+  await writeRow(db, foodsSpec, { ...food, archived_at: archivedAt }, clock)
 }
 
 const liveItems = async (db: LocalDb, recipeId: string): Promise<RecipeItemRow[]> =>
@@ -149,11 +166,16 @@ export const updateRecipe = async (
   }
 }
 
-export const archiveRecipe = async (db: LocalDb, clock: Clock, id: string): Promise<void> => {
+export const setRecipeArchived = async (
+  db: LocalDb,
+  clock: Clock,
+  id: string,
+  archived: boolean,
+): Promise<void> => {
   const recipe = recipesSpec.parse(await db.rows('recipes').get(id))
-  if (recipe) {
-    await writeRow(db, recipesSpec, { ...recipe, archived_at: clock().toISOString() }, clock)
-  }
+  if (!recipe) return
+  const archivedAt = archived ? clock().toISOString() : null
+  await writeRow(db, recipesSpec, { ...recipe, archived_at: archivedAt }, clock)
 }
 
 // A recipe's ingredients with each food's current values. A food deleted since is left out.
@@ -170,4 +192,110 @@ export const recipeIngredients = async (db: LocalDb, recipeId: string): Promise<
     }
   }
   return ingredients
+}
+
+// What the screens see: no sync columns, and numbers ready to format.
+export type FoodView = {
+  id: string
+  name: string
+  servingSize: number
+  servingUnit: string
+  kcal: number
+  proteinG: number
+  archived: boolean
+}
+
+export type RecipeItemView = {
+  foodId: string
+  name: string
+  servingSize: number
+  servingUnit: string
+  servings: number
+  perServing: Nutrients
+}
+
+export type RecipeView = {
+  id: string
+  name: string
+  servings: number
+  archived: boolean
+  totals: Nutrients
+  perServing: Nutrients
+}
+
+export type RecipeDetail = RecipeView & { items: RecipeItemView[] }
+
+const byName = (a: { name: string }, b: { name: string }) =>
+  a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+
+const toFoodView = (food: FoodRow): FoodView => ({
+  id: food.id,
+  name: food.name,
+  servingSize: food.serving_size,
+  servingUnit: food.serving_unit,
+  kcal: food.kcal,
+  proteinG: food.protein_g,
+  archived: food.archived_at !== null,
+})
+
+const liveFoods = async (db: LocalDb): Promise<FoodRow[]> =>
+  (await db.rows('foods').toArray()).flatMap((raw) => {
+    const food = foodsSpec.parse(raw)
+    return food && food.deleted_at === null ? [food] : []
+  })
+
+export const listFoods = async (db: LocalDb): Promise<FoodView[]> =>
+  (await liveFoods(db)).map(toFoodView).sort(byName)
+
+export const foodById = async (db: LocalDb, id: string): Promise<FoodView | null> => {
+  const food = foodsSpec.parse(await db.rows('foods').get(id))
+  return food && food.deleted_at === null ? toFoodView(food) : null
+}
+
+const recipeView = async (db: LocalDb, recipe: RecipeRow): Promise<RecipeDetail> => {
+  const foods = new Map((await liveFoods(db)).map((food) => [food.id, food]))
+  const items = (await liveItems(db, recipe.id))
+    .flatMap((item): RecipeItemView[] => {
+      const food = foods.get(item.food_id)
+      return food
+        ? [
+            {
+              foodId: food.id,
+              name: food.name,
+              servingSize: food.serving_size,
+              servingUnit: food.serving_unit,
+              servings: item.servings,
+              perServing: { kcal: food.kcal, proteinG: food.protein_g },
+            },
+          ]
+        : []
+    })
+    .sort(byName)
+  return {
+    id: recipe.id,
+    name: recipe.name,
+    servings: recipe.servings,
+    archived: recipe.archived_at !== null,
+    totals: recipeTotals(items),
+    perServing: scaleNutrients(recipePerServing(items, recipe.servings), 1),
+    items,
+  }
+}
+
+export const listRecipes = async (db: LocalDb): Promise<RecipeView[]> => {
+  const recipes = (await db.rows('recipes').toArray()).flatMap((raw) => {
+    const recipe = recipesSpec.parse(raw)
+    return recipe && recipe.deleted_at === null ? [recipe] : []
+  })
+  const views: RecipeView[] = []
+  for (const recipe of recipes) {
+    const { items: _, ...view } = await recipeView(db, recipe)
+    views.push(view)
+  }
+  return views.sort(byName)
+}
+
+export const recipeDetail = async (db: LocalDb, id: string): Promise<RecipeDetail | null> => {
+  const recipe = recipesSpec.parse(await db.rows('recipes').get(id))
+  return recipe && recipe.deleted_at === null ? recipeView(db, recipe) : null
 }
