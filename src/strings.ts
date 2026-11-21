@@ -364,6 +364,43 @@ export const strings = {
     signOutFailed: 'Couldn’t sign out. Check your connection and try again.',
   },
 
+  backup: {
+    title: 'Your data',
+    body: 'Download everything as a file you keep, and restore it from that file, here or in another account.',
+    lastExport: (date: string) => `Last exported on this device: ${date}`,
+    neverExported: 'Not exported from this device yet.',
+    export: 'Export data',
+    exporting: 'Exporting…',
+    exported:
+      'Exported. Keep the file somewhere safe that isn’t this phone, such as cloud storage.',
+    exportFailed: 'Couldn’t export your data. Try again.',
+    import: 'Import data',
+    importing: 'Importing…',
+    fileLabel: 'Export file to import',
+    confirmTitle: 'Import this file?',
+    confirmBody: (date: string, items: string) =>
+      `Exported on ${date}, with ${items}. An item replaces the one on this device only if it was changed later. Nothing is deleted.`,
+    items: (count: number, shown: string) => (count === 1 ? '1 item' : `${shown} items`),
+    confirm: 'Import',
+    cancel: 'Cancel',
+    imported: (written: string, skipped: string) =>
+      `Imported. Added or updated: ${written}. Already up to date: ${skipped}.`,
+    tooLarge: 'This file is too large to be a Calorithm export.',
+    notJson: 'This file isn’t a Calorithm export: it can’t be read as JSON.',
+    notExport: 'This file isn’t a Calorithm export.',
+    newerVersion:
+      'This file comes from a newer version of Calorithm. Update the app, then try again.',
+    invalid: 'This file is damaged or was edited, so nothing was imported.',
+    importFailed: 'Couldn’t import the file. Nothing was changed. Try again.',
+  },
+
+  exportReminder: {
+    never: 'You haven’t exported your data from this device yet. An export is your backup.',
+    stale: (date: string) =>
+      `Your last export from this device was on ${date}. Export again to keep your backup current.`,
+    link: 'Export in Settings',
+  },
+
   signOutWarning: {
     title: 'Sign out and lose unsent changes?',
     body: (count: number) =>
