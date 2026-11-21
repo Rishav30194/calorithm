@@ -11,8 +11,8 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    `/code-review` findings are all fixed: an export is recorded only after the file is saved,
    the reminder hooks live apart from the export code, an unreadable row no longer hides the
    reminder, the check and the import share one clock, the confirmation counts live rows, the
-   reminder has an axe test, and failures are logged. Before its PR: check `/security-review`'s
-   result. Run `npm run db:reset` once
+   reminder has an axe test, and failures are logged. `/security-review` found nothing at
+   confidence 8 or higher. Run `npm run db:reset` once
    locally for the new seed user. Next, PR 3: account deletion through `delete_account()`
    checking a recent password sign-in in the JWT's `amr` claim (verify its format locally
    first) plus a `delete.me@calorithm.test` seed user; then the **Update available** banner;
