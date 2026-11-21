@@ -6,15 +6,20 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 3 PR 2 (calculations and storage) on `feature/food-storage`, as planned in `docs/phases.md`, including the
-   two follow-ups from the PR 1 review: rounding at the boundary, and push holding children
-   while their parent has a failed change. Holding children changes how push treats foreign
-   key errors, so update decision 0014 or add a new decision.
-2. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
+1. Phase 3 PR 2 (calculations and storage) is built on `feature/food-storage`:
+   `src/domain/nutrition.ts`, repositories in `src/data/foods.ts` and `src/data/log.ts`, day
+   ids checked by the database (decision 0018), queued children (decision 0019), and two
+   `log_entries` migrations (per-serving values and `logged_at`). `check:full` passed and
+   `/code-review` findings are fixed. If no `/security-review` result is recorded in the
+   PR description, run it, then ask the user before pushing and opening the PR.
+2. Phase 3 PR 3: the foods and recipes screens, loaded on demand. They need hooks in
+   `src/data/` over the repositories. Recipe items have no stored order, so the screen sorts
+   them.
+3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
    from the installed app.
-3. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
+4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
    them all together in a small PR.
-4. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+5. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
 
 Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential'`
 (then `push` or `fetch`), because git has no stored GitHub credentials and the global git config stays untouched.
