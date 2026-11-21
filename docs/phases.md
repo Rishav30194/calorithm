@@ -202,7 +202,7 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 
 ## Phase 4 — Weight and the trend chart
 
-**Status:** In progress (all three PRs written; marked done once PR 3 merges)
+**Status:** Done (2026-11-21)
 
 **Goal:** daily weigh-ins with a trend line you can trust.
 
@@ -221,7 +221,7 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 - [x] Units switch without changing stored values. (`src/domain/weight.test.ts` and
   `e2e/weight.spec.ts`)
 
-**Plan** (approved 2026-11-21): three PRs.
+**Plan** (approved 2026-11-21): three PRs, merged as #11 to #13.
 
 1. **Schema:** `weights` migration and pgTAP tests, generated types, `weightsSpec` last in
    push order, and Dexie schema version 3 with an upgrade test.
