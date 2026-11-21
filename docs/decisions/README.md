@@ -40,3 +40,4 @@ change a decision, write a new record that supersedes the old one.
 | [0018](0018-day-ids-from-user-and-date.md) | Day ids derived from the user and date, checked by the database | Accepted |
 | [0019](0019-hold-children-of-failed-parents.md) | Hold rows whose parent has a failed change | Accepted |
 | [0020](0020-weight-ids-from-user-and-date.md) | Weigh-in ids derived from the user and date | Accepted |
+| [0021](0021-weekly-check-in-rules.md) | Weekly check-in rules | Accepted |

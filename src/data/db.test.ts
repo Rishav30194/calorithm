@@ -28,6 +28,7 @@ describe('LocalDb', () => {
     const db = open('calorithm-test-open')
     await db.open()
     expect(db.tables.map((table) => table.name).sort()).toEqual([
+      'checkins',
       'days',
       'foods',
       'log_entries',
@@ -115,6 +116,30 @@ describe('LocalDb', () => {
     expect(await after.outbox.count()).toBe(1)
     await after.table('weights').put({ id: 'w1', date: '2026-11-20' })
     expect(await after.table('weights').where('date').equals('2026-11-20').count()).toBe(1)
+  })
+
+  it('keeps version 3 data when upgraded to version 4, which adds check-ins', async () => {
+    const [v1, v2, v3] = schemaVersions
+    if (!v1 || !v2 || !v3) throw new Error('missing schema versions')
+    const before = open('calorithm-test-upgrade-v4', [v1, v2, v3])
+    await before.table('weights').put({ id: 'w1', date: '2026-11-20' })
+    await before.outbox.add({
+      table: 'weights',
+      rowId: 'w1',
+      row: { id: 'w1' },
+      schemaVersion: 1,
+      rev: 1,
+      attempts: 0,
+      nextAttemptAt: 0,
+      failure: null,
+    })
+    before.close()
+
+    const after = open('calorithm-test-upgrade-v4')
+    expect(await after.table('weights').get('w1')).toEqual({ id: 'w1', date: '2026-11-20' })
+    expect(await after.outbox.count()).toBe(1)
+    await after.table('checkins').put({ id: 'c1', date: '2026-11-20' })
+    expect(await after.table('checkins').where('date').equals('2026-11-20').count()).toBe(1)
   })
 
   it('keeps existing data across an upgrade that adds a table', async () => {

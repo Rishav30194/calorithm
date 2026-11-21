@@ -37,6 +37,20 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"checkins": {
+                  Row: {
+                    "average_intake_kcal": number | null,"calorie_floor_kcal": number,"client_updated_at": string,"complete_days_in_week": number,"complete_days_in_window": number | null,"date": string,"deleted_at": string | null,"floor_applied": boolean,"goal_rate_applied_kg_per_week": number,"goal_rate_requested_kg_per_week": number,"id": string,"kcal_target": number,"maintenance_kcal": number,"method": string | null,"previous_maintenance_kcal": number | null,"protein_g_per_kg": number,"protein_target_g": number,"rate_capped": boolean,"raw_maintenance_kcal": number | null,"schema_version": number,"skip_reason": string | null,"status": string,"trend_change_kg": number | null,"trend_weight_kg": number,"updated_at": string,"user_id": string,"window_days": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "average_intake_kcal"?: number | null,"calorie_floor_kcal": number,"client_updated_at": string,"complete_days_in_week": number,"complete_days_in_window"?: number | null,"date": string,"deleted_at"?: string | null,"floor_applied": boolean,"goal_rate_applied_kg_per_week": number,"goal_rate_requested_kg_per_week": number,"id": string,"kcal_target": number,"maintenance_kcal": number,"method"?: string | null,"previous_maintenance_kcal"?: number | null,"protein_g_per_kg": number,"protein_target_g": number,"rate_capped": boolean,"raw_maintenance_kcal"?: number | null,"schema_version": number,"skip_reason"?: string | null,"status": string,"trend_change_kg"?: number | null,"trend_weight_kg": number,"updated_at"?: string,"user_id"?: string,"window_days"?: number | null
+                  }
+                  Update: {
+                    "average_intake_kcal"?: number | null,"calorie_floor_kcal"?: number,"client_updated_at"?: string,"complete_days_in_week"?: number,"complete_days_in_window"?: number | null,"date"?: string,"deleted_at"?: string | null,"floor_applied"?: boolean,"goal_rate_applied_kg_per_week"?: number,"goal_rate_requested_kg_per_week"?: number,"id"?: string,"kcal_target"?: number,"maintenance_kcal"?: number,"method"?: string | null,"previous_maintenance_kcal"?: number | null,"protein_g_per_kg"?: number,"protein_target_g"?: number,"rate_capped"?: boolean,"raw_maintenance_kcal"?: number | null,"schema_version"?: number,"skip_reason"?: string | null,"status"?: string,"trend_change_kg"?: number | null,"trend_weight_kg"?: number,"updated_at"?: string,"user_id"?: string,"window_days"?: number | null
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"days": {
                   Row: {
                     "client_updated_at": string,"complete": boolean,"date": string,"deleted_at": string | null,"id": string,"schema_version": number,"updated_at": string,"user_id": string

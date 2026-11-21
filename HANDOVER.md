@@ -6,8 +6,11 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 5 (targets and the weekly check-in) is next: read its scope in `docs/phases.md`
-   and present a plan first.
+1. Phase 5 is in progress; the approved four-PR plan is in `docs/phases.md`. PR 1 (the
+   `checkins` schema and decision 0021) is committed and reviewed with `/code-review`; it
+   waits for the user's approval to push and open the PR. Next: PR 2, the calculations
+   (`src/domain/maintenance.ts` and `targets.ts`), test first. They must clamp results to the
+   `checkins` ranges and satisfy every rule `checkinsSpec` mirrors, or the row won't push.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file

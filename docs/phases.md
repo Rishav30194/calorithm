@@ -282,7 +282,34 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 - [ ] No input produces a target below the calorie floor or a rate above the cap.
 - [ ] A week with fewer than 4 complete days leaves targets unchanged and says why.
 
-**Implementation notes:** none yet.
+**Plan** (approved 2026-11-21): four PRs.
+
+1. **Schema:** `checkins` migration and pgTAP tests, generated types, `checkinsSpec` last in
+   push order, Dexie schema version 4 with an upgrade test, and decision 0021.
+2. **Calculations:** `src/domain/maintenance.ts` (the Mifflin-St Jeor formula, the adaptive
+   estimate, blending, and skip reasons) and `src/domain/targets.ts` (rate cap, calorie floor,
+   protein), with every property in `docs/testing.md`, "Calculations", and 12-week synthetic
+   histories.
+3. **Profile screen** on the settings tab: height, birth date, sex, activity, goal rate,
+   protein g per kg, and calorie floor.
+4. **The check-in screen**, loaded on demand, and progress bars on the log screen, with the
+   end-to-end journeys and axe.
+
+Check-in rules: decision 0021.
+
+**Implementation notes:**
+- PR 1: a check-in's id is a UUID v5 of the user and date in its own namespace (`checkinId`),
+  checked by the database, so two devices running the same check-in write one row. Each row
+  stores the result and the inputs used: status (`updated` or `skipped`), method (`formula` or
+  `adaptive`), the previous, raw, and new estimates, the targets, trend weight and change, the
+  window and its complete days, average intake, requested and applied goal rate, protein
+  setting, calorie floor, and which limits applied. Only `too_few_complete_days` is a stored
+  skip reason: missing weigh-ins or profile fields block a check-in instead. A skipped week
+  copies the previous estimate, targets, and settings; the first check-in is never skipped.
+  The database enforces the 150 kcal step, the floor, the 1% rate cap, and which fields each
+  method and status carry, with wide ranges the calculation clamps to (decision 0021).
+  `checkinsSpec` mirrors every one of those rules and the columns' precision, so a bad row
+  fails before it's queued.
 
 ## Phase 6 — Export, import, account deletion, and updates
 

@@ -169,6 +169,90 @@ export const weightsSpec: TableSpec<WeightRow> = {
   ),
 }
 
+export type CheckinRow = Tables<'checkins'>
+
+// Matches the column's numeric precision, so a value the server would round is rejected here.
+const decimals = (places: number) => {
+  const scale = 10 ** places
+  return z.refine<number>((value) => Math.abs(value * scale - Math.round(value * scale)) < 1e-6)
+}
+
+const between = (min: number, max: number) => [z.gte(min), z.lte(max)] as const
+
+type CheckinFields = Omit<CheckinRow, keyof SyncRow>
+
+// Hundredths as integers, so the rate cap compares exactly.
+const hundredths = (value: number): number => Math.round(value * 100)
+
+// The cross-column CHECK constraints in the checkins migration, in the same order.
+const checkinRulesHold = (row: CheckinFields): boolean => {
+  const updated = row.status === 'updated'
+  const adaptive = row.method === 'adaptive'
+  const windowFields = [
+    row.trend_change_kg,
+    row.window_days,
+    row.complete_days_in_window,
+    row.average_intake_kcal,
+  ]
+  const applied = hundredths(row.goal_rate_applied_kg_per_week)
+  const requested = hundredths(row.goal_rate_requested_kg_per_week)
+  return (
+    (updated
+      ? row.skip_reason === null && row.method !== null
+      : row.skip_reason !== null && row.method === null) &&
+    (updated ||
+      (row.previous_maintenance_kcal !== null &&
+        row.maintenance_kcal === row.previous_maintenance_kcal)) &&
+    updated === (row.raw_maintenance_kcal !== null) &&
+    windowFields.every((value) => (adaptive ? value !== null : value === null)) &&
+    (row.window_days === null ||
+      row.complete_days_in_window === null ||
+      row.complete_days_in_window <= row.window_days) &&
+    (row.previous_maintenance_kcal === null ||
+      Math.abs(row.maintenance_kcal - row.previous_maintenance_kcal) <= 150) &&
+    row.kcal_target >= row.calorie_floor_kcal &&
+    (!row.floor_applied || row.kcal_target === row.calorie_floor_kcal) &&
+    Math.abs(applied) <= Math.abs(requested) &&
+    Math.abs(applied) * 100 <= hundredths(row.trend_weight_kg) &&
+    Math.sign(applied) * Math.sign(requested) >= 0 &&
+    row.rate_capped === (applied !== requested)
+  )
+}
+
+const checkinSchema = z
+  .object({
+    ...syncColumns,
+    date: z.iso.date().check(z.refine((date) => date >= EARLIEST_DAY)),
+    status: z.enum(['updated', 'skipped']),
+    // Only a week with too few complete days is stored as skipped; see the migration.
+    skip_reason: z.nullable(z.enum(['too_few_complete_days'])),
+    method: z.nullable(z.enum(['formula', 'adaptive'])),
+    previous_maintenance_kcal: z.nullable(z.int().check(...between(0, 20000))),
+    raw_maintenance_kcal: z.nullable(z.int().check(...between(-100000, 100000))),
+    maintenance_kcal: z.int().check(...between(0, 20000)),
+    kcal_target: z.int().check(...between(1000, 25000)),
+    protein_target_g: z.number().check(...between(1, 999.9), decimals(1)),
+    trend_weight_kg: z.number().check(...between(20, 400), decimals(2)),
+    trend_change_kg: z.nullable(z.number().check(...between(-380, 380), decimals(2))),
+    window_days: z.nullable(z.int().check(...between(1, 28))),
+    complete_days_in_window: z.nullable(z.int().check(z.gte(0))),
+    average_intake_kcal: z.nullable(z.int().check(...between(0, 100000))),
+    complete_days_in_week: z.int().check(...between(0, 7)),
+    goal_rate_requested_kg_per_week: z.number().check(...between(-2, 2), decimals(2)),
+    goal_rate_applied_kg_per_week: z.number().check(decimals(2)),
+    protein_g_per_kg: z.number().check(...between(1.6, 2.2), decimals(1)),
+    calorie_floor_kcal: z.int().check(...between(1000, 3000)),
+    floor_applied: z.boolean(),
+    rate_capped: z.boolean(),
+  })
+  .check(z.refine(checkinRulesHold))
+
+export const checkinsSpec: TableSpec<CheckinRow> = {
+  name: 'checkins',
+  schemaVersion: 1,
+  parse: parser(checkinSchema),
+}
+
 // Push order: a parent table comes before any table that references it.
 export const syncedTables: readonly TableSpec[] = [
   profileSpec,
@@ -178,4 +262,5 @@ export const syncedTables: readonly TableSpec[] = [
   daysSpec,
   logEntriesSpec,
   weightsSpec,
+  checkinsSpec,
 ]
