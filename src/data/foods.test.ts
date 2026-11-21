@@ -2,11 +2,14 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import type { LocalDb } from './db'
 import {
-  archiveFood,
-  archiveRecipe,
   createFood,
   createRecipe,
+  listFoods,
+  listRecipes,
+  recipeDetail,
   recipeIngredients,
+  setFoodArchived,
+  setRecipeArchived,
   updateFood,
   updateRecipe,
 } from './foods'
@@ -106,15 +109,24 @@ describe('updating a row that isn’t stored', () => {
   })
 })
 
-describe('archiveFood', () => {
+describe('setFoodArchived', () => {
   it('marks the food archived without deleting it', async () => {
     const food = await createFood(db, time.clock, userId, oats)
 
-    await archiveFood(db, time.clock, food.id)
+    await setFoodArchived(db, time.clock, food.id, true)
 
     const stored = foodsSpec.parse(await db.rows('foods').get(food.id))
     expect(stored?.archived_at).toBe('2026-11-20T10:00:00.000Z')
     expect(stored?.deleted_at).toBeNull()
+  })
+
+  it('restores an archived food', async () => {
+    const food = await createFood(db, time.clock, userId, oats)
+    await setFoodArchived(db, time.clock, food.id, true)
+
+    await setFoodArchived(db, time.clock, food.id, false)
+
+    expect(foodsSpec.parse(await db.rows('foods').get(food.id))?.archived_at).toBeNull()
   })
 })
 
@@ -182,16 +194,108 @@ describe('createRecipe and updateRecipe', () => {
   })
 })
 
-describe('archiveRecipe', () => {
-  it('marks the recipe archived', async () => {
+describe('setRecipeArchived', () => {
+  it('archives and restores the recipe', async () => {
     const recipe = await createRecipe(db, time.clock, userId, {
       name: 'Water',
       servings: 1,
       items: [],
     })
 
-    await archiveRecipe(db, time.clock, recipe.id)
-
+    await setRecipeArchived(db, time.clock, recipe.id, true)
     expect(recipesSpec.parse(await db.rows('recipes').get(recipe.id))?.archived_at).not.toBeNull()
+
+    await setRecipeArchived(db, time.clock, recipe.id, false)
+    expect(recipesSpec.parse(await db.rows('recipes').get(recipe.id))?.archived_at).toBeNull()
+  })
+})
+
+describe('reading foods and recipes for the screens', () => {
+  it('lists foods by name, archived ones included and marked, deleted ones left out', async () => {
+    await createFood(db, time.clock, userId, { ...oats, name: 'yogurt' })
+    const archived = await createFood(db, time.clock, userId, { ...oats, name: 'Bread' })
+    await setFoodArchived(db, time.clock, archived.id, true)
+    const deleted = await createFood(db, time.clock, userId, { ...oats, name: 'Gone' })
+    await db.rows('foods').update(deleted.id, { deleted_at: '2026-11-20T10:00:00.000Z' })
+    await createFood(db, time.clock, userId, oats)
+
+    const foods = await listFoods(db)
+
+    expect(foods.map((food) => [food.name, food.archived])).toEqual([
+      ['Bread', true],
+      ['Oats', false],
+      ['yogurt', false],
+    ])
+    expect(foods[1]).toMatchObject({ servingSize: 40, servingUnit: 'g', kcal: 150, proteinG: 5 })
+  })
+
+  it('gives each recipe its totals and per-serving values', async () => {
+    const food = await createFood(db, time.clock, userId, oats)
+    await createRecipe(db, time.clock, userId, {
+      name: 'Porridge',
+      servings: 4,
+      items: [{ foodId: food.id, servings: 3 }],
+    })
+
+    expect(await listRecipes(db)).toEqual([
+      expect.objectContaining({
+        name: 'Porridge',
+        servings: 4,
+        archived: false,
+        totals: { kcal: 450, proteinG: 15 },
+        perServing: { kcal: 113, proteinG: 3.8 },
+      }),
+    ])
+  })
+
+  it('details a recipe’s ingredients sorted by food name', async () => {
+    const zucchini = await createFood(db, time.clock, userId, { ...oats, name: 'Zucchini' })
+    const apple = await createFood(db, time.clock, userId, { ...oats, name: 'apple' })
+    const recipe = await createRecipe(db, time.clock, userId, {
+      name: 'Mix',
+      servings: 1,
+      items: [
+        { foodId: zucchini.id, servings: 1 },
+        { foodId: apple.id, servings: 2 },
+      ],
+    })
+
+    const detail = await recipeDetail(db, recipe.id)
+
+    expect(detail?.items.map((item) => [item.name, item.servings])).toEqual([
+      ['apple', 2],
+      ['Zucchini', 1],
+    ])
+    expect(await recipeDetail(db, 'e0000000-0000-4000-8000-0000000000ff')).toBeNull()
+  })
+})
+
+describe('saving a recipe whose ingredient’s food was deleted elsewhere', () => {
+  it('leaves that ingredient alone, since the editor never showed it', async () => {
+    const oatsFood = await createFood(db, time.clock, userId, oats)
+    const gone = await createFood(db, time.clock, userId, { ...oats, name: 'Gone' })
+    const recipe = await createRecipe(db, time.clock, userId, {
+      name: 'Mix',
+      servings: 1,
+      items: [
+        { foodId: oatsFood.id, servings: 1 },
+        { foodId: gone.id, servings: 1 },
+      ],
+    })
+    await db.rows('foods').update(gone.id, { deleted_at: '2026-11-20T10:00:00.000Z' })
+    const shown = await recipeDetail(db, recipe.id)
+    expect(shown?.items.map((item) => item.name)).toEqual(['Oats'])
+
+    await updateRecipe(db, time.clock, recipe.id, {
+      name: 'Mix renamed',
+      servings: 1,
+      items: [{ foodId: oatsFood.id, servings: 1 }],
+    })
+
+    const items = (await db.rows('recipe_items').toArray()).flatMap((raw) => {
+      const item = recipeItemsSpec.parse(raw)
+      return item ? [item] : []
+    })
+    expect(items.find((item) => item.food_id === gone.id)?.deleted_at).toBeNull()
   })
 })

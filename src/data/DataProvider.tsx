@@ -59,7 +59,8 @@ type DataContextValue = Session & {
 
 const DataContext = createContext<DataContextValue | null>(null)
 
-const useData = (): DataContextValue => {
+// For hooks in src/data/ only. Screens use those hooks and never see the database.
+export const useData = (): DataContextValue => {
   const value = useContext(DataContext)
   if (!value) throw new Error('Data hooks must be used inside <DataProvider>')
   return value

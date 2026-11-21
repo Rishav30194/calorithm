@@ -203,8 +203,8 @@ checked by the table's Zod schema. It turns off the library's own read retries (
 ### In the app
 
 `src/data/DataProvider.tsx` opens the signed-in user's database and runs the engine. Screens
-use its hooks (`useSyncStatus`, `useOutbox`, `useUnits`, `useSetUnits`, `useDiscard`) and never
-see Dexie or the Supabase client. The header shows a sync badge when something needs
+use its hooks (`useSyncStatus`, `useOutbox`, `useUnits`, `useSetUnits`, `useDiscard`) and the
+food hooks in `src/data/foodHooks.ts`, and never see Dexie or the Supabase client. The header shows a sync badge when something needs
 attention; Settings shows the last sync, changes waiting, and refused changes with
 **Discard**.
 

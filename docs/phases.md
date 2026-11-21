@@ -187,6 +187,11 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
   `protein_g_per_serving`), so changing servings rescales exactly, and `logged_at`, which
   orders a meal. Copies of a meal are logged a millisecond apart to keep their order.
 - Recipe items have no stored order and come back in id order; the recipe screen sorts them.
+- PR 3: food and recipe screens live under the log tab at `#/log/foods` and `#/log/recipes`
+  (`src/ui/routes.ts`), and load on demand from `src/ui/food/screens.tsx` as a separate
+  chunk. Screens read through `src/data/foodHooks.ts`, which returns view objects, never
+  rows. `ScreenErrorBoundary` catches live-query errors and offers **Try again**. Forms
+  parse with Zod in `src/ui/food/forms.ts` and accept a decimal comma.
 
 ## Phase 4 — Weight and the trend chart
 

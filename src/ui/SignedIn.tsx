@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 
 import {
   useDiscard,
@@ -9,11 +9,19 @@ import {
   useUnits,
 } from '@/data/DataProvider'
 
+import { strings } from '@/strings'
+
+import { ScreenErrorBoundary } from './ScreenErrorBoundary'
 import { Shell } from './Shell'
 import { SyncBadge } from './SyncBadge'
 import { SyncPanel } from './SyncPanel'
 import { UnitsSetting } from './UnitsSetting'
 import { UpdateRequired } from './UpdateRequired'
+
+// Food and recipe screens load on first visit, keeping them out of the first-load bundle.
+// React caches a failed import, so a retry needs a new lazy component.
+const loadFoodScreens = () =>
+  lazy(() => import('./food/screens').then((module) => ({ default: module.FoodScreens })))
 
 // Re-renders every 30 seconds so "Last synced 5 minutes ago" stays current.
 const useNow = (): number => {
@@ -62,6 +70,22 @@ type Props = {
 export const SignedIn = ({ email, onUpdate }: Props) => {
   const status = useSyncStatus()
   const signOut = useSignOut()
+  const [FoodScreens, setFoodScreens] = useState(loadFoodScreens)
   if (status.state === 'update_required') return <UpdateRequired onUpdate={onUpdate} />
-  return <Shell email={email} signOut={signOut} badge={<Badge />} settings={<SyncSettings />} />
+  return (
+    <Shell
+      email={email}
+      signOut={signOut}
+      badge={<Badge />}
+      settings={<SyncSettings />}
+      foodScreens={(route) => (
+        // Catches a chunk that fails to load, such as offline before it was cached.
+        <ScreenErrorBoundary onRetry={() => setFoodScreens(() => loadFoodScreens())}>
+          <Suspense fallback={<p className="text-muted">{strings.loading}</p>}>
+            <FoodScreens route={route} locale={navigator.language} />
+          </Suspense>
+        </ScreenErrorBoundary>
+      )}
+    />
+  )
 }

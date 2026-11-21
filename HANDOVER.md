@@ -6,15 +6,15 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 3 PR 2 (calculations and storage) is built on `feature/food-storage`:
-   `src/domain/nutrition.ts`, repositories in `src/data/foods.ts` and `src/data/log.ts`, day
-   ids checked by the database (decision 0018), queued children (decision 0019), and two
-   `log_entries` migrations (per-serving values and `logged_at`). `check:full` passed and
-   `/code-review` findings are fixed. If no `/security-review` result is recorded in the
-   PR description, run it, then ask the user before pushing and opening the PR.
-2. Phase 3 PR 3: the foods and recipes screens, loaded on demand. They need hooks in
-   `src/data/` over the repositories. Recipe items have no stored order, so the screen sorts
-   them.
+1. Phase 3 PR 3 (foods and recipes screens) is built on `feature/food-screens`. `check:full`
+   passed and `/code-review` findings are fixed; no `/security-review` needed (no auth,
+   row-level security, sync, or import change). Ask the user before pushing and opening the PR.
+   Both editors keep the user's typing when the row changes elsewhere; saving wins, as the
+   sync conflict rule does. Say so in the PR.
+2. Phase 3 PR 4 (the log screen): meals, the two-tap re-log picker, copy a meal, day
+   complete, totals, the 00:30 end-to-end test (check Playwright 1.65's clock API in its
+   types first), and the edit-a-food-leaves-the-past end-to-end test. Then tick the
+   remaining phase 3 criteria.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
    from the installed app.
 4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
@@ -34,7 +34,8 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 172.1 kB of the 200 kB budget. Phase 3 will likely need to load
+- First-load JavaScript is 175.4 kB of the 200 kB budget; the food screens load as their own
+  chunk. Phase 3 will likely need to load
   screens on demand.
 - The browser tests run a production build, so React's development double-run isn't covered.
   After changing `DataProvider`, also check `npm run dev` for console errors. Another project's service worker
