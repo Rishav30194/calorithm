@@ -6,14 +6,17 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 2 is done (PRs #2 to #4). The phase status change is a local commit on
-   `chore/phase-2-done`; ask the user before pushing it and opening its PR.
-2. Phase 3 (foods, recipes, and the daily log) is next. Read its scope in `docs/phases.md`,
-   then present a plan and wait for approval. It will likely need screens loaded on demand to
-   stay under the bundle budget.
+1. Phase 3 PR 1 (schema) is built on `feature/food-schema`: five migrations with pgTAP
+   tests, generated types, table specs, and Dexie schema version 2. `check:full` passed and
+   `/code-review` findings are fixed or recorded in `docs/phases.md`. `/security-review` was
+   running when the session ended; rerun it if no result is recorded, then ask the user
+   before pushing and opening the PR.
+2. Phase 3 PR 2 (calculations and storage), as planned in `docs/phases.md`, including the
+   two follow-ups from the PR 1 review: rounding at the boundary, and push holding children
+   while their parent has a failed change. Holding children changes how push treats foreign
+   key errors, so update decision 0014 or add a new decision.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
-   from the installed app. The Safari workaround (link attached, URL revoked after 40
-   seconds) is untested on a device.
+   from the installed app.
 4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
    them all together in a small PR.
 5. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
@@ -38,6 +41,8 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
   at `localhost:4173/` can take over the page; use incognito or unregister it in DevTools.
 - The sign-out end-to-end tests change `second.user@calorithm.test`'s profile and skip the
   phone project, as `sync.spec.ts` does for the seed user.
+- An editor formatter reformatted the Markdown tables in `docs/architecture.md` outside
+  any edit during PR 1; check `git diff` for unrelated doc changes before committing.
 - `/security-review` needs `origin/HEAD`; in a fresh setup run `git remote set-head origin main`.
 - npm 11 holds back `fsevents`'s install script; it's optional and not needed.
 - 4 moderate `npm audit` findings sit in `vite-plugin-pwa`'s build-time dependencies (`glob`
