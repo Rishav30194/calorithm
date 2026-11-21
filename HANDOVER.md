@@ -10,8 +10,8 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    `delete.me` seed user) is built. `/code-review` findings are fixed: a lost response asks
    Supabase Auth whether the user is gone (403 `user_not_found`, checked locally), a failed
    local cleanup after deletion still signs out and leaves the delete for the next start, and
-   Cancel and Escape wait for a running deletion. Before its PR, run `/security-review` (auth
-   and row-level security). Run `npm run db:reset` once locally for the migration and
+   Cancel and Escape wait for a running deletion. `/security-review` found nothing at
+   confidence 8 or higher. Run `npm run db:reset` once locally for the migration and
    the seed user. **Before the user signs up anyone else on the hosted project, they run
    `supabase db push` for the migration (Claude never does).** Next, PR 4: the **Update
    available** banner; then mark the phase done. End-to-end tests that look for a status
@@ -35,6 +35,8 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 
 - Does Supabase's free plan include downloadable backups? The user checks in the dashboard.
 - Exact rate limit of Supabase's built-in email sending. Matters only before friends join.
+- Is **Secure password change** on in the hosted project's Auth settings? Decision 0023
+  relies on it; `supabase/config.toml` has it on locally. The user checks in the dashboard.
 - Whether `delete_account()` can delete from `auth.users` on the hosted project as it does
   locally (the function's owner is `postgres`). Unverified until the migration is pushed;
   check with a throwaway account before relying on it.

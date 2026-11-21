@@ -41,6 +41,10 @@ pass by refreshing.
 - One migration, testable with pgTAP: the tests prove no rows are left in any table.
 - The rule depends on the `amr` claim's shape. A Supabase Auth change to it would make every
   deletion fail closed, with the "couldn't confirm your password" message, not open.
+- The guarantee holds only while changing the password needs the current password or a
+  recent sign-in, Supabase Auth's **Secure password change**. Without it, a stolen session
+  could set a new password and then pass the check. It's on in `supabase/config.toml`; the
+  hosted project's setting is the user's to confirm in the dashboard.
 - A device clock far off doesn't matter: the server compares the sign-in time with its own
   clock.
 - The end-to-end test deletes a seed user, then puts it back through `psql` in the local
