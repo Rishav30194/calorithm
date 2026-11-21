@@ -6,11 +6,16 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 5 (targets and the weekly check-in) is done, merged as #17 to #20. Phase 6
-   (export, import, account deletion, and updates) is next: read its scope in
-   `docs/phases.md` and present a plan first. The check-in's 30-day export reminder
-   (PLAN.md, "Features") waits for export in phase 6. End-to-end tests that look for a status
-   message should scope it to a region: the settings screen has two.
+1. Phase 6 PR 1 (export format and import, `src/data/backup/`, decision 0022) is committed
+   on `feature/phase-6-export-format`, not pushed. Before the PR: run `/code-review` and
+   `/security-review` (import is in scope), then `npm run check:full`. PR 2 next: settings
+   screen export and import, the last export date (`docs/architecture.md` says `sync_state`;
+   its `SyncState` type doesn't fit, so decide the store there), and the check-in's 30-day
+   reminder. End-to-end tests that look for a status message should scope it to a region: the
+   settings screen has two. Plan for PRs 3 to 5: account deletion through `delete_account()`
+   checking a recent password sign-in in the JWT's `amr` claim (verify its format locally
+   first) plus a `delete.me@calorithm.test` seed user; the **Update available** banner; mark
+   the phase done.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
