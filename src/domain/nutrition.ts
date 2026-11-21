@@ -21,7 +21,7 @@ export type Entry = {
 
 // Rounds half away from zero. toPrecision first removes float noise such as
 // 1.005 * 100 = 100.49999999999999, which would otherwise round down.
-const roundTo = (value: number, decimals: number): number => {
+export const roundTo = (value: number, decimals: number): number => {
   const factor = 10 ** decimals
   const scaled = Number((Math.abs(value) * factor).toPrecision(12))
   // Adding 0 turns -0 into 0.

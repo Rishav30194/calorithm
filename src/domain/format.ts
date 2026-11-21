@@ -1,6 +1,4 @@
-export type WeightUnit = 'kg' | 'lb'
-
-const POUNDS_PER_KG = 2.2046226218
+import { fromKg, type WeightUnit } from './weight'
 
 // Rounds half away from zero, so a 0.25 kg loss and gain both show as 0.3 (Math.round alone
 // rounds -2.5 up to -2). Rounding before formatting also turns -0.01 into 0 instead of "-0".
@@ -24,8 +22,7 @@ export const formatProtein = (grams: number, locale: string): string =>
 
 // Weights are stored in kilograms; pounds exist only on screen.
 export const formatWeight = (kg: number, unit: WeightUnit, locale: string): string => {
-  const value = unit === 'kg' ? kg : kg * POUNDS_PER_KG
-  return `${number(value, 1, locale)} ${unit}`
+  return `${number(fromKg(kg, unit), 1, locale)} ${unit}`
 }
 
 const units: { unit: Intl.RelativeTimeFormatUnit; ms: number }[] = [
