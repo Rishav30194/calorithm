@@ -78,11 +78,12 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
 - A sync status indicator (last synced, pending count, failures).
 
 **Acceptance criteria:**
-- [ ] Every sync case in `docs/testing.md`, "Sync", has a passing test.
+- [x] Every sync case in `docs/testing.md`, "Sync", has a passing test.
 - [x] A Playwright test writes offline, goes online, and finds the row in Supabase. (A second
   device reads it back from Supabase: `e2e/sync.spec.ts`.)
 - [x] Two browser contexts as the same user see each other's changes.
-- [ ] After sign-out, IndexedDB holds no database for that user.
+- [x] After sign-out, IndexedDB holds no database for that user. (`e2e/session.spec.ts`,
+  also with a second tab open.)
 
 **Plan** (approved 2026-11-20): three PRs.
 

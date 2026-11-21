@@ -1,13 +1,14 @@
-import { type ReactNode, useState } from 'react'
+import type { ReactNode } from 'react'
 
-import type { SignOutResult } from '@/data/auth'
+import type { SignOutControls } from '@/data/DataProvider'
 import { strings } from '@/strings'
 
 import { hrefFor, type Tab, tabs, useTab } from './routes'
+import { SignOutDialog } from './SignOutDialog'
 
 type Props = {
   email: string
-  onSignOut: () => Promise<SignOutResult>
+  signOut: SignOutControls
   // Filled by the signed-in app with live sync state; empty in tests of the shell alone.
   badge?: ReactNode
   settings?: ReactNode
@@ -15,17 +16,9 @@ type Props = {
 
 const ComingSoon = ({ text }: { text: string }) => <p className="text-muted">{text}</p>
 
-const Settings = ({ email, onSignOut, settings }: Props) => {
-  const [pending, setPending] = useState(false)
-  const [failed, setFailed] = useState(false)
-  const signOut = async () => {
-    setPending(true)
-    setFailed(false)
-    // On success the session listener swaps this screen out, so only failure needs handling.
-    const result = await onSignOut()
-    setPending(false)
-    setFailed(!result.ok)
-  }
+const Settings = ({ email, signOut, settings }: Props) => {
+  const { state } = signOut
+  const busy = state.step === 'syncing' || state.step === 'deleting'
   return (
     <div className="flex flex-col gap-6">
       {settings}
@@ -33,19 +26,27 @@ const Settings = ({ email, onSignOut, settings }: Props) => {
         <span className="text-muted">{strings.settings.signedInAs} </span>
         <span className="font-medium">{email}</span>
       </p>
-      {failed && (
+      {state.step === 'failed' && (
         <p role="alert" className="text-danger">
           {strings.settings.signOutFailed}
         </p>
       )}
       <button
         type="button"
-        onClick={signOut}
-        disabled={pending}
+        onClick={() => void signOut.start()}
+        disabled={busy}
         className="min-h-11 self-start rounded-lg border border-border px-4 font-medium disabled:opacity-60"
       >
-        {pending ? strings.settings.signingOut : strings.settings.signOut}
+        {busy ? strings.settings.signingOut : strings.settings.signOut}
       </button>
+      {state.step === 'confirm' && (
+        <SignOutDialog
+          count={state.count}
+          onExport={signOut.unsentFile}
+          onConfirm={signOut.confirm}
+          onCancel={signOut.cancel}
+        />
+      )}
     </div>
   )
 }

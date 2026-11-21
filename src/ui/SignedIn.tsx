@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react'
 
-import type { SignOutResult } from '@/data/auth'
-import { useDiscard, useOutbox, useSetUnits, useSyncStatus, useUnits } from '@/data/DataProvider'
+import {
+  useDiscard,
+  useOutbox,
+  useSetUnits,
+  useSignOut,
+  useSyncStatus,
+  useUnits,
+} from '@/data/DataProvider'
 
 import { Shell } from './Shell'
 import { SyncBadge } from './SyncBadge'
@@ -49,13 +55,13 @@ const SyncSettings = () => {
 
 type Props = {
   email: string
-  onSignOut: () => Promise<SignOutResult>
   onUpdate: () => Promise<void>
 }
 
 // The app for a signed-in user, inside <DataProvider>.
-export const SignedIn = ({ email, onSignOut, onUpdate }: Props) => {
+export const SignedIn = ({ email, onUpdate }: Props) => {
   const status = useSyncStatus()
+  const signOut = useSignOut()
   if (status.state === 'update_required') return <UpdateRequired onUpdate={onUpdate} />
-  return <Shell email={email} onSignOut={onSignOut} badge={<Badge />} settings={<SyncSettings />} />
+  return <Shell email={email} signOut={signOut} badge={<Badge />} settings={<SyncSettings />} />
 }
