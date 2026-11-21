@@ -248,6 +248,20 @@ All in `src/domain/`, as pure functions:
 The check-in screen calls `runCheckin` with data from Dexie and today's local date, then stores
 the result in `checkins` when you save it. Decision 0021 holds the rules.
 
+## Export and import
+
+`src/data/backup/` reads and writes the export file (decision 0022).
+
+- **Export:** `buildExport` collects every live row on this device, including changes not
+  yet sent, under a header with `format`, `version`, the export time, the app version, and the
+  exporting account's `user_id`.
+- **Checks:** `parseExport` refuses a file over 25 million characters, text that isn't JSON,
+  another format, a newer version, or any row that wouldn't fit the database, before anything
+  is written.
+- **Import:** `importData` gives rows new ids when the file comes from another account, then
+  writes each row newer than this device's copy, with its outbox entry, in one transaction.
+  Rows keep the file's `client_updated_at`, so the server's trigger also keeps newer edits.
+
 ## Offline and updates
 
 - `vite-plugin-pwa` precaches the built files. `registerType: 'prompt'` shows an
