@@ -1,4 +1,4 @@
-import { format } from 'date-fns'
+import { lightFormat } from 'date-fns'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   createContext,
@@ -171,7 +171,7 @@ export const DataProvider = ({
         const now = new Date()
         return {
           // The local calendar day, like every other date in the app.
-          name: unsentExportFileName(format(now, 'yyyy-MM-dd')),
+          name: unsentExportFileName(lightFormat(now, 'yyyy-MM-dd')),
           contents: JSON.stringify(unsentExport(signOutStep.entries, now), null, 2),
         }
       },
