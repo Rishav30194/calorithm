@@ -1,3 +1,4 @@
+import { isDay } from '@/domain/dates'
 import { roundTo } from '@/domain/nutrition'
 import type { WeighIn } from '@/domain/trend'
 import { isWeightKgInRange } from '@/domain/weight'
@@ -5,9 +6,11 @@ import { isWeightKgInRange } from '@/domain/weight'
 import { weightId } from './dayId'
 import type { LocalDb } from './db'
 import { type Clock, softDelete, visibleRows, writeRow } from './repository'
-import { type WeightRow, weightsSpec } from './tables'
+import { EARLIEST_DAY, type WeightRow, weightsSpec } from './tables'
 
-export type SetWeighInResult = { ok: true; row: WeightRow } | { ok: false; reason: 'out_of_range' }
+export type SetWeighInResult =
+  | { ok: true; row: WeightRow }
+  | { ok: false; reason: 'out_of_range' | 'invalid_date' }
 
 // One weigh-in per day: the id comes from the user and date, so weighing in again that day,
 // on any device, replaces the first (decision 0020).
@@ -17,6 +20,7 @@ export const setWeighIn = async (
   userId: string,
   { date, kg }: WeighIn,
 ): Promise<SetWeighInResult> => {
+  if (!isDay(date) || date < EARLIEST_DAY) return { ok: false, reason: 'invalid_date' }
   const weightKg = roundTo(kg, 2)
   if (!isWeightKgInRange(weightKg)) return { ok: false, reason: 'out_of_range' }
 

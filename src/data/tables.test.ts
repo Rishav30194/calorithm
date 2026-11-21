@@ -178,6 +178,14 @@ describe('values the columns can’t store', () => {
     expect(weightsSpec.parse({ ...weight, date: '20/11/2026' })).toBeNull()
   })
 
+  it('rejects a weigh-in dated before 2000, as the database does', () => {
+    expect(weightsSpec.parse({ ...weight, date: '1999-12-31' })).toBeNull()
+    expect(weightsSpec.parse({ ...weight, date: '2000-01-01' })).toEqual({
+      ...weight,
+      date: '2000-01-01',
+    })
+  })
+
   it('rejects a weight outside 20 to 400 kg', () => {
     expect(weightsSpec.parse({ ...weight, weight_kg: 19.99 })).toBeNull()
     expect(weightsSpec.parse({ ...weight, weight_kg: 400.01 })).toBeNull()

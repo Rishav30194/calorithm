@@ -62,6 +62,19 @@ describe('setWeighIn', () => {
     expect(await db.outbox.count()).toBe(0)
   })
 
+  it('refuses a date the database can’t store, and writes nothing', async () => {
+    for (const date of ['1999-12-31', '2026-02-30', '20/11/2026', '']) {
+      expect(await setWeighIn(db, time.clock, userId, { date, kg: 80 })).toEqual({
+        ok: false,
+        reason: 'invalid_date',
+      })
+    }
+    expect(await setWeighIn(db, time.clock, userId, { date: '2000-01-01', kg: 80 })).toMatchObject({
+      ok: true,
+    })
+    expect(await db.outbox.count()).toBe(1)
+  })
+
   it('brings back a weigh-in deleted earlier that day', async () => {
     await setWeighIn(db, time.clock, userId, { date: '2026-11-20', kg: 82.4 })
     await removeWeighIn(db, time.clock, userId, '2026-11-20')

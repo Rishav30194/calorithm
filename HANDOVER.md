@@ -14,7 +14,10 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    from the installed app.
 4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
    them all together in a small PR.
-5. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+5. `daysSpec` and `logEntriesSpec` accept dates before 2000-01-01, which the database refuses,
+   so such a change would fail on every push. The screens never offer those dates. Weigh-ins
+   are already checked (phase 4 PR 2); fix the other two together in a small PR.
+6. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
 
 Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential'`
 (then `push` or `fetch`), because git has no stored GitHub credentials and the global git config stays untouched.

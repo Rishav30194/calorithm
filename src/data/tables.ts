@@ -147,6 +147,9 @@ export const logEntriesSpec: TableSpec<LogEntryRow> = {
   parents: (row) => [...ref('foods', row.food_id), ...ref('recipes', row.recipe_id)],
 }
 
+// The earliest date the database accepts for a weigh-in, its weights_date_range check.
+export const EARLIEST_DAY = '2000-01-01'
+
 export type WeightRow = Tables<'weights'>
 
 export const weightsSpec: TableSpec<WeightRow> = {
@@ -155,7 +158,7 @@ export const weightsSpec: TableSpec<WeightRow> = {
   parse: parser(
     z.object({
       ...syncColumns,
-      date: z.iso.date(),
+      date: z.iso.date().check(z.refine((date) => date >= EARLIEST_DAY)),
       // numeric(5,2) between 20 and 400. Repositories round to 2 decimals; anything else is
       // rejected here, as the food specs do, rather than rounded differently by the server.
       weight_kg: z.number().check(
