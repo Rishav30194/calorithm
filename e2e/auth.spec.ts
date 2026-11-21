@@ -53,7 +53,8 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await signIn(page)
       for (const tab of ['Log', 'Weight', 'Check-in', 'Settings']) {
         await page.getByRole('navigation').getByRole('link', { name: tab }).click()
-        await expect(page.getByRole('heading', { name: tab })).toBeVisible()
+        // Exact, because a due check-in adds a "Weekly check-in" heading to the Check-in tab.
+        await expect(page.getByRole('heading', { name: tab, exact: true })).toBeVisible()
         await expectNoAxeViolations(page)
       }
     })
