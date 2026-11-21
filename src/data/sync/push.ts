@@ -101,6 +101,20 @@ const fetchSkipped = async (
   return null
 }
 
+const FOREIGN_KEY_VIOLATION = '23503'
+
+const hasFailedParent = async (ctx: SyncContext, spec: TableSpec, entry: Entry) => {
+  const parents = spec.parents?.(entry.row) ?? []
+  for (const parent of parents) {
+    const queued = await ctx.db.outbox
+      .where('[table+rowId]')
+      .equals([parent.table, parent.id])
+      .first()
+    if (queued?.failure) return true
+  }
+  return false
+}
+
 // Postgres rejects a statement as a whole, so one bad row fails its batch. Sending the rows
 // one at a time finds the bad ones and lets the rest through.
 const isolateRejected = async (
@@ -111,6 +125,11 @@ const isolateRejected = async (
 ): Promise<BatchResult> => {
   const [only] = items
   if (items.length === 1 && only) {
+    // A missing parent whose own change failed: the row stays queued, not failed, and goes
+    // out once the parent is fixed or discarded (decision 0019).
+    if (error.code === FOREIGN_KEY_VIOLATION && (await hasFailedParent(ctx, spec, only.entry))) {
+      return { sent: 0, failed: 0, stop: null }
+    }
     await fail(ctx.db, spec, only.entry, error.code, error.message)
     return { sent: 0, failed: 1, stop: null }
   }
@@ -211,28 +230,6 @@ const prepareItems = async (
   return { items, failed }
 }
 
-// Rows whose parent has a failed change. Read again for each table, so a parent refused
-// earlier in this push holds its children too. They stay queued, not failed, and go out once
-// the parent is fixed or its change discarded.
-const withoutHeld = async (
-  ctx: SyncContext,
-  spec: TableSpec,
-  entries: Entry[],
-): Promise<Entry[]> => {
-  const parentsOf = spec.parents
-  if (!parentsOf) return entries
-  const failed = new Set(
-    (await ctx.db.outbox.toArray())
-      .filter((entry) => entry.failure !== null)
-      .map((entry) => `${entry.table}:${entry.rowId}`),
-  )
-  return entries.filter(
-    (entry) =>
-      entry.table !== spec.name ||
-      !parentsOf(entry.row).some((parent) => failed.has(`${parent.table}:${parent.id}`)),
-  )
-}
-
 export const push = async (ctx: SyncContext): Promise<PushOutcome> => {
   const now = ctx.clock().getTime()
   const entries = (await ctx.db.outbox.toArray())
@@ -250,7 +247,7 @@ export const push = async (ctx: SyncContext): Promise<PushOutcome> => {
   let failed = await failUnknownTables(ctx, entries)
   const size = ctx.batchSize ?? DEFAULT_BATCH_SIZE
   for (const spec of ctx.tables) {
-    const prepared = await prepareItems(ctx, spec, await withoutHeld(ctx, spec, entries))
+    const prepared = await prepareItems(ctx, spec, entries)
     failed += prepared.failed
     for (let start = 0; start < prepared.items.length; start += size) {
       const result = await sendBatch(ctx, spec, prepared.items.slice(start, start + size))

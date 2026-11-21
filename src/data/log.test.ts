@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { dayId } from './dayId'
 import type { LocalDb } from './db'
-import { saveFood, saveRecipe } from './foods'
+import { createFood, createRecipe, updateFood } from './foods'
 import {
   changeServings,
   copyMealTo,
@@ -27,7 +27,7 @@ beforeEach(() => {
 afterEach(closeAll)
 
 const addOats = () =>
-  saveFood(db, time.clock, userId, {
+  createFood(db, time.clock, userId, {
     name: 'Oats',
     servingSize: 40,
     servingUnit: 'g',
@@ -76,7 +76,7 @@ describe('logFood', () => {
 describe('logRecipe', () => {
   it('logs a fraction of the recipe from its current ingredients', async () => {
     const food = await addOats()
-    const recipe = await saveRecipe(db, time.clock, userId, {
+    const recipe = await createRecipe(db, time.clock, userId, {
       name: 'Porridge',
       servings: 4,
       items: [{ foodId: food.id, servings: 2 }],
@@ -148,13 +148,13 @@ describe('changeServings', () => {
       food,
       servings: 2,
     })
-    await saveFood(
-      db,
-      time.clock,
-      userId,
-      { name: 'Oats', servingSize: 40, servingUnit: 'g', kcal: 999, proteinG: 99 },
-      food.id,
-    )
+    await updateFood(db, time.clock, food.id, {
+      name: 'Oats',
+      servingSize: 40,
+      servingUnit: 'g',
+      kcal: 999,
+      proteinG: 99,
+    })
 
     await changeServings(db, time.clock, entry.id, 3)
 
@@ -163,7 +163,67 @@ describe('changeServings', () => {
   })
 })
 
+describe('changeServings precision', () => {
+  it('rescales from the exact per-serving values, not the rounded totals', async () => {
+    const tiny = await createFood(db, time.clock, userId, {
+      name: 'Mint',
+      servingSize: 1,
+      servingUnit: 'leaf',
+      kcal: 7,
+      proteinG: 0.4,
+    })
+    const entry = await logFood(db, time.clock, userId, {
+      date: '2026-11-20',
+      meal: 'snacks',
+      food: tiny,
+      servings: 0.1,
+    })
+    expect(entry).toMatchObject({ kcal: 1, protein_g: 0 })
+
+    await changeServings(db, time.clock, entry.id, 10)
+
+    expect((await entriesOn(db, '2026-11-20'))[0]).toMatchObject({ kcal: 70, proteinG: 4 })
+  })
+
+  it('keeps the entry’s place in its meal', async () => {
+    const food = await addOats()
+    const first = await logFood(db, time.clock, userId, {
+      date: '2026-11-20',
+      meal: 'lunch',
+      food,
+      servings: 1,
+    })
+    time.advance(1_000)
+    await logFood(db, time.clock, userId, { date: '2026-11-20', meal: 'lunch', food, servings: 2 })
+    time.advance(1_000)
+
+    await changeServings(db, time.clock, first.id, 3)
+
+    expect((await entriesOn(db, '2026-11-20')).map((e) => e.servings)).toEqual([3, 2])
+  })
+})
+
 describe('copyMealTo', () => {
+  it('keeps the meal’s order in the copies', async () => {
+    const food = await addOats()
+    for (const servings of [1, 2, 3, 4]) {
+      await logFood(db, time.clock, userId, {
+        date: '2026-11-19',
+        meal: 'breakfast',
+        food,
+        servings,
+      })
+      time.advance(1_000)
+    }
+
+    await copyMealTo(db, time.clock, userId, {
+      from: { date: '2026-11-19', meal: 'breakfast' },
+      to: { date: '2026-11-20', meal: 'breakfast' },
+    })
+
+    expect((await entriesOn(db, '2026-11-20')).map((e) => e.servings)).toEqual([1, 2, 3, 4])
+  })
+
   it('adds copies with new ids and the values they had', async () => {
     const food = await addOats()
     const original = await logFood(db, time.clock, userId, {
@@ -210,6 +270,24 @@ describe('days', () => {
 
     expect(await db.rows('days').count()).toBe(1)
     expect(await dayComplete(db, userId, '2026-11-20')).toBe(false)
+  })
+
+  it('brings back a day another device deleted', async () => {
+    const id = await dayId(userId, '2026-11-20')
+    await db.table('days').put({
+      id,
+      user_id: userId,
+      date: '2026-11-20',
+      complete: false,
+      updated_at: '2026-11-19T10:00:00.000001+00:00',
+      client_updated_at: '2026-11-19T10:00:00.000Z',
+      deleted_at: '2026-11-19T10:00:00.000Z',
+      schema_version: 1,
+    })
+
+    await setDayComplete(db, time.clock, userId, '2026-11-20', true)
+
+    expect(await dayComplete(db, userId, '2026-11-20')).toBe(true)
   })
 
   it('treats a day never marked as incomplete', async () => {

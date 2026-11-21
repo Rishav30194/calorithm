@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(16);
+select plan(17);
 
 -- Two synthetic users. Tests act as one of them by setting the JWT claims PostgREST would set.
 insert into auth.users (id, email)
@@ -137,6 +137,11 @@ select throws_ok(
   '23514',
   'new row for relation "days" violates check constraint "days_date_range"',
   'a date before 2000 is rejected'
+);
+
+select col_is_unique(
+  'public', 'days', array['user_id', 'date'],
+  'a user has at most one row per date'
 );
 
 select pg_temp.act_as('b0000000-0000-4000-8000-000000000002');

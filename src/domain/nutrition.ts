@@ -63,16 +63,22 @@ const exactRecipeTotals = (ingredients: readonly Ingredient[]): Nutrients =>
 export const recipeTotals = (ingredients: readonly Ingredient[]): Nutrients =>
   rounded(exactRecipeTotals(ingredients))
 
+// One serving's share of the exact totals, unrounded, to store with an entry so it can be
+// rescaled later without drift.
+export const recipePerServing = (
+  ingredients: readonly Ingredient[],
+  recipeServings: number,
+): Nutrients => {
+  const total = exactRecipeTotals(ingredients)
+  return { kcal: total.kcal / recipeServings, proteinG: total.proteinG / recipeServings }
+}
+
 // Scales the exact totals and rounds once, so half a recipe isn't half of a rounded number.
 export const recipeEntryNutrients = (
   ingredients: readonly Ingredient[],
   recipeServings: number,
   servingsLogged: number,
-): Nutrients => {
-  const share = servingsLogged / recipeServings
-  const total = exactRecipeTotals(ingredients)
-  return rounded({ kcal: total.kcal * share, proteinG: total.proteinG * share })
-}
+): Nutrients => scaleNutrients(recipePerServing(ingredients, recipeServings), servingsLogged)
 
 export const sumNutrients = (items: readonly Nutrients[]): Nutrients => rounded(exactSum(items))
 
@@ -101,7 +107,8 @@ export const mostUsed = (entries: readonly Entry[], limit: number): Pick_[] => {
       bySource.set(key, { latest: entry, count: 1 })
     } else {
       seen.count += 1
-      if (entry.date > seen.latest.date) seen.latest = entry
+      // Entries come oldest first, so on the same date the later one wins.
+      if (entry.date >= seen.latest.date) seen.latest = entry
     }
   }
   return [...bySource.values()]
@@ -120,10 +127,3 @@ export const mostUsed = (entries: readonly Entry[], limit: number): Pick_[] => {
       count,
     }))
 }
-
-// The entries to add when copying one meal to another day or meal, values as they were.
-export const copyMeal = (
-  entries: readonly Entry[],
-  meal: Meal,
-  to: { date: string; meal: Meal },
-): Entry[] => entries.filter((entry) => entry.meal === meal).map((entry) => ({ ...entry, ...to }))

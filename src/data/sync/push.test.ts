@@ -123,9 +123,17 @@ describe('push', () => {
 
   // Sync case 19.
   describe('a child whose parent’s change failed', () => {
+    // The server refuses a parent named 'bad', and, like Postgres, a child whose parent it
+    // doesn't have.
     const refuseBad = () => {
-      remote.reject = (_table, row) =>
-        row.name === 'bad' ? { code: '23514', message: 'violates check constraint' } : null
+      remote.reject = (table, row) => {
+        if (row.name === 'bad') return { code: '23514', message: 'violates check constraint' }
+        const parentStored = remote.rows('parent').some((parent) => parent.id === row.parent_id)
+        if (table === 'child' && !parentStored) {
+          return { code: '23503', message: 'violates foreign key constraint' }
+        }
+        return null
+      }
     }
 
     it('waits instead of failing on the missing parent', async () => {
@@ -170,6 +178,23 @@ describe('push', () => {
 
       const [child] = await db.outbox.toArray()
       expect(child?.failure?.code).toBe('23503')
+    })
+
+    it('sends a child whose parent is on the server, even while an edit to it is refused', async () => {
+      refuseBad()
+      const parent = await writeRow(db, parentSpec, { ...sync(), name: 'ok' }, time.clock)
+      await push(ctx)
+      time.advance(60_000)
+      await writeRow(db, parentSpec, { ...parent, name: 'bad' }, time.clock)
+      const child = await writeRow(
+        db,
+        childSpec,
+        { ...sync(), parent_id: parent.id, note: 'sent' },
+        time.clock,
+      )
+
+      expect(await push(ctx)).toEqual({ status: 'done', sent: 1, failed: 1 })
+      expect(remote.rows('child').map((row) => row.id)).toEqual([child.id])
     })
 
     it('doesn’t hold a child whose parent is fine', async () => {

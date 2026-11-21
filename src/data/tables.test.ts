@@ -108,6 +108,9 @@ const logEntry: LogEntryRow = {
   name: 'Oats',
   kcal: 225,
   protein_g: 7.5,
+  kcal_per_serving: 150,
+  protein_g_per_serving: 5,
+  logged_at: '2026-11-20T08:00:00.000Z',
 }
 
 describe('food and log table specs', () => {

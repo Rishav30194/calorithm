@@ -2,12 +2,12 @@ import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 
 import {
-  copyMeal,
   type Entry,
   isMeal,
   meals,
   mostUsed,
   recipeEntryNutrients,
+  recipePerServing,
   recipeTotals,
   roundKcal,
   roundProtein,
@@ -85,6 +85,25 @@ describe('recipes', () => {
   it('logs a fraction of the recipe from its exact totals, rounding once', () => {
     // 495 kcal makes 4 servings; half a serving is 61.875 kcal.
     expect(recipeEntryNutrients(porridge, 4, 0.5)).toEqual({ kcal: 62, proteinG: 2.5 })
+  })
+
+  it('gives unrounded per-serving values to store with an entry', () => {
+    expect(recipePerServing(porridge, 4)).toEqual({ kcal: 123.75, proteinG: 5.05 })
+  })
+
+  it('scaling the per-serving values gives the same entry as logging directly', () => {
+    fc.assert(
+      fc.property(
+        fc.array(fc.record({ perServing, servings }), { maxLength: 20 }),
+        servings,
+        servings,
+        (ingredients, made, logged) => {
+          expect(scaleNutrients(recipePerServing(ingredients, made), logged)).toEqual(
+            recipeEntryNutrients(ingredients, made, logged),
+          )
+        },
+      ),
+    )
   })
 
   it('logging every serving gives the recipe’s totals', () => {
@@ -179,6 +198,14 @@ describe('mostUsed', () => {
     expect(ranked[0]?.servings).toBe(1.5)
   })
 
+  it('on one day, offers the later entry’s servings', () => {
+    const ranked = mostUsed(
+      [entry({ meal: 'breakfast', servings: 1 }), entry({ meal: 'dinner', servings: 2 })],
+      10,
+    )
+    expect(ranked[0]?.servings).toBe(2)
+  })
+
   it('returns at most the limit, each source once', () => {
     fc.assert(
       fc.property(
@@ -204,23 +231,6 @@ describe('mostUsed', () => {
         },
       ),
     )
-  })
-})
-
-describe('copyMeal', () => {
-  it('copies one meal’s entries to another day and meal, values as they were', () => {
-    const day = [
-      entry({ meal: 'breakfast', name: 'Oats', kcal: 150 }),
-      entry({ meal: 'lunch', name: 'Soup', kcal: 300 }),
-      entry({ meal: 'breakfast', name: 'Coffee', kcal: 5, proteinG: 0.3 }),
-    ]
-
-    const copies = copyMeal(day, 'breakfast', { date: '2026-11-21', meal: 'snacks' })
-
-    expect(copies).toEqual([
-      { ...day[0], date: '2026-11-21', meal: 'snacks' },
-      { ...day[2], date: '2026-11-21', meal: 'snacks' },
-    ])
   })
 })
 

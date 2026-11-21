@@ -1,10 +1,9 @@
 import {
-  copyMeal,
   type Entry,
   isMeal,
   type Meal,
   type Nutrients,
-  recipeEntryNutrients,
+  recipePerServing,
   roundServings,
   scaleNutrients,
 } from '@/domain/nutrition'
@@ -28,10 +27,13 @@ const newEntry = (
     recipeId: string | null
     name: string
     servings: number
-    nutrients: Nutrients
+    // Unrounded, so changing the servings later rescales exactly.
+    perServing: Nutrients
+    loggedAt?: string
   },
-): Promise<LogEntryRow> =>
-  writeRow(
+): Promise<LogEntryRow> => {
+  const nutrients = scaleNutrients(fields.perServing, fields.servings)
+  return writeRow(
     db,
     logEntriesSpec,
     {
@@ -47,11 +49,16 @@ const newEntry = (
       recipe_id: fields.recipeId,
       servings: fields.servings,
       name: fields.name,
-      kcal: fields.nutrients.kcal,
-      protein_g: fields.nutrients.proteinG,
+      kcal: nutrients.kcal,
+      protein_g: nutrients.proteinG,
+      // The columns hold three decimals.
+      kcal_per_serving: Math.round(fields.perServing.kcal * 1000) / 1000,
+      protein_g_per_serving: Math.round(fields.perServing.proteinG * 1000) / 1000,
+      logged_at: fields.loggedAt ?? clock().toISOString(),
     },
     clock,
   )
+}
 
 // Copies the food's values now, so editing the food later never changes this entry.
 export const logFood = (
@@ -68,7 +75,7 @@ export const logFood = (
     recipeId: null,
     name: food.name,
     servings: rounded,
-    nutrients: scaleNutrients({ kcal: food.kcal, proteinG: food.protein_g }, rounded),
+    perServing: { kcal: food.kcal, proteinG: food.protein_g },
   })
 }
 
@@ -87,7 +94,7 @@ export const logRecipe = async (
     recipeId: recipe.id,
     name: recipe.name,
     servings: rounded,
-    nutrients: recipeEntryNutrients(ingredients, recipe.servings, rounded),
+    perServing: recipePerServing(ingredients, recipe.servings),
   })
 }
 
@@ -118,8 +125,8 @@ const liveRowsOn = async (db: LocalDb, date: string): Promise<LogEntryRow[]> =>
       const row = logEntriesSpec.parse(raw)
       return row && row.deleted_at === null ? [row] : []
     })
-    // In the order they were last changed, oldest first.
-    .sort((a, b) => a.client_updated_at.localeCompare(b.client_updated_at))
+    // In the order they were logged; ids break ties so the order never shifts.
+    .sort((a, b) => a.logged_at.localeCompare(b.logged_at) || a.id.localeCompare(b.id))
 
 export const entriesOn = async (db: LocalDb, date: string): Promise<LoggedEntry[]> =>
   (await liveRowsOn(db, date)).flatMap((row) => {
@@ -127,7 +134,8 @@ export const entriesOn = async (db: LocalDb, date: string): Promise<LoggedEntry[
     return entry ? [entry] : []
   })
 
-// Rescales from the entry's own per-serving values, so a food edited since doesn't leak in.
+// Rescales from the per-serving values stored when the entry was logged, so neither rounding
+// nor a food edited since leaks in.
 export const changeServings = async (
   db: LocalDb,
   clock: Clock,
@@ -137,7 +145,7 @@ export const changeServings = async (
   const row = logEntriesSpec.parse(await db.rows('log_entries').get(id))
   if (!row) return
   const rounded = roundServings(servings)
-  const perServing = { kcal: row.kcal / row.servings, proteinG: row.protein_g / row.servings }
+  const perServing = { kcal: row.kcal_per_serving, proteinG: row.protein_g_per_serving }
   const nutrients = scaleNutrients(perServing, rounded)
   await writeRow(
     db,
@@ -151,6 +159,7 @@ export const removeEntry = (db: LocalDb, clock: Clock, id: string): Promise<void
   softDelete(db, logEntriesSpec, id, clock)
 
 // Copies one meal's entries, values as they were, to another day and meal in one transaction.
+// Each copy is logged a millisecond after the one before, so the meal keeps its order.
 export const copyMealTo = (
   db: LocalDb,
   clock: Clock,
@@ -158,18 +167,19 @@ export const copyMealTo = (
   { from, to }: { from: Target; to: Target },
 ): Promise<LogEntryRow[]> =>
   db.transaction('rw', db.rows('log_entries'), db.outbox, async () => {
-    const copies = copyMeal(await entriesOn(db, from.date), from.meal, to)
+    const sources = (await liveRowsOn(db, from.date)).filter((row) => row.meal === from.meal)
+    const start = clock().getTime()
     const written: LogEntryRow[] = []
-    for (const copy of copies) {
+    for (const [index, row] of sources.entries()) {
       written.push(
         await newEntry(db, clock, userId, {
-          date: copy.date,
-          meal: copy.meal,
-          foodId: copy.source.kind === 'food' ? copy.source.id : null,
-          recipeId: copy.source.kind === 'recipe' ? copy.source.id : null,
-          name: copy.name,
-          servings: copy.servings,
-          nutrients: { kcal: copy.kcal, proteinG: copy.proteinG },
+          ...to,
+          foodId: row.food_id,
+          recipeId: row.recipe_id,
+          name: row.name,
+          servings: row.servings,
+          perServing: { kcal: row.kcal_per_serving, proteinG: row.protein_g_per_serving },
+          loggedAt: new Date(start + index).toISOString(),
         }),
       )
     }
@@ -193,9 +203,10 @@ export const setDayComplete = async (
       user_id: userId,
       updated_at: '',
       client_updated_at: '',
-      deleted_at: null,
       schema_version: 1,
       ...existing,
+      // Marking a day another device deleted brings it back.
+      deleted_at: null,
       date,
       complete,
     },

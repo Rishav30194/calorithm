@@ -180,11 +180,13 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 - `days` and `log_entries` accept future dates on purpose, for logging ahead.
 - PR 2: `src/domain/nutrition.ts` rounds at the storage boundary (kcal whole, protein one
   decimal, servings two) and scales a recipe's exact totals before rounding once.
-  Repositories are `src/data/foods.ts` and `src/data/log.ts`. Changing an entry's servings
-  rescales from the entry's own values, never the food's current ones. Day ids follow
-  decision 0018, and push holds rows whose parent has a failed change (decision 0019).
-- Recipe items and a day's entries have no stored order: items come back in id order and
-  entries by last change. The screens sort them for display.
+  Repositories are `src/data/foods.ts` and `src/data/log.ts`. Day ids follow decision 0018,
+  and a row that fails on the foreign key while its parent has a failed change stays
+  queued (decision 0019).
+- Log entries store their unrounded per-serving values (`kcal_per_serving`,
+  `protein_g_per_serving`), so changing servings rescales exactly, and `logged_at`, which
+  orders a meal. Copies of a meal are logged a millisecond apart to keep their order.
+- Recipe items have no stored order and come back in id order; the recipe screen sorts them.
 
 ## Phase 4 — Weight and the trend chart
 

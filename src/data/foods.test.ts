@@ -1,7 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import type { LocalDb } from './db'
-import { archiveFood, archiveRecipe, recipeIngredients, saveFood, saveRecipe } from './foods'
+import {
+  archiveFood,
+  archiveRecipe,
+  createFood,
+  createRecipe,
+  recipeIngredients,
+  updateFood,
+  updateRecipe,
+} from './foods'
 import { entriesOn, logFood } from './log'
 import { closeAll, manualClock, openDb, userId } from './sync/testing/fixtures'
 import { foodsSpec, recipeItemsSpec, recipesSpec } from './tables'
@@ -21,9 +29,9 @@ const oats = { name: 'Oats', servingSize: 40, servingUnit: 'g', kcal: 150, prote
 const outboxFor = async (table: string) =>
   (await db.outbox.toArray()).filter((entry) => entry.table === table)
 
-describe('saveFood', () => {
+describe('createFood and updateFood', () => {
   it('creates a food with its outbox entry', async () => {
-    const food = await saveFood(db, time.clock, userId, oats)
+    const food = await createFood(db, time.clock, userId, oats)
 
     expect(food).toMatchObject({
       user_id: userId,
@@ -39,7 +47,7 @@ describe('saveFood', () => {
   })
 
   it('trims text and rounds numbers to what the columns store', async () => {
-    const food = await saveFood(db, time.clock, userId, {
+    const food = await createFood(db, time.clock, userId, {
       name: '  Greek yogurt ',
       servingSize: 170.456,
       servingUnit: ' g ',
@@ -57,18 +65,18 @@ describe('saveFood', () => {
   })
 
   it('updates an existing food in place', async () => {
-    const food = await saveFood(db, time.clock, userId, oats)
+    const food = await createFood(db, time.clock, userId, oats)
     time.advance(60_000)
 
-    const edited = await saveFood(db, time.clock, userId, { ...oats, kcal: 160 }, food.id)
+    const edited = await updateFood(db, time.clock, food.id, { ...oats, kcal: 160 })
 
-    expect(edited.id).toBe(food.id)
+    expect(edited.ok && edited.row.id).toBe(food.id)
     expect(foodsSpec.parse(await db.rows('foods').get(food.id))?.kcal).toBe(160)
     expect(await outboxFor('foods')).toHaveLength(1)
   })
 
   it('doesn’t change entries already logged (phase 3 criterion)', async () => {
-    const food = await saveFood(db, time.clock, userId, oats)
+    const food = await createFood(db, time.clock, userId, oats)
     await logFood(db, time.clock, userId, {
       date: '2026-11-19',
       meal: 'breakfast',
@@ -76,16 +84,31 @@ describe('saveFood', () => {
       servings: 2,
     })
 
-    await saveFood(db, time.clock, userId, { ...oats, name: 'Rolled oats', kcal: 400 }, food.id)
+    await updateFood(db, time.clock, food.id, { ...oats, name: 'Rolled oats', kcal: 400 })
 
     const [entry] = await entriesOn(db, '2026-11-19')
     expect(entry).toMatchObject({ name: 'Oats', kcal: 300, proteinG: 10 })
   })
 })
 
+describe('updating a row that isn’t stored', () => {
+  it('reports it instead of creating a new row', async () => {
+    const missing = 'f0000000-0000-4000-8000-0000000000ff'
+    expect(await updateFood(db, time.clock, missing, oats)).toEqual({
+      ok: false,
+      reason: 'not_found',
+    })
+    expect(
+      await updateRecipe(db, time.clock, missing, { name: 'Gone', servings: 1, items: [] }),
+    ).toEqual({ ok: false, reason: 'not_found' })
+    expect(await db.rows('foods').count()).toBe(0)
+    expect(await db.rows('recipes').count()).toBe(0)
+  })
+})
+
 describe('archiveFood', () => {
   it('marks the food archived without deleting it', async () => {
-    const food = await saveFood(db, time.clock, userId, oats)
+    const food = await createFood(db, time.clock, userId, oats)
 
     await archiveFood(db, time.clock, food.id)
 
@@ -95,10 +118,10 @@ describe('archiveFood', () => {
   })
 })
 
-describe('saveRecipe', () => {
+describe('createRecipe and updateRecipe', () => {
   it('writes the recipe and its items together', async () => {
-    const food = await saveFood(db, time.clock, userId, oats)
-    const milk = await saveFood(db, time.clock, userId, {
+    const food = await createFood(db, time.clock, userId, oats)
+    const milk = await createFood(db, time.clock, userId, {
       name: 'Milk',
       servingSize: 100,
       servingUnit: 'ml',
@@ -106,7 +129,7 @@ describe('saveRecipe', () => {
       proteinG: 3.4,
     })
 
-    const recipe = await saveRecipe(db, time.clock, userId, {
+    const recipe = await createRecipe(db, time.clock, userId, {
       name: 'Porridge',
       servings: 4,
       items: [
@@ -129,9 +152,9 @@ describe('saveRecipe', () => {
   })
 
   it('soft deletes items left out when the recipe is saved again', async () => {
-    const food = await saveFood(db, time.clock, userId, oats)
-    const milk = await saveFood(db, time.clock, userId, { ...oats, name: 'Milk' })
-    const recipe = await saveRecipe(db, time.clock, userId, {
+    const food = await createFood(db, time.clock, userId, oats)
+    const milk = await createFood(db, time.clock, userId, { ...oats, name: 'Milk' })
+    const recipe = await createRecipe(db, time.clock, userId, {
       name: 'Porridge',
       servings: 2,
       items: [
@@ -140,13 +163,11 @@ describe('saveRecipe', () => {
       ],
     })
 
-    await saveRecipe(
-      db,
-      time.clock,
-      userId,
-      { name: 'Porridge', servings: 2, items: [{ foodId: food.id, servings: 1.5 }] },
-      recipe.id,
-    )
+    await updateRecipe(db, time.clock, recipe.id, {
+      name: 'Porridge',
+      servings: 2,
+      items: [{ foodId: food.id, servings: 1.5 }],
+    })
 
     const items = (await db.rows('recipe_items').toArray()).flatMap((raw) => {
       const item = recipeItemsSpec.parse(raw)
@@ -163,7 +184,7 @@ describe('saveRecipe', () => {
 
 describe('archiveRecipe', () => {
   it('marks the recipe archived', async () => {
-    const recipe = await saveRecipe(db, time.clock, userId, {
+    const recipe = await createRecipe(db, time.clock, userId, {
       name: 'Water',
       servings: 1,
       items: [],

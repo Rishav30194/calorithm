@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(23);
+select plan(25);
 
 -- Two synthetic users. Tests act as one of them by setting the JWT claims PostgREST would set.
 insert into auth.users (id, email)
@@ -35,8 +35,8 @@ select ok(
 select pg_temp.act_as('a0000000-0000-4000-8000-000000000001');
 
 select lives_ok(
-  $$ insert into public.log_entries (id, user_id, date, meal, food_id, servings, name, kcal, protein_g, client_updated_at, schema_version)
-     values ('c0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', '2026-11-20', 'breakfast', 'f0000000-0000-4000-8000-00000000000a', 1.5, 'Oats', 225, 7.5, '2026-11-19 10:00+00', 1) $$,
+  $$ insert into public.log_entries (id, user_id, date, meal, food_id, servings, name, kcal, protein_g, kcal_per_serving, protein_g_per_serving, logged_at, client_updated_at, schema_version)
+     values ('c0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', '2026-11-20', 'breakfast', 'f0000000-0000-4000-8000-00000000000a', 1.5, 'Oats', 225, 7.5, 150, 5, '2026-11-20 08:00+00', '2026-11-19 10:00+00', 1) $$,
   'an owner can create a log entry row'
 );
 
@@ -47,8 +47,8 @@ select is(
 );
 
 select throws_ok(
-  $$ insert into public.log_entries (id, user_id, date, meal, food_id, servings, name, kcal, protein_g, client_updated_at, schema_version)
-     values ('c0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000002', '2026-11-20', 'breakfast', 'f0000000-0000-4000-8000-00000000000a', 1.5, 'Oats', 225, 7.5, now(), 1) $$,
+  $$ insert into public.log_entries (id, user_id, date, meal, food_id, servings, name, kcal, protein_g, kcal_per_serving, protein_g_per_serving, logged_at, client_updated_at, schema_version)
+     values ('c0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000002', '2026-11-20', 'breakfast', 'f0000000-0000-4000-8000-00000000000a', 1.5, 'Oats', 225, 7.5, 150, 5, '2026-11-20 08:00+00', now(), 1) $$,
   '42501',
   null,
   'a user cannot create a log entry row for someone else'
@@ -172,6 +172,20 @@ select throws_ok(
 );
 
 select throws_ok(
+  $$ update public.log_entries set kcal_per_serving = -1, client_updated_at = '2026-11-20 00:00+00' $$,
+  '23514',
+  null,
+  'a negative kcal per serving is rejected'
+);
+
+select throws_ok(
+  $$ update public.log_entries set protein_g_per_serving = -1, client_updated_at = '2026-11-20 00:00+00' $$,
+  '23514',
+  null,
+  'a negative protein per serving is rejected'
+);
+
+select throws_ok(
   $$ update public.log_entries set schema_version = 0, client_updated_at = '2026-11-20 00:00+00' $$,
   '23514',
   null,
@@ -179,24 +193,24 @@ select throws_ok(
 );
 
 select throws_ok(
-  $$ insert into public.log_entries (id, user_id, date, meal, food_id, servings, name, kcal, protein_g, client_updated_at, schema_version)
-     values (gen_random_uuid(), 'a0000000-0000-4000-8000-000000000001', '2026-11-20', 'lunch', 'f0000000-0000-4000-8000-00000000000b', 1, 'Rice', 270, 5.3, now(), 1) $$,
+  $$ insert into public.log_entries (id, user_id, date, meal, food_id, servings, name, kcal, protein_g, kcal_per_serving, protein_g_per_serving, logged_at, client_updated_at, schema_version)
+     values (gen_random_uuid(), 'a0000000-0000-4000-8000-000000000001', '2026-11-20', 'lunch', 'f0000000-0000-4000-8000-00000000000b', 1, 'Rice', 270, 5.3, 270, 5.3, now(), now(), 1) $$,
   '23503',
   null,
   'an entry cannot log another user''s food'
 );
 
 select throws_ok(
-  $$ insert into public.log_entries (id, user_id, date, meal, recipe_id, servings, name, kcal, protein_g, client_updated_at, schema_version)
-     values (gen_random_uuid(), 'a0000000-0000-4000-8000-000000000001', '2026-11-20', 'lunch', 'e0000000-0000-4000-8000-00000000000b', 1, 'Rice bowl', 400, 9.0, now(), 1) $$,
+  $$ insert into public.log_entries (id, user_id, date, meal, recipe_id, servings, name, kcal, protein_g, kcal_per_serving, protein_g_per_serving, logged_at, client_updated_at, schema_version)
+     values (gen_random_uuid(), 'a0000000-0000-4000-8000-000000000001', '2026-11-20', 'lunch', 'e0000000-0000-4000-8000-00000000000b', 1, 'Rice bowl', 400, 9.0, 400, 9, now(), now(), 1) $$,
   '23503',
   null,
   'an entry cannot log another user''s recipe'
 );
 
 select lives_ok(
-  $$ insert into public.log_entries (id, user_id, date, meal, recipe_id, servings, name, kcal, protein_g, client_updated_at, schema_version)
-     values (gen_random_uuid(), 'a0000000-0000-4000-8000-000000000001', '2026-11-20', 'dinner', 'e0000000-0000-4000-8000-00000000000a', 0.5, 'Porridge', 150, 5.0, now(), 1) $$,
+  $$ insert into public.log_entries (id, user_id, date, meal, recipe_id, servings, name, kcal, protein_g, kcal_per_serving, protein_g_per_serving, logged_at, client_updated_at, schema_version)
+     values (gen_random_uuid(), 'a0000000-0000-4000-8000-000000000001', '2026-11-20', 'dinner', 'e0000000-0000-4000-8000-00000000000a', 0.5, 'Porridge', 150, 5.0, 300, 10, now(), now(), 1) $$,
   'an entry can log the owner''s recipe'
 );
 
