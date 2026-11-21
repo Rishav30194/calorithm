@@ -7,7 +7,8 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 ## Next
 
 1. Phase 4, PR 1 (the `weights` schema) is on `feature/phase-4-weights-schema`. Ask the user
-   before pushing it and opening its PR; run `/code-review` and `/security-review` first.
+   before pushing it and opening its PR. `/code-review` found five nits, all fixed; put them
+   and the `/security-review` result in the PR description.
 2. Then phase 4, PR 2: `src/domain/trend.ts`, kg and lb conversion, and the weigh-in
    repository. See the plan in `docs/phases.md`.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
