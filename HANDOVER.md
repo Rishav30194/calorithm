@@ -6,11 +6,12 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 4 is done (PRs #11 to #13). The phase status change is on `chore/phase-4-done`;
-   ask the user before pushing it and opening its PR. Phase 5 (targets and the weekly
-   check-in) comes next: read its scope in `docs/phases.md` and present a plan first.
+1. Phase 5 (targets and the weekly check-in) is next: read its scope in `docs/phases.md`
+   and present a plan first.
 2. The sync status fix (settings no longer says **Everything is synced** before the outbox
    count loads) is on `fix/sync-status-while-loading`. Ask the user before pushing it.
+   Found in its review, not fixed: if the outbox query itself fails, `useOutbox` throws
+   during render and the signed-in shell has no error state with a retry for it.
 3. On a real iPhone, check that **Export changes** in the sign-out warning saves the file
    from the installed app.
 4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix

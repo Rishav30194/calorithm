@@ -219,7 +219,8 @@ export type FailedChange = { seq: number; table: string; code: string; message: 
 export type OutboxSummary = { pending: number; failed: FailedChange[] }
 
 // Undefined while the outbox loads. An empty default would read as "nothing waiting" on the
-// first render and briefly show "Everything is synced" with changes still queued.
+// first render and briefly show "Everything is synced" with changes still queued. A new user's
+// database remounts the provider (keyed on the user in App), so no result outlives its db.
 export const useOutbox = (): OutboxSummary | undefined => {
   const { ctx } = useData()
   const entries = useLiveQuery(() => ctx.db.outbox.toArray(), [ctx.db])
