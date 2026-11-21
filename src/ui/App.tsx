@@ -7,6 +7,7 @@ import { strings } from '@/strings'
 import { usePwaUpdate } from './pwa'
 import { SignedIn } from './SignedIn'
 import { SignIn } from './SignIn'
+import { UpdateBanner } from './UpdateBanner'
 
 const env = parseEnv(import.meta.env)
 
@@ -49,10 +50,18 @@ const Configured = ({ env, onUpdate }: { env: Env; onUpdate: () => Promise<void>
 
 export const App = () => {
   // Registers the service worker on every screen, signed in or not.
-  const update = usePwaUpdate()
-  return env.ok ? (
-    <Configured env={env.env} onUpdate={update} />
-  ) : (
-    <ConfigError invalid={env.invalid} />
+  const pwa = usePwaUpdate()
+  return (
+    <>
+      {/* Always present, so screen readers announce the banner when it appears. */}
+      <div aria-live="polite">
+        {pwa.available && <UpdateBanner onUpdate={pwa.update} onDismiss={pwa.dismiss} />}
+      </div>
+      {env.ok ? (
+        <Configured env={env.env} onUpdate={pwa.update} />
+      ) : (
+        <ConfigError invalid={env.invalid} />
+      )}
+    </>
   )
 }

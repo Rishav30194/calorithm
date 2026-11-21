@@ -6,16 +6,13 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 6 PRs 1 (#22) and 2 (#23) are merged. PR 3 (account deletion, decision 0023, the
-   `delete.me` seed user) is built. `/code-review` findings are fixed: a lost response asks
-   Supabase Auth whether the user is gone (403 `user_not_found`, checked locally), a failed
-   local cleanup after deletion still signs out and leaves the delete for the next start, and
-   Cancel and Escape wait for a running deletion. `/security-review` found nothing at
-   confidence 8 or higher. Run `npm run db:reset` once locally for the migration and
-   the seed user. **Before the user signs up anyone else on the hosted project, they run
-   `supabase db push` for the migration (Claude never does).** Next, PR 4: the **Update
-   available** banner; then mark the phase done. End-to-end tests that look for a status
-   message should scope it to a region: the settings screen has three.
+1. Phase 6 PRs 1 to 3 (#22 to #24) are merged, and PR 4 (the **Update available** banner)
+   is built and its `/code-review` findings are fixed (Update works offline and after another
+   tab's update, Later hides one version only, the banner is announced and drops the header's
+   notch inset); no `/security-review` is needed, as it touches no auth, sync, or import. Every
+   phase 6 criterion is now met. Next: PR 4's PR, then mark the phase done in a small PR. Run `npm run db:reset` once locally for the account deletion migration and
+   seed users. End-to-end tests that look for a status message should scope it to a region:
+   the settings screen has three.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
@@ -35,13 +32,17 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 
 - Does Supabase's free plan include downloadable backups? The user checks in the dashboard.
 - Exact rate limit of Supabase's built-in email sending. Matters only before friends join.
-- Is **Secure password change** on in the hosted project's Auth settings? Decision 0023
-  relies on it; `supabase/config.toml` has it on locally. The user checks in the dashboard.
-- Whether `delete_account()` can delete from `auth.users` on the hosted project as it does
-  locally (the function's owner is `postgres`). Unverified until the migration is pushed;
-  check with a throwaway account before relying on it.
+- No hosted Supabase project exists yet (checked 2026-11-21: the user's account has only an
+  unrelated project). Phase 7 creates it. Then the user applies every migration, turns on
+  **Secure password change** in the Auth settings (decision 0023 relies on it;
+  `supabase/config.toml` has it on locally), and deletes a throwaway account to check that
+  `delete_account()` can delete from `auth.users` there as it does locally.
 
 ## Watch out for
+
+- `vite.config.ts` still says the **Update available** prompt "arrives (phase 6)". It's a
+  comment in build config, which needs the user's approval to change; fix it with the next
+  approved config change.
 
 - `e2e/account.spec.ts` deletes `delete.me@calorithm.test`; `e2e/database.ts` puts it back
   first with `docker exec supabase_db_calorithm psql`. The container name comes from

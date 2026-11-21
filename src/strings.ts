@@ -355,6 +355,12 @@ export const strings = {
     body: 'This version of Calorithm is too old to sync. Update to keep your data in step across devices.',
     button: 'Update now',
     updating: 'Updating…',
+    // The Update available banner, for a new deployment the app never loads on its own.
+    region: 'Update available',
+    available:
+      'A new version of Calorithm is ready. Update when you aren’t in the middle of an entry.',
+    reload: 'Update',
+    later: 'Later',
   },
 
   settings: {

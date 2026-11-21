@@ -274,11 +274,19 @@ the result in `checkins` when you save it. Decision 0021 holds the rules.
 
 ## Offline and updates
 
-- `vite-plugin-pwa` precaches the built files. `registerType: 'prompt'` shows an
-  **Update available** prompt instead of reloading on its own.
+- `vite-plugin-pwa` precaches the built files. With `registerType: 'prompt'`, a new
+  deployment waits until the user selects **Update** on the **Update available** banner
+  (`src/ui/UpdateBanner.tsx`); the app never reloads on its own.
 - The service worker registers through `usePwaUpdate()` at the app root (`src/ui/pwa.ts`).
   Importing the plugin's React hook stops it injecting its own registration, so the hook must
   run on every screen.
+- `usePwaUpdate()` asks for a new deployment hourly and whenever the app comes back to the
+  foreground. It reads the registration's waiting worker itself, at start and after each
+  check, because the plugin reports only an update its own tab found. Its `onNeedReload`
+  turns off the plugin's reload when another tab's update takes control; the banner stays
+  instead, and it also listens for the controller change any other tab's update causes.
+  **Update** uses a worker that's already waiting, so it works offline. **Later** hides the
+  banner for that version only: a newer deployment, or the next start, shows it again.
 - On start, the app calls `navigator.storage.persist()` so the browser doesn't evict the local
   database.
 - The app reads `min_app_version` on each sync and blocks syncing when it's too old.

@@ -95,7 +95,7 @@ export const Shell = (props: Props) => {
   const tab: Tab = route.tab
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="border-b border-border px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3">
+      <header className="border-b border-border px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 [.update-banner_&]:pt-3">
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-xl font-semibold">{strings.tabs[tab]}</h1>
           {props.badge}
