@@ -63,7 +63,7 @@ The session-start hook reads the **Status** lines, so keep the format: `Not star
 
 ## Phase 2 — Local database and sync
 
-**Status:** In progress
+**Status:** Done (2026-11-20)
 
 **Goal:** any table can be written offline and reaches Supabase reliably.
 
