@@ -129,7 +129,7 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 
 ## Phase 3 — Foods, recipes, and the daily log
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** logging a day's food takes seconds.
 
@@ -147,7 +147,24 @@ schema version. The server job that removes rows deleted over 90 days ago moves 
 - [ ] Constraints reject negative kcal, zero servings, and similar values (pgTAP).
 - [ ] axe passes on every new screen.
 
-**Implementation notes:** none yet.
+**Plan** (approved 2026-11-20): four PRs.
+
+1. **Schema:** migrations and pgTAP tests for the five tables, generated types, table specs in
+   push order, Dexie schema version 2 with an upgrade test, and sync case 4 on the real
+   `recipes` and `recipe_items` tables.
+2. **Calculations and storage:** `src/domain/nutrition.ts` with property tests, repository
+   functions, and a `days` id derived from the user and date.
+3. **Foods and recipes screens**, loaded on demand.
+4. **The log screen:** meals, quick re-log, copy a meal, day complete, totals, and the
+   end-to-end journeys.
+
+**Implementation notes:**
+- References between tables include `user_id`, as foreign keys on `(id, user_id)`. Postgres
+  checks foreign keys without row-level security, so a key on `id` alone would let a row
+  point at another user's food or recipe.
+- Log entries copy the food or recipe's `name`, `kcal`, and `protein_g` (for the servings
+  logged) when written, so later edits never change a past day.
+- `meal` is one of `breakfast`, `lunch`, `dinner`, or `snacks`; a food is logged by servings.
 
 ## Phase 4 — Weight and the trend chart
 
