@@ -10,7 +10,7 @@ select ok(
 set local role anon;
 select is(
   (select min_app_version from public.app_config),
-  '0.0.0',
+  '0.3.0',
   'a signed-out request can read the minimum app version'
 );
 
