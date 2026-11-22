@@ -466,7 +466,7 @@ is made public, because GitHub Pages on the Free plan serves only public reposit
 
 ## Phase 8 — Carbs and fat
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** every food, recipe, and log entry carries kcal, protein, carbs, and fat.
 
@@ -493,9 +493,14 @@ is made public, because GitHub Pages on the Free plan serves only public reposit
 - [ ] Export then import reproduces carbs and fat; a version 1 file still imports.
 - [ ] pgTAP covers the new columns' ranges, and fast-check covers the new totals.
 
-**Open question:** should carbs and fat have targets? Recommended: no targets at first,
-only totals. Kcal and protein stay the targets the weekly check-in sets; carbs and fat fill
-the rest of the calories however you like. Add targets later if the totals prove useful.
+**Decided** (2026-11-21): no carbs or fat targets, only totals. Kcal and protein stay the
+targets the weekly check-in sets.
+
+**Plan** (approved 2026-11-21): three PRs. PR 1: nullable columns, sync, and Dexie version 6
+(decision 0025: the columns stay nullable, and the second release raises `min_app_version`
+instead of adding `NOT NULL`). PR 2: totals, the food form, recipes, and the log, then
+version 0.3.0; it must also carry carbs and fat through copy and repeat in `src/data/log.ts`,
+which build entries from kcal and protein only. PR 3: export format version 2.
 
 **Implementation notes:** none yet.
 

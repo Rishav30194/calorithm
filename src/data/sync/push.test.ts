@@ -105,6 +105,8 @@ describe('push', () => {
         serving_unit: 'g',
         kcal: 150,
         protein_g: 5,
+        carbs_g: null,
+        fat_g: null,
         archived_at: null,
       },
       time.clock,
@@ -317,6 +319,108 @@ describe('push', () => {
       expect.objectContaining({ id, title: 'old shape', schema_version: 2 }),
     ])
     expect(remote.rows('renamed')[0]).not.toHaveProperty('label')
+  })
+
+  it('sends a food queued before carbs and fat without them, so the server keeps its values', async () => {
+    ctx = { ...ctx, tables: syncedTables }
+    const id = crypto.randomUUID()
+    const food = {
+      ...sync({ id }),
+      name: 'Synthetic oats',
+      serving_size: 40,
+      serving_unit: 'g',
+      kcal: 150,
+      protein_g: 5,
+      archived_at: null,
+    }
+    await remote.upsert('foods', [
+      {
+        ...food,
+        carbs_g: 27,
+        fat_g: 2.5,
+        schema_version: 2,
+        client_updated_at: '2026-11-19T09:00:00.000Z',
+      },
+    ])
+    await db.outbox.add({
+      table: 'foods',
+      rowId: id,
+      row: { ...food, name: 'Renamed offline', client_updated_at: '2026-11-19T10:00:00.000Z' },
+      schemaVersion: 1,
+      rev: 1,
+      attempts: 0,
+      nextAttemptAt: 0,
+      failure: null,
+    })
+
+    expect((await push(ctx)).status).toBe('done')
+
+    expect(remote.rows('foods')).toEqual([
+      expect.objectContaining({ id, name: 'Renamed offline', carbs_g: 27, fat_g: 2.5 }),
+    ])
+  })
+
+  describe('carbs and fat not set on this device (decision 0025)', () => {
+    const food = (id: string, name: string) => ({
+      ...sync({ id }),
+      name,
+      serving_size: 40,
+      serving_unit: 'g',
+      kcal: 150,
+      protein_g: 5,
+      archived_at: null,
+    })
+    const storeOnServer = (id: string, carbs: number, fat: number) =>
+      remote.upsert('foods', [
+        {
+          ...food(id, 'Synthetic oats'),
+          carbs_g: carbs,
+          fat_g: fat,
+          schema_version: 2,
+          client_updated_at: '2026-11-19T09:00:00.000Z',
+        },
+      ])
+    const queue = (id: string, row: Record<string, unknown>, schemaVersion: number) =>
+      db.outbox.add({
+        table: 'foods',
+        rowId: id,
+        row: { ...row, client_updated_at: '2026-11-19T10:00:00.000Z' },
+        schemaVersion,
+        rev: 1,
+        attempts: 0,
+        nextAttemptAt: 0,
+        failure: null,
+      })
+
+    beforeEach(() => {
+      ctx = { ...ctx, tables: syncedTables }
+    })
+
+    it('keeps the server’s values when a version 2 edit has them not set', async () => {
+      const id = crypto.randomUUID()
+      await storeOnServer(id, 27, 2.5)
+      await queue(id, { ...food(id, 'Edited here'), carbs_g: null, fat_g: null }, 2)
+
+      expect((await push(ctx)).status).toBe('done')
+
+      expect(remote.rows('foods')).toEqual([
+        expect.objectContaining({ id, name: 'Edited here', carbs_g: 27, fat_g: 2.5 }),
+      ])
+    })
+
+    it('keeps them when the same batch also sends a food that has carbs and fat', async () => {
+      const oldId = crypto.randomUUID()
+      const newId = crypto.randomUUID()
+      await storeOnServer(oldId, 27, 2.5)
+      await queue(oldId, food(oldId, 'Renamed offline'), 1)
+      await queue(newId, { ...food(newId, 'Paneer'), carbs_g: 1.2, fat_g: 20.8 }, 2)
+
+      expect((await push(ctx)).status).toBe('done')
+
+      const stored = new Map(remote.rows('foods').map((row) => [row.id, row]))
+      expect(stored.get(oldId)).toMatchObject({ carbs_g: 27, fat_g: 2.5 })
+      expect(stored.get(newId)).toMatchObject({ carbs_g: 1.2, fat_g: 20.8 })
+    })
   })
 
   it('keeps an entry edited while its push was in flight', async () => {

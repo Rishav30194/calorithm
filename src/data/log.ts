@@ -66,6 +66,11 @@ const newEntry = (
       // The columns hold three decimals.
       kcal_per_serving: Math.round(fields.perServing.kcal * 1000) / 1000,
       protein_g_per_serving: Math.round(fields.perServing.proteinG * 1000) / 1000,
+      // Not copied until foods carry them (phase 8, PR 2).
+      carbs_g: null,
+      fat_g: null,
+      carbs_g_per_serving: null,
+      fat_g_per_serving: null,
       logged_at: fields.loggedAt ?? clock().toISOString(),
     },
     clock,

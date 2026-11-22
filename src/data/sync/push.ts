@@ -68,13 +68,22 @@ const settle = async (
 const fail = (db: LocalDb, spec: TableSpec, entry: Entry, code: string, message: string) =>
   settle(db, spec, entry, { failure: { code, message } })
 
-// Brings the row up to the table's current shape, then checks it.
+// Brings the row up to the table's current shape, then checks it. An added column that's
+// null here means "not set on this device", whether the entry predates the column or the row
+// was never given a value; it's left out, so the upsert keeps the server's value (decision
+// 0025).
 const prepare = (spec: TableSpec, entry: Entry): Record<string, unknown> | null => {
   const row =
     entry.schemaVersion < spec.schemaVersion && spec.upgrade
       ? spec.upgrade(entry.row, entry.schemaVersion)
       : entry.row
-  return spec.parse(row)
+  const parsed: Record<string, unknown> | null = spec.parse(row)
+  if (!parsed) return null
+  const prepared = { ...parsed }
+  for (const column of Object.values(spec.addedColumns ?? {}).flat()) {
+    if (prepared[column] === null) delete prepared[column]
+  }
+  return prepared
 }
 
 const idOf = (row: Record<string, unknown>): string | null =>
@@ -168,6 +177,25 @@ const sendBatch = async (
   return { sent: settled.length, failed: 0, stop }
 }
 
+// postgrest-js sends one column list per upsert and null for a column a row lacks, which
+// would clear a column some rows leave out on purpose. Rows with different columns go in
+// separate upserts.
+const byColumns = (items: Item[]): Item[][] => {
+  const groups = new Map<string, Item[]>()
+  for (const item of items) {
+    const key = Object.keys(item.row).sort().join(',')
+    groups.set(key, [...(groups.get(key) ?? []), item])
+  }
+  return [...groups.values()]
+}
+
+const batches = (groups: Item[][], size: number): Item[][] =>
+  groups.flatMap((group) =>
+    Array.from({ length: Math.ceil(group.length / size) }, (_, index) =>
+      group.slice(index * size, (index + 1) * size),
+    ),
+  )
+
 const backOff = async (ctx: SyncContext) => {
   const now = ctx.clock().getTime()
   const waiting = (await ctx.db.outbox.toArray())
@@ -249,8 +277,8 @@ export const push = async (ctx: SyncContext): Promise<PushOutcome> => {
   for (const spec of ctx.tables) {
     const prepared = await prepareItems(ctx, spec, entries)
     failed += prepared.failed
-    for (let start = 0; start < prepared.items.length; start += size) {
-      const result = await sendBatch(ctx, spec, prepared.items.slice(start, start + size))
+    for (const batch of batches(byColumns(prepared.items), size)) {
+      const result = await sendBatch(ctx, spec, batch)
       sent += result.sent
       failed += result.failed
       if (result.stop) {

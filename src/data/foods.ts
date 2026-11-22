@@ -62,7 +62,15 @@ export const createFood = (
   writeRow(
     db,
     foodsSpec,
-    { ...syncDefaults(userId), id: crypto.randomUUID(), archived_at: null, ...foodFields(input) },
+    {
+      ...syncDefaults(userId),
+      id: crypto.randomUUID(),
+      archived_at: null,
+      // Not set until the food form asks for them (phase 8, PR 2).
+      carbs_g: null,
+      fat_g: null,
+      ...foodFields(input),
+    },
     clock,
   )
 

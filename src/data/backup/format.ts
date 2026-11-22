@@ -225,7 +225,10 @@ const parseRows = <Row extends SyncRow>(
     const row = spec.parse(raw)
     if (
       !row ||
-      row.schema_version !== spec.schemaVersion ||
+      // An older row version reads as the current shape: its missing columns are not set.
+      !Number.isInteger(row.schema_version) ||
+      row.schema_version < 1 ||
+      row.schema_version > spec.schemaVersion ||
       row.user_id !== userId ||
       (row.deleted_at !== null && !(deletedAllowed && isTimestamp(row.deleted_at))) ||
       !isUuid(row.id) ||
