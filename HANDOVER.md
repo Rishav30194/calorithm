@@ -10,9 +10,15 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    `https://rishav30194.github.io/calorithm/` as version 0.2.0 (tag `v0.2.0`) against the
    hosted project. Phases 8 to 12 were added 2026-11-21 at the user's request: carbs and
    fat, recent and frequent foods, built-in Indian and gym foods, barcode scanning, then a
-   review against MacroFactor once the user subscribes. Start with phase 8: present its
-   plan, including the open question on carbs and fat targets. The user wants macros only
-   (kcal, protein, carbs, fat), no AI logging, and no bulk food database. Bump the version
+   review against MacroFactor once the user subscribes. The user wants macros only (kcal,
+   protein, carbs, fat), no AI logging, and no bulk food database.
+   Phase 8 is in progress (plan and decisions in `docs/phases.md` and decision 0025). PR 1
+   (nullable columns, sync, Dexie version 6) is built and reviewed on its branch; both
+   reviews' findings are fixed. **Before PR 1 merges, the user applies migration
+   `20261122010000_carbs_and_fat.sql` to the hosted project** (`docs/production.md`, step
+   6): every push to `main` deploys at once while CI is paused, and the new app sends
+   carbs and fat columns the hosted database doesn't have yet. Next: PR 2 (totals, food
+   form, recipes, log, copy and repeat; version 0.3.0), then PR 3 (export version 2). Bump the version
    for each release (`docs/development.md`, "Versions and tags"), and apply hosted
    migrations before merging the PR that needs them.
    The hosted test account (the user knows which) holds the user's phone entries; never
