@@ -64,6 +64,8 @@ It matches the start of a word, so "rice" finds "Puffed rice" but "hing" doesn't
    description no longer matches.
 4. To change only the items USDA lacks, edit `scripts/catalog/other.json` (per-100 g values,
    a serving unit of `g` or ending "(N g)", and a source) and run
-   `node scripts/build-catalog.mjs --keep-usda` instead of step 3.
+   `node scripts/build-catalog.mjs --keep-usda` instead of step 3. Keep mode also takes USDA
+   items' names, aliases, and categories from `items.json`; a change to a USDA item's
+   portion or food needs step 3.
 5. Run `npx biome format --write scripts/catalog src/data/catalog`.
 6. Run `npx vitest run src/data/catalog`.

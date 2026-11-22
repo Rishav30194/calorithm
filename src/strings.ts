@@ -201,7 +201,8 @@ export const strings = {
       archive: 'Archive',
       restore: 'Restore',
       archivedNote: 'Archived. It stays on past days and in recipes, but not in pickers.',
-      fromBuiltIn: 'Added from the built-in foods. Check the values against your pack.',
+      fromBuiltIn:
+        'Added from the built-in foods: USDA FoodData Central, or the UK’s CoFID, which contains public sector information licensed under the Open Government Licence v3.0. Check the values against your pack.',
       fromOpenFoodFacts: 'Values from Open Food Facts.',
       notFound: 'This food isn’t on this device. It may have been removed on another device.',
       saveFailed: 'Couldn’t save. Try again.',

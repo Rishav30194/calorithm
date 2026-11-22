@@ -845,8 +845,9 @@ wherever you pick a food.
   values before saving, and shows no grams for foods without a weight.
 - [x] A weighed food asks for its amount when picked; a count food still logs in one tap.
 - [x] Onion, tomato, and the spices can be added to a recipe without saving them first.
-- [x] Garam masala and chaat masala are in the list, marked as estimates; any single spice
-  added has a recorded source the user approved.
+- [x] Garam masala (from CoFID, approved instead of an estimate) and chaat masala (marked
+  as an estimate) are in the list; any single spice added has a recorded source the user
+  approved.
 
 **Plan** (approved by the user 2026-11-22, with the amount step for weighed foods only):
 - PR 1 (0.10.0, one migration): `src/domain/portion.ts` (weight per serving, grams to

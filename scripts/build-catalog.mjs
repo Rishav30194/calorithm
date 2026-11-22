@@ -185,15 +185,23 @@ const buildUsda = () =>
     ]
   })
 
+// Keep mode reuses USDA values and servings, which need the downloads, but takes each item's
+// name, aliases, and category from items.json, so those edits never go missing.
+const byId = new Map(items.map((item) => [item.id, item]))
 const usdaFoods = keepUsda
-  ? JSON.parse(readFileSync(output, 'utf8')).foods.filter((food) => usdaIds.has(food.id))
+  ? JSON.parse(readFileSync(output, 'utf8')).foods.flatMap((food) => {
+      const item = byId.get(food.id)
+      return item
+        ? [{ ...food, name: item.name, aliases: item.aliases, category: item.category }]
+        : []
+    })
   : buildUsda()
 if (keepUsda && usdaFoods.length !== items.length) {
   problems.push(`foods.json has ${usdaFoods.length} of the ${items.length} USDA items`)
 }
 
-// Items from other.json: per-100 g values, scaled to the serving's weight, which is its own
-// unit ("100 g") or the weight in brackets ("tsp (2 g)").
+// Items from other.json: per-100 g values, scaled to the serving's weight: servingSize grams
+// for a unit of "g", or servingSize times the weight in brackets ("tsp (2 g)").
 const others = JSON.parse(readFileSync(`${root}scripts/catalog/other.json`, 'utf8')).items
 const otherFoods = others.flatMap((item) => {
   if (usdaIds.has(item.id)) {
@@ -209,6 +217,11 @@ const otherFoods = others.flatMap((item) => {
         : null
   if (grams === null || item.servingUnit.length > 20) {
     problems.push(`${item.id}: serving unit "${item.servingUnit}" must be g or end in "(N g)"`)
+    return []
+  }
+  const values = ['kcal', 'proteinG', 'carbsG', 'fatG'].map((key) => item.per100?.[key])
+  if (values.some((value) => typeof value !== 'number' || !Number.isFinite(value) || value < 0)) {
+    problems.push(`${item.id}: per100 needs kcal, proteinG, carbsG, and fatG as numbers`)
     return []
   }
   const estimate = item.source.dataset === 'Estimate'
