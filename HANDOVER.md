@@ -6,12 +6,15 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Every phase in `docs/phases.md` is done; phase 7 finished 2026-11-21. The app is live
-   at `https://rishav30194.github.io/calorithm/` as version 0.2.0 (tag `v0.2.0`) against
-   the hosted project. Further work comes from the items below and the growth checklists in
-   `PLAN.md`; plan each one first. Bump the version for each release
-   (`docs/development.md`, "Versions and tags"), and apply hosted migrations before merging
-   the PR that needs them.
+1. Phases 1 to 7 are done; phase 7 finished 2026-11-21. The app is live at
+   `https://rishav30194.github.io/calorithm/` as version 0.2.0 (tag `v0.2.0`) against the
+   hosted project. Phases 8 to 12 were added 2026-11-21 at the user's request: carbs and
+   fat, recent and frequent foods, built-in Indian and gym foods, barcode scanning, then a
+   review against MacroFactor once the user subscribes. Start with phase 8: present its
+   plan, including the open question on carbs and fat targets. The user wants macros only
+   (kcal, protein, carbs, fat), no AI logging, and no bulk food database. Bump the version
+   for each release (`docs/development.md`, "Versions and tags"), and apply hosted
+   migrations before merging the PR that needs them.
    The hosted test account (the user knows which) holds the user's phone entries; never
    delete it or its data without the user's approval. If not yet done, the user deletes the
    Keychain item: `security delete-generic-password -s calorithm-supabase-db`.
@@ -40,6 +43,10 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 
 ## Watch out for
 
+- CI is paused (2026-11-21, the user's request, to speed up feature work): `ci.yml` runs only
+  by hand, and `deploy.yml` deploys every push to `main`. `npm run check:full` before each
+  PR is the only gate, so never skip it. Turn CI back on when the app moves to maintenance:
+  restore the triggers in `ci.yml` and the `workflow_run` trigger in `deploy.yml`.
 - `e2e/account.spec.ts` deletes `delete.me@calorithm.test`; `e2e/database.ts` puts it back
   first with `docker exec supabase_db_calorithm psql`. The container name comes from
   `project_id` in `supabase/config.toml`.

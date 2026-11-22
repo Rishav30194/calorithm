@@ -202,6 +202,11 @@ Each phase's scope, acceptance criteria, status, and implementation notes are in
 6. JSON export and import, the export reminder, account deletion, and the update prompt.
 7. Create the hosted Supabase project, add the keep-awake job, deploy to GitHub Pages, and check
    it on a phone: install, offline use, sync between two devices, and the update prompt.
+8. Carbs and fat on every food, recipe, and log entry, beside kcal and protein.
+9. Recent and frequent foods in the log picker.
+10. A built-in list of common Indian home foods and gym staples, loaded on demand.
+11. Barcode scanning, with lookup in your foods and then Open Food Facts.
+12. A review against a month of MacroFactor, which becomes the next phases.
 
 ## Related documents
 

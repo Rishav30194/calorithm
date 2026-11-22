@@ -66,11 +66,13 @@ Never edit a migration that's on `main`. Fix it with a new one.
 - One PR is one phase or a clear part of one, ideally under 400 changed lines excluding
   generated files and lockfiles.
 - Fill in `.github/pull_request_template.md`.
-- CI must pass. The user reviews and squash-merges.
+- `npm run check:full` must pass; the hook runs it before the PR opens. CI is paused during
+  feature development (see `.github/workflows/ci.yml`); when it's on, it must pass too. The
+  user reviews and squash-merges.
 
 ## Releases
 
-- Every merge to `main` deploys to GitHub Pages once CI passes on it. The hosted setup is in
+- Every merge to `main` deploys to GitHub Pages; once CI is back on, only after CI passes. The hosted setup is in
   `docs/production.md`.
 - The user applies hosted migrations before merging a PR that needs them, and only migrations
   that work with the app version already deployed. See `docs/architecture.md`, "Schema

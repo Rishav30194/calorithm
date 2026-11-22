@@ -463,3 +463,160 @@ is made public, because GitHub Pages on the Free plan serves only public reposit
   removed it, and its sign-in then failed.
 - Releases are tagged: `v0.1.0` marks the first live version, and from 0.2.0 the deploy
   workflow tags each deployed version (`docs/development.md`, "Versions and tags").
+
+## Phase 8 — Carbs and fat
+
+**Status:** Not started
+
+**Goal:** every food, recipe, and log entry carries kcal, protein, carbs, and fat.
+
+**Scope:**
+- Carbs and fat per serving on foods, one decimal place, like protein. Log entries copy them
+  at log time, as they copy kcal and protein. Recipe totals add them up from the
+  ingredients.
+- Schema change in two releases (`docs/architecture.md`, "Schema versions"): add the columns
+  as nullable and accept rows without them, then make them required once no client sends the
+  old shape. Existing foods show "not set" for carbs and fat until edited.
+- The log shows the day's carbs and fat beside kcal and protein, and each entry shows all
+  four.
+- The export format gets a new version that includes carbs and fat; import still accepts
+  version 1 files.
+- Optional daily carbs and fat targets, decided at the phase's start (see the open
+  question).
+
+**Acceptance criteria:**
+- [ ] A food saved with carbs and fat shows them on the food, in a recipe's totals, and in
+  the log, rounded to one decimal place.
+- [ ] Editing a food's carbs or fat doesn't change entries already logged.
+- [ ] A device on the previous version keeps syncing while the new columns exist (the first
+  release accepts both shapes).
+- [ ] Export then import reproduces carbs and fat; a version 1 file still imports.
+- [ ] pgTAP covers the new columns' ranges, and fast-check covers the new totals.
+
+**Open question:** should carbs and fat have targets? Recommended: no targets at first,
+only totals. Kcal and protein stay the targets the weekly check-in sets; carbs and fat fill
+the rest of the calories however you like. Add targets later if the totals prove useful.
+
+**Implementation notes:** none yet.
+
+## Phase 9 — Recent and frequent foods
+
+**Status:** Not started
+
+**Goal:** the foods you eat most are one tap away.
+
+**Already built:** the log picker lists **Today**, **Yesterday**, and **Most used**
+(`mostUsed` in `src/domain/nutrition.ts`).
+
+**Scope:**
+- A **Recent** list: the last distinct foods and recipes logged, newest first, across every
+  meal.
+- Ranking for **Most used** that weighs recent use over old use, so last month's habit
+  outranks last year's.
+- Search results in the picker ranked by the same score, then by name.
+- Pure ranking functions in `src/domain/`, written test first.
+
+**Acceptance criteria:**
+- [ ] A food logged yesterday appears at the top of **Recent**.
+- [ ] A food logged daily this month outranks one logged often a year ago in **Most used**.
+- [ ] Typing in the picker search puts frequent matches above rare ones.
+- [ ] Example and fast-check tests cover the ranking; archived foods never appear.
+
+**Implementation notes:** none yet.
+
+## Phase 10 — Built-in Indian and gym foods
+
+**Status:** Not started
+
+**Goal:** common Indian home foods and gym staples are there to pick, without typing their
+numbers.
+
+**Scope:**
+- A curated list of about 150 to 250 foods, shipped with the app as a small file loaded on
+  demand, not stored per user in the database. Picking one copies it into your own foods,
+  so editing, sync, export, and logging work as they do today.
+- Coverage: staples (rice, roti, chapati, paratha, poha, upma, idli, dosa, dal varieties,
+  rajma, chole, sambar, curd, milk, ghee), gym foods (chicken breast, eggs and egg whites,
+  paneer, soya chunks, whey protein, oats, peanut butter, Greek yogurt, fish), and common
+  fruit, vegetables, nuts, and snacks.
+- Each item lists kcal, protein, carbs, and fat per serving, with an Indian household
+  serving where one exists (1 katori, 1 roti) and grams.
+- Each item cites its source. USDA FoodData Central is public domain and comes first; the
+  Indian Food Composition Tables (IFCT 2017) are used only if NIN's terms allow it, which is
+  unverified.
+- A decision record covers the source, how values were chosen, and how the list is
+  updated.
+
+**Acceptance criteria:**
+- [ ] Searching "paneer", "dal", or "roti" in the picker shows built-in items before you
+  have created any food.
+- [ ] Picking a built-in item adds it to your foods with all four numbers and its source.
+- [ ] The list loads on demand and leaves first-load JavaScript within its 200 kB budget.
+- [ ] A test checks every item: four numbers present, kcal within 10% of 4 × protein +
+  4 × carbs + 9 × fat, and a source on each.
+
+**Open question:** whether NIN permits reuse of IFCT 2017 values. Until answered, use
+USDA values only.
+
+**Implementation notes:** none yet.
+
+## Phase 11 — Barcode scanning
+
+**Status:** Not started
+
+**Goal:** scan a packaged food's barcode to add it.
+
+**Scope:**
+- A **Scan barcode** button in the picker opens the camera. iPhone Safari doesn't support
+  the browser's built-in barcode API, so scanning uses a WebAssembly decoder (for example
+  ZXing), loaded only when the scanner opens. Adding it needs the user's approval, with its
+  bundle cost.
+- A scanned code is looked up first in your own foods, then in Open Food Facts. A found
+  product opens the food form filled in, for you to check and save. Not found, or offline,
+  opens an empty form with the barcode filled in.
+- Foods get an optional barcode field, so a second scan finds your saved food without the
+  network.
+- Open Food Facts data is under the ODbL: the form and the food show "© Open Food Facts
+  contributors" with a link. A decision record covers the license and the privacy of
+  sending barcodes to Open Food Facts.
+
+**Acceptance criteria:**
+- [ ] Scanning a known product on the iPhone fills in its name and four numbers.
+- [ ] A second scan of a saved product works offline.
+- [ ] An unknown barcode, a denied camera, and no network each show a clear message and a
+  way to enter the food by hand.
+- [ ] The scanner loads on demand and leaves first-load JavaScript within budget.
+- [ ] End-to-end tests cover the lookup with a recorded Open Food Facts response, not the
+  live service.
+
+**Open questions:**
+- Open Food Facts asks each request to name the app and a contact address. Which contact
+  should it use? It must not be a personal email unless the user approves.
+- How well Open Food Facts covers Indian brands is unknown; check it with real packages at
+  the phase's start.
+
+**Implementation notes:** none yet.
+
+## Phase 12 — Review against MacroFactor
+
+**Status:** Not started
+
+**Goal:** a ranked list of improvements, learned from a month of MacroFactor.
+
+**Scope:**
+- Starts after phases 8 to 11. The user buys one month of MacroFactor; Claude reviews its
+  screens through what the user shares or through Claude in Chrome, whichever MacroFactor
+  allows.
+- A written comparison, screen by screen: food search and logging, recipes, the weekly
+  check-in, weight trend, and settings. For each: what MacroFactor does better, what this app
+  does better, and the cost to close the gap.
+- Calorithm stays its own design: the review takes ideas, not MacroFactor's food data, text,
+  or visual design.
+- The output is new phases in this file, each planned and approved before any code.
+
+**Acceptance criteria:**
+- [ ] The comparison covers every screen listed in the scope.
+- [ ] Each proposed improvement has a size and a reason, and the user has ranked them.
+- [ ] The approved improvements are written up as phases here.
+
+**Implementation notes:** none yet.

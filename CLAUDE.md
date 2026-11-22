@@ -8,9 +8,8 @@ a rewrite. It holds health data, so correctness and privacy come before speed of
 
 1. The session-start facts (printed by a hook) and `HANDOVER.md`: the live git, PR, and CI
    state, then the next steps, open questions, and warnings.
-2. `docs/phases.md`: each phase's scope, acceptance criteria, and implementation notes. All
-   seven phases are done; new work comes from `HANDOVER.md` and `PLAN.md`'s growth
-   checklists.
+2. `docs/phases.md`: each phase's scope, acceptance criteria, and implementation notes. The
+   session-start hook names the current phase.
 3. `PLAN.md`: product scope, data model, and how the numbers work.
 4. `docs/architecture.md`: how the app is built. Read it before touching sync or the schema.
 

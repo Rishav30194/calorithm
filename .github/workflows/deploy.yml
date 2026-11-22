@@ -1,12 +1,15 @@
 name: Deploy
 
-# Deploys only a commit that passed CI on main and is still its head. A manual run from main
-# redeploys the head of main, for example after the Supabase secrets change.
+# Deploys the head of main on every push, while CI is paused (see ci.yml). A manual run from
+# main redeploys it, for example after the Supabase secrets change. When CI is back on,
+# replace `push` with the workflow_run trigger below, so only a commit that passed CI deploys.
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
+  push:
     branches: [main]
+  # workflow_run:
+  #   workflows: [CI]
+  #   types: [completed]
+  #   branches: [main]
   workflow_dispatch:
 
 # A deployment in progress finishes; the next one waits instead of cancelling it.
@@ -22,6 +25,7 @@ jobs:
   current:
     if: >-
       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      github.event_name == 'push' ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
