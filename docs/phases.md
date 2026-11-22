@@ -737,7 +737,7 @@ the general formula.
 
 ## Phase 13 — Nutrition label
 
-**Status:** In progress (PRs 1 and 2 built; the iPhone check is left)
+**Status:** Parked (2026-11-22): both PRs shipped in 0.9.0; photo reading works on the iPhone but needs close photos and misses fields. Improvements are planned in `HANDOVER.md`.
 
 **Goal:** fill the food form from a pack's nutrition facts label, when there's no barcode or
 Open Food Facts doesn't know it.

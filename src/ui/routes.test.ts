@@ -60,6 +60,13 @@ describe('parseRoute', () => {
       '#/log/day/2026-11-20',
     )
     expect(parseRoute('#/log/day/2027-02-29')).toEqual({ tab: 'log', screen: 'log', date: null })
+    // The database keeps no day before 2000, so the log never opens one.
+    expect(parseRoute('#/log/day/1999-12-31')).toEqual({ tab: 'log', screen: 'log', date: null })
+    expect(parseRoute('#/log/day/2000-01-01')).toEqual({
+      tab: 'log',
+      screen: 'log',
+      date: '2000-01-01',
+    })
     expect(parseRoute('#/log/day')).toEqual({ tab: 'log', screen: 'log', date: null })
   })
 

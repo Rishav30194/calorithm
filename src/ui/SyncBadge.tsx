@@ -1,19 +1,32 @@
-import type { OutboxSummary } from '@/data/DataProvider'
+import type { OutboxView } from '@/data/DataProvider'
 import type { SyncStatus } from '@/data/sync/engine'
+import { formatCount } from '@/domain/format'
 import { strings } from '@/strings'
 
-// The outbox is undefined while it loads.
-type Props = { status: SyncStatus; outbox: OutboxSummary | undefined }
+type Props = { status: SyncStatus; outbox: OutboxView; locale: string }
 
-const message = ({ status, outbox }: Props): string | null => {
+const message = ({ status, outbox, locale }: Props): string | null => {
   if (status.state === 'update_required') return null
-  // Nothing until the counts load, so the badge never shows a count it doesn't have yet.
-  if (outbox === undefined) return null
-  const { pending } = outbox
-  const failed = outbox.failed.length
-  if (failed > 0) return strings.sync.badge.failed(failed)
+  switch (outbox.state) {
+    // Nothing until the counts load, so the badge never shows a count it doesn't have yet.
+    case 'loading':
+      return null
+    // Settings says why and offers to try again. An expired session or no network needs no
+    // counts, so those still show.
+    case 'failed':
+      if (status.problem === 'signed_out') return strings.sync.badge.signedOut
+      if (status.problem === 'offline') return strings.sync.badge.offline(null)
+      return strings.sync.badge.unknown
+    case 'loaded':
+      break
+  }
+  const { pending } = outbox.summary
+  const failed = outbox.summary.failed.length
+  if (failed > 0) return strings.sync.badge.failed(formatCount(failed, locale), failed === 1)
   if (status.problem === 'signed_out') return strings.sync.badge.signedOut
-  if (status.problem === 'offline') return strings.sync.badge.offline(pending)
+  if (status.problem === 'offline') {
+    return strings.sync.badge.offline(pending > 0 ? formatCount(pending, locale) : null)
+  }
   if (status.state === 'syncing') return strings.sync.badge.syncing
   return null
 }

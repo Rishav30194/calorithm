@@ -14,6 +14,9 @@ const number = (value: number, decimals: number, locale: string): string =>
 export const formatKcal = (kcal: number, locale: string): string =>
   `${number(kcal, 0, locale)} kcal`
 
+// A count of things, such as changes waiting to sync.
+export const formatCount = (count: number, locale: string): string => number(count, 0, locale)
+
 // Serving sizes and servings: stored with two decimals.
 export const formatAmount = (value: number, locale: string): string => number(value, 2, locale)
 

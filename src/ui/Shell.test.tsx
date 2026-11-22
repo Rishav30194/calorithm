@@ -69,7 +69,7 @@ describe('Sign-out warning', () => {
     renderShell(controls({ step: 'confirm', count: 2 }))
 
     const dialog = screen.getByRole('dialog', { name: strings.signOutWarning.title })
-    expect(dialog).toHaveTextContent(strings.signOutWarning.body(2))
+    expect(dialog).toHaveTextContent(strings.signOutWarning.body('2', false))
   })
 
   it('signs out anyway or cancels', async () => {

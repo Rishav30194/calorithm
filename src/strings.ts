@@ -410,10 +410,13 @@ export const strings = {
     syncing: 'Syncing…',
     neverSynced: 'Not synced yet',
     lastSynced: (ago: string) => `Last synced ${ago}`,
-    waiting: (count: number) =>
-      count === 1 ? '1 change waiting to sync' : `${count} changes waiting to sync`,
+    // Counts arrive formatted with Intl; `one` picks the singular.
+    waiting: (count: string, one: boolean) =>
+      one ? `${count} change waiting to sync` : `${count} changes waiting to sync`,
     allSynced: 'Everything is synced',
     checking: 'Checking for changes waiting to sync…',
+    outboxFailed: 'Couldn’t check for changes waiting to sync.',
+    retry: 'Try again',
     offline: 'Offline. Changes are saved on this device and sync when you’re back online.',
     signedOut: 'Your session expired. Sign out and sign in again to resume syncing.',
     failedTitle: 'Changes the server refused',
@@ -423,9 +426,12 @@ export const strings = {
     discardOffline: 'Can’t discard while offline. Try again when you’re connected.',
     badge: {
       syncing: 'Syncing',
-      offline: (count: number) => (count > 0 ? `Offline · ${count} waiting` : 'Offline'),
-      failed: (count: number) => (count === 1 ? '1 sync problem' : `${count} sync problems`),
+      // Null when nothing is waiting.
+      offline: (waiting: string | null) => (waiting ? `Offline · ${waiting} waiting` : 'Offline'),
+      failed: (count: string, one: boolean) =>
+        one ? `${count} sync problem` : `${count} sync problems`,
       signedOut: 'Sync paused',
+      unknown: 'Sync status unknown',
     },
   },
 
@@ -465,7 +471,7 @@ export const strings = {
     confirmTitle: 'Import this file?',
     confirmBody: (date: string, items: string) =>
       `Exported on ${date}, with ${items}. An item replaces the one on this device only if it was changed later. Nothing is deleted.`,
-    items: (count: number, shown: string) => (count === 1 ? '1 item' : `${shown} items`),
+    items: (count: string, one: boolean) => (one ? `${count} item` : `${count} items`),
     confirm: 'Import',
     cancel: 'Cancel',
     imported: (written: string, skipped: string) =>
@@ -508,9 +514,9 @@ export const strings = {
 
   signOutWarning: {
     title: 'Sign out and lose unsent changes?',
-    body: (count: number) =>
-      count === 1
-        ? '1 change hasn’t reached the server. Signing out deletes it from this device. Export it first to keep a copy.'
+    body: (count: string, one: boolean) =>
+      one
+        ? `${count} change hasn’t reached the server. Signing out deletes it from this device. Export it first to keep a copy.`
         : `${count} changes haven’t reached the server. Signing out deletes them from this device. Export them first to keep a copy.`,
     export: 'Export changes',
     confirm: 'Sign out anyway',

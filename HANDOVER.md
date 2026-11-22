@@ -6,21 +6,25 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. **Phase 13 (nutrition label) is in progress**, ahead of phase 12, which waits for the
-   user's MacroFactor subscription. Phase 11 is done (the user confirmed scanning on the
-   iPhone, 2026-11-22). Both PRs are built on `feature/nutrition-label`, to merge together
-   as one PR when the user asks: 0.8.0 (the label parser and **Paste label text**) and
-   0.9.0 (**Photo of label**, read on the device with `tesseract.js` 7.0.0, approved
-   2026-11-22). The branch also carries the phase 11 close-out commit. No migration.
-   `check:full` passes and `/code-review` ran on both halves, with every finding fixed.
-   After the deploy: check on the live site that GitHub Pages serves the reader's scripts
-   gzipped (about 4.4 MB on first use), then the user tries real labels on the iPhone,
-   including Indian packs, and phase 13 can close.
+1. **Phase 13 (nutrition label) is deployed as 0.9.0** (#43, with 0.8.0 and the phase 11
+   close-out), ahead of phase 12, which waits for the user's MacroFactor subscription. Live
+   check 2026-11-22: GitHub Pages serves the photo reader gzipped, so the first photo
+   downloads about 4.5 MB (core 1.48 MB, worker 0.03 MB, English data 2.95 MB). The user
+   tried it on the iPhone (2026-11-22): it works, but needs a close photo and sometimes
+   misses fat, carbs, protein, or the serving size. **Improving it is parked** at the
+   user's request. The plan when resumed: the user puts 5 to 10 failing photos in
+   `~/Downloads/labels` (used locally only, never committed); measure each change on them,
+   keeping what helps: read at higher resolution and enlarge small text (the 2000-pixel
+   downscale in `labelReader.ts` is the likely cause of needing close photos), grayscale and
+   contrast, try two Tesseract table modes and keep the reading with more values, teach the
+   parser real misreads (columns read separately, "g" read as "9"), show the read text
+   beside the form with **Fix the text**, and maybe a crop step. Phase 13 stays open until
+   then; the workaround is cropping to the table in Photos first.
    Where things stand: phases 1 to 11 are done. The app is live at
-   `https://rishav30194.github.io/calorithm/` as 0.7.0 (tag `v0.7.0`), with barcode
-   scanning, built-in foods, recent and frequent foods, and carbs and fat. The hosted
+   `https://rishav30194.github.io/calorithm/` as 0.9.0 (tag `v0.9.0`), with nutrition
+   labels, barcode scanning, built-in foods, recent and frequent foods, and carbs and fat. The hosted
    project has migrations through `20261122040000`, and `min_app_version` is 0.3.0. The
-   user's phone runs 0.7.0.
+   user's phone ran 0.7.0 before this deploy.
    The user wants macros only (kcal, protein, carbs, fat), no AI logging, no bulk food
    database, and Indian foods with no beef or pork.
    How releases go: bump the version for each user-facing release (`docs/development.md`,
@@ -32,17 +36,10 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    test foods; never delete it or its data without the user's approval. If not yet done,
    the user deletes the Keychain item: `security delete-generic-password -s
    calorithm-supabase-db`.
-2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
-   no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
-3. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
+2. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
    data** in settings save the file from the installed app, and that **Import data** opens
    the Files picker.
-4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
-   them all together in a small PR.
-5. `daysSpec` and `logEntriesSpec` accept dates before 2000-01-01, which the database refuses,
-   so such a change would fail on every push. The screens never offer those dates. Weigh-ins
-   are already checked (phase 4 PR 2); fix the other two together in a small PR.
-6. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+3. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
 
 Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential'`
 (then `push` or `fetch`), because git has no stored GitHub credentials and the global git config stays untouched.

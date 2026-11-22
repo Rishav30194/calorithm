@@ -1,15 +1,14 @@
 import { useState } from 'react'
 
-import type { FailedChange, OutboxSummary } from '@/data/DataProvider'
+import type { FailedChange, OutboxSummary, OutboxView } from '@/data/DataProvider'
 import type { DiscardOutcome } from '@/data/sync/discard'
 import type { SyncStatus } from '@/data/sync/engine'
-import { formatAgo } from '@/domain/format'
+import { formatAgo, formatCount } from '@/domain/format'
 import { strings } from '@/strings'
 
 type Props = {
   status: SyncStatus
-  // Undefined while the outbox loads.
-  outbox: OutboxSummary | undefined
+  outbox: OutboxView
   now: number
   locale: string
   onDiscard: (seq: number) => Promise<DiscardOutcome>
@@ -68,7 +67,8 @@ const allSynced = (status: SyncStatus, outbox: OutboxSummary): boolean =>
   outbox.failed.length === 0
 
 export const SyncPanel = ({ status, outbox, now, locale, onDiscard }: Props) => {
-  const failed: FailedChange[] = outbox?.failed ?? []
+  const summary = outbox.state === 'loaded' ? outbox.summary : null
+  const failed: FailedChange[] = summary?.failed ?? []
   const problem = status.state === 'update_required' ? null : status.problem
   return (
     <section aria-labelledby="sync-title" className="flex flex-col gap-2">
@@ -76,11 +76,25 @@ export const SyncPanel = ({ status, outbox, now, locale, onDiscard }: Props) => 
         {strings.sync.title}
       </h2>
       <p>{lastSyncedLine(status, now, locale)}</p>
-      {outbox === undefined && <p className="text-muted">{strings.sync.checking}</p>}
-      {outbox !== undefined && outbox.pending > 0 && (
-        <p className="text-muted">{strings.sync.waiting(outbox.pending)}</p>
+      {outbox.state === 'loading' && <p className="text-muted">{strings.sync.checking}</p>}
+      {outbox.state === 'failed' && (
+        <div role="alert" className="flex flex-wrap items-center gap-2">
+          <p className="text-danger">{strings.sync.outboxFailed}</p>
+          <button
+            type="button"
+            onClick={outbox.retry}
+            className="min-h-11 rounded-lg border border-border px-4 font-medium"
+          >
+            {strings.sync.retry}
+          </button>
+        </div>
       )}
-      {outbox !== undefined && allSynced(status, outbox) && (
+      {summary !== null && summary.pending > 0 && (
+        <p className="text-muted">
+          {strings.sync.waiting(formatCount(summary.pending, locale), summary.pending === 1)}
+        </p>
+      )}
+      {summary !== null && allSynced(status, summary) && (
         <p className="text-muted">{strings.sync.allSynced}</p>
       )}
       {problem === 'offline' && <p className="text-muted">{strings.sync.offline}</p>}

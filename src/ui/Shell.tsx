@@ -63,6 +63,7 @@ const Settings = ({ email, signOut, settings }: Props) => {
       {state.step === 'confirm' && (
         <SignOutDialog
           count={state.count}
+          locale={navigator.language}
           onExport={signOut.unsentFile}
           onConfirm={signOut.confirm}
           onCancel={signOut.cancel}

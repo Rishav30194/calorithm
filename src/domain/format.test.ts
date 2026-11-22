@@ -1,7 +1,14 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 
-import { formatAgo, formatAmount, formatKcal, formatProtein, formatWeight } from './format'
+import {
+  formatAgo,
+  formatAmount,
+  formatCount,
+  formatKcal,
+  formatProtein,
+  formatWeight,
+} from './format'
 
 describe('formatKcal', () => {
   it('rounds to a whole number with grouping', () => {
@@ -92,5 +99,21 @@ describe('formatAmount', () => {
     expect(formatAmount(0.333, 'en-US')).toBe('0.33')
     expect(formatAmount(1.5, 'de-DE')).toBe('1,5')
     expect(formatAmount(10_000, 'en-US')).toBe('10,000')
+  })
+})
+
+describe('formatCount', () => {
+  it('groups a whole count in the locale’s digits and separators', () => {
+    expect(formatCount(1234, 'en-US')).toBe('1,234')
+    expect(formatCount(1234, 'de-DE')).toBe('1.234')
+    expect(formatCount(3, 'hi-IN-u-nu-deva')).toBe('३')
+  })
+
+  it('formats every count as its locale’s rendering of that whole number', () => {
+    fc.assert(
+      fc.property(fc.nat(), (value) => {
+        expect(formatCount(value, 'en-US')).toBe(new Intl.NumberFormat('en-US').format(value))
+      }),
+    )
   })
 })

@@ -69,6 +69,9 @@ const grams = (places: number, max: number) =>
 const loggedGrams = (places: number) =>
   z._default(z.nullable(z.number().check(z.gte(0), decimals(places))), null)
 
+// A calendar day the database accepts: from 2000-01-01, as its range checks require.
+const dayDate = z.iso.date().check(z.refine((date) => date >= EARLIEST_DAY))
+
 export type ProfileRow = Tables<'profile'>
 
 const profileSchema = z.object({
@@ -150,7 +153,7 @@ export type DayRow = Tables<'days'>
 export const daysSpec: TableSpec<DayRow> = {
   name: 'days',
   schemaVersion: 1,
-  parse: parser(z.object({ ...syncColumns, date: z.iso.date(), complete: z.boolean() })),
+  parse: parser(z.object({ ...syncColumns, date: dayDate, complete: z.boolean() })),
 }
 
 export type LogEntryRow = Tables<'log_entries'>
@@ -162,7 +165,7 @@ export const logEntriesSpec: TableSpec<LogEntryRow> = {
   parse: parser(
     z.object({
       ...syncColumns,
-      date: z.iso.date(),
+      date: dayDate,
       meal: z.string(),
       food_id: z.nullable(z.string()),
       recipe_id: z.nullable(z.string()),
@@ -190,7 +193,7 @@ export const weightsSpec: TableSpec<WeightRow> = {
   parse: parser(
     z.object({
       ...syncColumns,
-      date: z.iso.date().check(z.refine((date) => date >= EARLIEST_DAY)),
+      date: dayDate,
       // numeric(5,2) between 20 and 400. Repositories round to 2 decimals; anything else is
       // rejected here, as the food specs do, rather than rounded differently by the server.
       weight_kg: z.number().check(
@@ -247,7 +250,7 @@ const checkinRulesHold = (row: CheckinFields): boolean => {
 const checkinSchema = z
   .object({
     ...syncColumns,
-    date: z.iso.date().check(z.refine((date) => date >= EARLIEST_DAY)),
+    date: dayDate,
     status: z.enum(['updated', 'skipped']),
     // Only a week with too few complete days is stored as skipped; see the migration.
     skip_reason: z.nullable(z.enum(['too_few_complete_days'])),

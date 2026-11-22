@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { FailedChange } from '@/data/DataProvider'
+import type { FailedChange, OutboxView } from '@/data/DataProvider'
 import type { SetUnitsResult } from '@/data/profile'
 import type { DiscardOutcome } from '@/data/sync/discard'
 import type { SyncStatus } from '@/data/sync/engine'
@@ -23,33 +23,79 @@ const refused: FailedChange = {
   message: 'violates check constraint',
 }
 
-const box = (pending: number, failed: FailedChange[] = []) => ({ pending, failed })
+const box = (pending: number, failed: FailedChange[] = []): OutboxView => ({
+  state: 'loaded',
+  summary: { pending, failed },
+})
+const loading: OutboxView = { state: 'loading' }
 
 describe('SyncBadge', () => {
   it('shows nothing when everything is synced', () => {
-    const { container } = render(<SyncBadge status={synced} outbox={box(0)} />)
+    const { container } = render(<SyncBadge status={synced} outbox={box(0)} locale="en-GB" />)
     expect(container).toBeEmptyDOMElement()
   })
 
   it('shows offline with the number of changes waiting', () => {
-    render(<SyncBadge status={offline} outbox={box(2)} />)
-    expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.offline(2))
+    render(<SyncBadge status={offline} outbox={box(2)} locale="en-GB" />)
+    expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.offline('2'))
   })
 
   it('puts refused changes first', () => {
-    render(<SyncBadge status={offline} outbox={box(2, [refused])} />)
-    expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.failed(1))
+    render(<SyncBadge status={offline} outbox={box(2, [refused])} locale="en-GB" />)
+    expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.failed('1', true))
   })
 
   it('shows a paused sync when the session expired', () => {
     const status: SyncStatus = { state: 'idle', lastSyncedAt: null, problem: 'signed_out' }
-    render(<SyncBadge status={status} outbox={box(0)} />)
+    render(<SyncBadge status={status} outbox={box(0)} locale="en-GB" />)
     expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.signedOut)
   })
 
   it('shows nothing until the outbox loads, rather than a count it doesn’t have', () => {
-    const { container } = render(<SyncBadge status={offline} outbox={undefined} />)
+    const { container } = render(<SyncBadge status={offline} outbox={loading} locale="en-GB" />)
     expect(container).toBeEmptyDOMElement()
+  })
+})
+
+describe('counts', () => {
+  it('format with the locale’s digits and grouping', () => {
+    render(<SyncBadge status={offline} outbox={box(1234)} locale="de-DE" />)
+    expect(screen.getByRole('status')).toHaveTextContent('Offline · 1.234 waiting')
+  })
+})
+
+describe('a failed outbox read', () => {
+  it('still says the session expired or the device is offline, which need no counts', () => {
+    const failed: OutboxView = { state: 'failed', retry: vi.fn() }
+    const expired: SyncStatus = { ...synced, problem: 'signed_out' }
+    const { rerender } = render(<SyncBadge status={expired} outbox={failed} locale="en-GB" />)
+    expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.signedOut)
+    rerender(<SyncBadge status={offline} outbox={failed} locale="en-GB" />)
+    expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.offline(null))
+  })
+
+  it('shows in the badge as an unknown status', () => {
+    render(
+      <SyncBadge status={synced} outbox={{ state: 'failed', retry: vi.fn() }} locale="en-GB" />,
+    )
+    expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.unknown)
+  })
+
+  it('shows in the panel with Try again, and never as everything synced', async () => {
+    const retry = vi.fn()
+    render(
+      <SyncPanel
+        status={synced}
+        outbox={{ state: 'failed', retry }}
+        now={now}
+        locale="en-GB"
+        onDiscard={async () => ({ status: 'done' })}
+      />,
+    )
+    expect(screen.getByRole('alert')).toHaveTextContent(strings.sync.outboxFailed)
+    expect(screen.queryByText(strings.sync.allSynced)).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: strings.sync.retry }))
+    expect(retry).toHaveBeenCalled()
   })
 })
 
@@ -75,7 +121,7 @@ describe('SyncPanel', () => {
   it('explains being offline and counts the changes waiting', () => {
     panel({ status: offline, outbox: box(3) })
     expect(screen.getByText(strings.sync.neverSynced)).toBeInTheDocument()
-    expect(screen.getByText(strings.sync.waiting(3))).toBeInTheDocument()
+    expect(screen.getByText(strings.sync.waiting('3', false))).toBeInTheDocument()
     expect(screen.getByText(strings.sync.offline)).toBeInTheDocument()
   })
 
@@ -98,7 +144,7 @@ describe('SyncPanel', () => {
 
   // The outbox count loads after the first render; until then the panel can't know.
   it('says it’s checking, not that everything is synced, until the outbox loads', () => {
-    const { rerender } = panel({ outbox: undefined })
+    const { rerender } = panel({ outbox: loading })
     expect(screen.getByText(strings.sync.checking)).toBeInTheDocument()
     expect(screen.queryByText(strings.sync.allSynced)).not.toBeInTheDocument()
     expect(screen.getByText(strings.sync.lastSynced('5 minutes ago'))).toBeInTheDocument()
@@ -113,7 +159,7 @@ describe('SyncPanel', () => {
       />,
     )
     expect(screen.queryByText(strings.sync.checking)).not.toBeInTheDocument()
-    expect(screen.getByText(strings.sync.waiting(1))).toBeInTheDocument()
+    expect(screen.getByText(strings.sync.waiting('1', true))).toBeInTheDocument()
     expect(screen.queryByText(strings.sync.allSynced)).not.toBeInTheDocument()
   })
 

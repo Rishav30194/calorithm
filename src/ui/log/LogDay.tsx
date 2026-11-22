@@ -2,7 +2,7 @@ import { useEffect, useId, useState } from 'react'
 
 import type { LoggedEntry } from '@/data/log'
 import type { DayView } from '@/data/logHooks'
-import { addDays } from '@/domain/dates'
+import { addDays, EARLIEST_DAY } from '@/domain/dates'
 import { formatAmount } from '@/domain/format'
 import { type DailyTargets, type Meal, meals, missingCarbsOrFat } from '@/domain/nutrition'
 import { strings } from '@/strings'
@@ -75,12 +75,19 @@ export const LogDay = ({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-2">
-        <a
-          href={dayHref(addDays(date, -1), today)}
-          className="inline-flex min-h-11 items-center rounded-lg border border-border px-3 font-medium"
-        >
-          {text.previousDay}
-        </a>
+        {date > EARLIEST_DAY ? (
+          <a
+            href={dayHref(addDays(date, -1), today)}
+            className="inline-flex min-h-11 items-center rounded-lg border border-border px-3 font-medium"
+          >
+            {text.previousDay}
+          </a>
+        ) : (
+          // Keeps the title centred where there's no earlier day to go to.
+          <span aria-hidden="true" className="invisible px-3">
+            {text.previousDay}
+          </span>
+        )}
         <h2 className="text-center text-lg font-semibold">{dayTitle(date, today, locale)}</h2>
         <a
           href={dayHref(addDays(date, 1), today)}

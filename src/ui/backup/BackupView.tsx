@@ -4,6 +4,7 @@ import type { ImportResult } from '@/data/backup/backup'
 import type { ExportFile, ImportFailure, ParseExportResult } from '@/data/backup/format'
 import { MAX_EXPORT_CHARS } from '@/data/backup/format'
 import type { ExportedFile } from '@/data/backupHooks'
+import { formatCount } from '@/domain/format'
 import { strings } from '@/strings'
 
 import { longDate, longMoment } from '../dates'
@@ -68,7 +69,7 @@ export const BackupView = ({
   const fileInput = useRef<HTMLInputElement>(null)
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
   const [pending, setPending] = useState<{ text: string; file: ExportFile } | null>(null)
-  const count = (value: number) => new Intl.NumberFormat(locale).format(value)
+  const count = (value: number) => formatCount(value, locale)
   const busy = status.kind === 'busy'
 
   const exportData = async () => {
@@ -188,7 +189,7 @@ export const BackupView = ({
           <p>
             {text.confirmBody(
               longMoment(pending.file.exported_at, locale),
-              text.items(itemCount(pending.file), count(itemCount(pending.file))),
+              text.items(count(itemCount(pending.file)), itemCount(pending.file) === 1),
             )}
           </p>
           <div className="flex flex-col gap-2">
