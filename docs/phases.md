@@ -817,7 +817,7 @@ Phase 12 waits for the user's MacroFactor subscription, so this phase runs first
 
 ## Phase 14 — Logging by weight, and built-in groceries everywhere
 
-**Status:** In progress (PRs 1 to 3 built; 0.12.0 to deploy)
+**Status:** Deployed in 0.12.0 (2026-11-22); the user's iPhone check of logging by weight is left
 
 **Goal:** log what you actually ate by weight, and find everyday groceries and spices
 wherever you pick a food.
