@@ -89,18 +89,34 @@ describe('parseExport', () => {
     expect(parseExport(text(), context)).toEqual({ ok: false, reason: 'not_export' })
   })
 
-  it('writes format version 2, which carries carbs and fat', () => {
-    expect(sample.version).toBe(2)
+  it('keeps carbs and fat from rows that have them, in a format version 1 file', () => {
+    const result = parseExport(JSON.stringify(sample), context)
+    expect(result.ok && result.file.version).toBe(1)
+    expect(result.ok && result.file.tables.foods[0]).toMatchObject({ schema_version: 2 })
+    expect(result.ok && result.file.tables.foods.every((food) => food.carbs_g !== null)).toBe(true)
+  })
+
+  it('refuses a log entry whose carbs or fat the database would refuse', () => {
+    for (const [column, value] of [
+      ['carbs_g', 10000.5],
+      ['fat_g', 20000],
+      ['carbs_g_per_serving', 10001],
+      ['fat_g_per_serving', 10000.001],
+    ] as const) {
+      const text = edited((file) => {
+        first(file, 'log_entries')[column] = value
+      })
+      expect(parseExport(text, context), column).toEqual({ ok: false, reason: 'invalid' })
+    }
   })
 
   it('refuses a file from a newer format version', () => {
-    const text = edited((file) => Object.assign(file, { version: 3, tables: 'anything' }))
+    const text = edited((file) => Object.assign(file, { version: 2, tables: 'anything' }))
     expect(parseExport(text, context)).toEqual({ ok: false, reason: 'newer_version' })
   })
 
-  it('accepts a format version 1 file, with carbs and fat not set', () => {
+  it('accepts rows from before carbs and fat, with them not set', () => {
     const text = edited((file) => {
-      Object.assign(file, { version: 1 })
       for (const table of ['foods', 'log_entries'] as const) {
         for (const row of rows(file, table)) {
           row.schema_version = 1

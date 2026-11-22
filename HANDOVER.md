@@ -13,7 +13,8 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    review against MacroFactor once the user subscribes. The user wants macros only (kcal,
    protein, carbs, fat), no AI logging, and no bulk food database.
    Phase 8 is in progress (`docs/phases.md`, decision 0025). PR 1 (#33) and PR 2 (#34,
-   0.3.0) are merged; PR 3 (export format version 2, 0.4.0) needs no migration. Every
+   0.3.0) are merged; PR 3 (import range checks for carbs and fat, 0.3.1; the export format
+   stays version 1) needs no migration. Every
    acceptance criterion is checked. Left: release 2, a migration raising `min_app_version`
    to 0.3.0 once the user confirms every device runs 0.3.0 or later; then mark phase 8
    done. Bump the version for each release (`docs/development.md`, "Versions and tags"),

@@ -487,7 +487,7 @@ is made public, because GitHub Pages on the Free plan serves only public reposit
 **Acceptance criteria:**
 - [x] A food saved with carbs and fat shows them on the food, in a recipe's totals, and in
   the log, rounded to one decimal place. (`e2e/foods.spec.ts`, `src/ui/log/log.test.tsx`,
-  and the live app on 0.3.0, 2026-11-22)
+  and the live app on 0.3.0, 2026-11-21)
 - [x] Editing a food's carbs or fat doesn't change entries already logged.
   (`src/data/log.test.ts`)
 - [x] A device on the previous version keeps syncing while the new columns exist (the first
@@ -495,7 +495,9 @@ is made public, because GitHub Pages on the Free plan serves only public reposit
   them, and the push and integration tests prove a version 1 entry keeps stored values;
   not watched on a real device running 0.2.0.)
 - [x] Export then import reproduces carbs and fat; a version 1 file still imports.
-  (`e2e/backup.spec.ts` and `src/data/backup/format.test.ts`)
+  (`src/data/backup/backup.test.ts` restores every row of foods and log entries exactly;
+  `src/data/backup/format.test.ts` imports rows from before carbs and fat; the export
+  format stays version 1, see the implementation notes)
 - [x] pgTAP covers the new columns' ranges, and fast-check covers the new totals.
   (`supabase/tests/carbs_fat.test.sql` and `src/domain/nutrition.test.ts`)
 
@@ -518,8 +520,11 @@ which build entries from kcal and protein only. PR 3: export format version 2.
   and say when some are missing; a recipe's carbs or fat are not set if any ingredient's
   are, since a logged recipe is one entry. Logged totals are checked locally for precision
   only, like protein.
-- PR 3 (0.4.0): export format version 2; version 1 files import with carbs and fat not set,
-  and an app older than this refuses version 2 files.
+- PR 3 (0.3.1): the planned export format version 2 was dropped (review of PR 3). Rows carry
+  their own `schema_version`, so 0.2.0 already refuses a file with carbs and fat as
+  `newer_version`, and a format bump would only have stopped 0.3.0 importing a newer app's
+  file. The format stays version 1. Import now refuses carbs or fat on log entries that the
+  database's ranges would refuse.
 - Left for release 2: raise `min_app_version` to 0.3.0 once every device runs it.
 
 ## Phase 9 — Recent and frequent foods

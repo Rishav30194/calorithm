@@ -66,7 +66,7 @@ test('an export imported into another account brings its data across (phase 6 cr
   const path = await exportData(page)
 
   const file = JSON.parse(await readFile(path, 'utf8'))
-  expect(file).toMatchObject({ format: 'calorithm-export', version: 2, user_id: seedUser.id })
+  expect(file).toMatchObject({ format: 'calorithm-export', version: 1, user_id: seedUser.id })
   expect(file.tables.foods).toContainEqual(
     expect.objectContaining({ name, carbs_g: 27, fat_g: 2.5 }),
   )
