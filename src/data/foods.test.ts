@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import type { LocalDb } from './db'
 import {
+  copyCatalogFood,
   createFood,
   createRecipe,
   findFoodsByBarcode,
@@ -359,5 +360,39 @@ describe('saving a recipe whose ingredient’s food was deleted elsewhere', () =
       return item ? [item] : []
     })
     expect(items.find((item) => item.food_id === gone.id)?.deleted_at).toBeNull()
+  })
+})
+
+describe('copyCatalogFood (phase 14)', () => {
+  const onion = {
+    id: 'onion',
+    name: 'Onion',
+    aliases: ['pyaz'],
+    category: 'vegetables',
+    servingSize: 100,
+    servingUnit: 'g',
+    kcal: 40,
+    proteinG: 1.1,
+    carbsG: 9.3,
+    fatG: 0.1,
+    source: { dataset: 'SR Legacy', fdcId: 170000 },
+  }
+
+  it('copies a built-in item into your foods once, and reuses the copy after', async () => {
+    const first = await copyCatalogFood(db, time.clock, userId, onion)
+    const second = await copyCatalogFood(db, time.clock, userId, onion)
+
+    expect(second.id).toBe(first.id)
+    expect(await listFoods(db)).toEqual([
+      expect.objectContaining({ name: 'Onion', catalogId: 'onion', kcal: 40, servingUnit: 'g' }),
+    ])
+  })
+
+  it('brings an archived copy back instead of making another', async () => {
+    const copy = await copyCatalogFood(db, time.clock, userId, onion)
+    await setFoodArchived(db, time.clock, copy.id, true)
+
+    expect((await copyCatalogFood(db, time.clock, userId, onion)).id).toBe(copy.id)
+    expect(await listFoods(db)).toEqual([expect.objectContaining({ id: copy.id, archived: false })])
   })
 })

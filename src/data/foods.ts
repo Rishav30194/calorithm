@@ -11,6 +11,7 @@ import {
   scaleNutrients,
 } from '@/domain/nutrition'
 
+import type { CatalogFood } from './catalog/search'
 import type { LocalDb } from './db'
 import { type Clock, writeRow } from './repository'
 import {
@@ -92,6 +93,38 @@ export const createFood = (
     },
     clock,
   )
+
+// A built-in item as one of your foods (decision 0027): the copy made before, brought back
+// if it was archived, or a new copy, so picking it again never makes a second one.
+export const copyCatalogFood = (
+  db: LocalDb,
+  clock: Clock,
+  userId: string,
+  item: CatalogFood,
+): Promise<FoodRow> =>
+  db.transaction('rw', db.rows('foods'), db.outbox, async () => {
+    const existing = (await db.rows('foods').where('catalog_id').equals(item.id).toArray()).flatMap(
+      (raw) => {
+        const food = foodsSpec.parse(raw)
+        return food && food.deleted_at === null ? [food] : []
+      },
+    )[0]
+    if (existing) {
+      return existing.archived_at === null
+        ? existing
+        : writeRow(db, foodsSpec, { ...existing, archived_at: null }, clock)
+    }
+    return createFood(db, clock, userId, {
+      name: item.name,
+      servingSize: item.servingSize,
+      servingUnit: item.servingUnit,
+      kcal: item.kcal,
+      proteinG: item.proteinG,
+      carbsG: item.carbsG,
+      fatG: item.fatG,
+      catalogId: item.id,
+    })
+  })
 
 // A row missing locally, for example removed by a pull, is reported rather than recreated.
 export const updateFood = async (
@@ -282,7 +315,7 @@ export type RecipeDetail = RecipeView & { items: RecipeItemView[] }
 const byName = (a: { name: string }, b: { name: string }) =>
   a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
 
-const toFoodView = (food: FoodRow): FoodView => ({
+export const toFoodView = (food: FoodRow): FoodView => ({
   id: food.id,
   name: food.name,
   servingSize: food.serving_size,

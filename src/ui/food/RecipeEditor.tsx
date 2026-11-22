@@ -1,6 +1,8 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 
+import type { CatalogFood } from '@/data/catalog/search'
 import type { FoodView, RecipeDetail, RecipeInput } from '@/data/foods'
+import type { CatalogState } from '@/data/logHooks'
 import { formatAmount } from '@/domain/format'
 import {
   type Ingredient,
@@ -24,6 +26,14 @@ type Props = {
   backHref: string
   onSave: (input: RecipeInput) => Promise<boolean>
   onSetArchived: (archived: boolean) => Promise<void>
+  // The built-in food list, searched in the ingredient picker (phase 14).
+  builtIn: {
+    state: CatalogState | undefined
+    onSearch: () => void
+    onRetry: () => void
+    // Copies the item into your foods, or finds the copy made before.
+    onCopy: (item: CatalogFood) => Promise<FoodView>
+  }
 }
 
 type Item = { foodId: string; servings: string }
@@ -31,7 +41,15 @@ type Item = { foodId: string; servings: string }
 const byName = (a: { name: string }, b: { name: string }) =>
   a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
 
-export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArchived }: Props) => {
+export const RecipeEditor = ({
+  recipe,
+  foods,
+  locale,
+  backHref,
+  onSave,
+  onSetArchived,
+  builtIn,
+}: Props) => {
   const text = strings.recipes.editor
   const show = (value: number) => editableNumber(value, locale)
   const [name, setName] = useState(recipe?.name ?? '')
@@ -43,6 +61,7 @@ export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArc
   const [errors, setErrors] = useState<Partial<Record<RecipeField, string>>>({})
   const [itemErrors, setItemErrors] = useState<Record<string, string>>({})
   const [picking, setPicking] = useState(false)
+  const [copies, setCopies] = useState<FoodView[]>([])
   const [saving, setSaving] = useState(false)
   const [failed, setFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
@@ -71,7 +90,8 @@ export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArc
   }
 
   // Foods by id, archived ones too, since a recipe can keep an archived ingredient.
-  const foodById = new Map(foods.map((food) => [food.id, food]))
+  // Copies of built-in foods are known here at once, before the foods query catches up.
+  const foodById = new Map([...copies, ...foods].map((food) => [food.id, food]))
   const nameOf = (foodId: string) =>
     foodById.get(foodId)?.name ?? recipe?.items.find((item) => item.foodId === foodId)?.name ?? ''
   const perServingOf = (foodId: string): Nutrients | null => {
@@ -104,6 +124,17 @@ export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArc
   const pickable = foods.filter(
     (food) => !food.archived && !items.some((item) => item.foodId === food.id),
   )
+  // Built-in items you've copied show as your own foods instead.
+  const copied = new Set(
+    foods.flatMap((food) => (!food.archived && food.catalogId ? [food.catalogId] : [])),
+  )
+
+  const addFood = (foodId: string) => {
+    setItems((old) =>
+      old.some((item) => item.foodId === foodId) ? old : [...old, { foodId, servings: show(1) }],
+    )
+    setPicking(false)
+  }
 
   const setItemServings = (foodId: string, value: string) =>
     setItems((old) =>
@@ -237,9 +268,19 @@ export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArc
         <FoodPicker
           foods={pickable}
           detailOf={describeFood}
-          onPick={(food) => {
-            setItems((old) => [...old, { foodId: food.id, servings: show(1) }])
-            setPicking(false)
+          onPick={(food) => addFood(food.id)}
+          builtIn={{
+            state: builtIn.state,
+            copied,
+            locale,
+            onSearch: builtIn.onSearch,
+            onRetry: builtIn.onRetry,
+            onPick: async (item) => {
+              const copy = await builtIn.onCopy(item)
+              setCopies((old) => [...old, copy])
+              addFood(copy.id)
+              return true
+            },
           }}
           onClose={() => setPicking(false)}
         />

@@ -1,8 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo } from 'react'
-
+import type { CatalogFood } from './catalog/search'
 import { useData } from './DataProvider'
 import {
+  copyCatalogFood,
   createFood,
   createRecipe,
   type FoodInput,
@@ -16,6 +17,7 @@ import {
   recipeDetail,
   setFoodArchived,
   setRecipeArchived,
+  toFoodView,
   type UpdateResult,
   updateFood,
   updateRecipe,
@@ -46,6 +48,8 @@ export type FoodActions = {
   create: (input: FoodInput) => Promise<{ id: string }>
   update: (id: string, input: FoodInput) => Promise<UpdateResult<{ id: string }>>
   setArchived: (id: string, archived: boolean) => Promise<void>
+  // A built-in item as one of your foods, copied the first time (decision 0027).
+  copyBuiltIn: (item: CatalogFood) => Promise<FoodView>
 }
 
 export type RecipeActions = {
@@ -67,6 +71,8 @@ export const useFoodActions = (): FoodActions => {
       create: (input) => synced(createFood(ctx.db, ctx.clock, userId, input)),
       update: (id, input) => synced(updateFood(ctx.db, ctx.clock, id, input)),
       setArchived: (id, archived) => synced(setFoodArchived(ctx.db, ctx.clock, id, archived)),
+      copyBuiltIn: async (item) =>
+        toFoodView(await synced(copyCatalogFood(ctx.db, ctx.clock, userId, item))),
     }
   }, [ctx, engine, userId])
 }

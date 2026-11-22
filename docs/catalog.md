@@ -1,9 +1,10 @@
 # Built-in foods
 
 The built-in food list: 192 common Indian groceries, dishes, spices, and gym foods, with
-kcal, protein, carbs, and fat per serving. Type in the log picker's search and matches show
-under **Built-in foods**; picking one copies it into your foods (with its `catalog_id`) and
-logs a serving. A copied item shows as your own food after that. Decision 0027 explains
+kcal, protein, carbs, and fat per serving. Type in the log picker's, the recipe ingredient
+picker's, or the **Foods** screen's search and matches show under **Built-in foods**; picking
+one copies it into your foods (with its `catalog_id`) and then logs it, adds it to the
+recipe, or opens it for checking. A copied item shows as your own food after that. Decision 0027 explains
 the source.
 
 ## Source
@@ -28,6 +29,8 @@ Agricultural Research Service. FoodData Central. fdc.nal.usda.gov.
 | Other | 7: sugar, brown sugar, honey, tea with milk, dark chocolate, cocoa, and ketchup |
 
 No beef or pork. Search works by English and common Hindi names: "aloo", "dahi", "jeera".
+It matches the start of a word, so "rice" finds "Puffed rice" but "hing" doesn't find
+"jhinga".
 
 ## Known gaps and approximations
 

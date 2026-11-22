@@ -21,8 +21,15 @@ export const loadCatalog = async (): Promise<CatalogFood[]> =>
 
 const SEARCH_LIMIT = 20
 
-// Built-in foods whose name or a Hindi alias contains the search, names starting with it
-// first, then by name. Items already copied into your foods are left out.
+// True when some word of the name, or the run of words from it, starts with the search, so
+// "puffed rice" matches "rice" but "jhinga" doesn't match "hing".
+const wordStartsWith = (name: string, needle: string): boolean =>
+  name
+    .split(/(?<=[^\p{L}\p{N}])/u)
+    .some((_, index, words) => words.slice(index).join('').trimStart().startsWith(needle))
+
+// Built-in foods whose name or a Hindi alias has a word starting with the search, names
+// starting with it first, then by name. Items already copied into your foods are left out.
 export const searchCatalog = (
   foods: readonly CatalogFood[],
   query: string,
@@ -34,7 +41,7 @@ export const searchCatalog = (
   const rank = (food: CatalogFood): number | null => {
     const names = [food.name, ...food.aliases].map((name) => name.toLocaleLowerCase())
     if (names.some((name) => name.startsWith(needle))) return 0
-    if (names.some((name) => name.includes(needle))) return 1
+    if (names.some((name) => wordStartsWith(name, needle))) return 1
     return null
   }
   return foods

@@ -6,16 +6,17 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. **Phase 14 PR 1 (0.10.0, logging by weight) is built on `feature/log-by-weight`**, with
-   `check:full`, `/code-review` (all findings fixed or recorded in decision 0031), and no
-   security review needed beyond the sync columns (run `/security-review` before the PR,
-   since it adds synced columns). It holds migration `20261122050000_log_entries_serving`:
-   it merges only after the user applies that to the hosted project. Dexie version 9 clears
-   the `log_entries` pull cursor, so the first sync after updating rereads every log entry.
-   Then PR 2 (built-in foods in the recipe picker and on the Foods screen, word-start
-   search) and PR 3 (garam and chaat masala estimates; single spices after the user
-   approves a source), per `docs/phases.md`, phase 14. Follow-up: route foods saved from a
-   barcode scan or a label through the amount step.
+1. **Phase 14 PR 1 (0.10.0, logging by weight) is deployed** (#45, 2026-11-22; the hosted
+   project has migrations through `20261122050000`). Dexie version 9 clears the
+   `log_entries` pull cursor, so each device's first sync after updating rereads every log
+   entry once. PR 2 (0.11.0: built-in foods in the recipe ingredient picker and on the
+   **Foods** screen, word-start search) is built on `feature/builtin-everywhere`, with
+   `check:full` and `/code-review` done (findings fixed), no migration; push and open its
+   PR when the user asks. Then PR 3 (garam and chaat masala
+   estimates; hing, ajwain, kalonji, curry leaves, amchur, and black salt only after the
+   user approves a source, 0.12.0), per `docs/phases.md`, phase 14. Follow-up: route foods
+   saved from a barcode scan or a label through the amount step. The user hasn't yet tried
+   logging by weight on the iPhone.
 2. **Phase 13 (nutrition label) is deployed as 0.9.0** (#43, with 0.8.0 and the phase 11
    close-out), ahead of phase 12, which waits for the user's MacroFactor subscription. Live
    check 2026-11-22: GitHub Pages serves the photo reader gzipped, so the first photo
@@ -31,8 +32,8 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    beside the form with **Fix the text**, and maybe a crop step. Phase 13 stays open until
    then; the workaround is cropping to the table in Photos first.
    Where things stand: phases 1 to 11 are done. The app is live at
-   `https://rishav30194.github.io/calorithm/` as 0.9.1 (tag `v0.9.1`), with nutrition
-   labels, barcode scanning, built-in foods, recent and frequent foods, and carbs and fat. The hosted
+   `https://rishav30194.github.io/calorithm/` as 0.10.0 (tag `v0.10.0`), with logging
+   by weight, nutrition labels, barcode scanning, built-in foods, recent and frequent foods, and carbs and fat. The hosted
    project has migrations through `20261122040000`, and `min_app_version` is 0.3.0. The
    user's phone ran 0.7.0 before this deploy.
    The user wants macros only (kcal, protein, carbs, fat), no AI logging, no bulk food
