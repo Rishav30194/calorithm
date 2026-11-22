@@ -12,6 +12,7 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    as one PR when the user asks: 0.8.0 (the label parser and **Paste label text**) and
    0.9.0 (**Photo of label**, read on the device with `tesseract.js` 7.0.0, approved
    2026-11-22). The branch also carries the phase 11 close-out commit. No migration.
+   `check:full` passes and `/code-review` ran on both halves, with every finding fixed.
    After the deploy: check on the live site that GitHub Pages serves the reader's scripts
    gzipped (about 4.4 MB on first use), then the user tries real labels on the iPhone,
    including Indian packs, and phase 13 can close.
