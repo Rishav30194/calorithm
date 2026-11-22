@@ -16,8 +16,10 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    raising `min_app_version` to 0.3.0 once the user confirms every device runs 0.3.0 or
    later; then mark phase 8 done.
    Phase 9 (recent and frequent foods, 0.4.0) is built on its branch and marked done there;
-   it needs no migration. Next: phase 10, the built-in Indian and gym foods: present its
-   plan first, with the IFCT 2017 license question. Bump the version for each release (`docs/development.md`, "Versions and
+   it is merged (#36). Phase 10 (built-in foods, USDA only, decision 0027) is in progress:
+   PR 1, the list and its build script, is on its branch; PR 2, the picker and a
+   `catalog_id` migration, is next. The USDA CSV downloads aren't committed; see
+   `docs/catalog.md` to rebuild. Bump the version for each release (`docs/development.md`, "Versions and
    tags"), and apply hosted migrations before merging the PR that needs them: every push
    to `main` deploys at once while CI is paused.
    The hosted test account (the user knows which) holds the user's phone entries; never
