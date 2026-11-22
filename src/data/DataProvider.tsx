@@ -65,6 +65,9 @@ type DataContextValue = Session & {
   userId: string
   status: SyncStatus
   signOut: SignOutControls
+  // Bumped by an outbox retry, so every reader of the outbox reads it again.
+  outboxAttempt: number
+  retryOutbox: () => void
 }
 
 const DataContext = createContext<DataContextValue | null>(null)
@@ -225,10 +228,14 @@ export const DataProvider = ({
     }
   }, [session, signOutStep, client])
 
+  const [outboxAttempt, setOutboxAttempt] = useState(0)
+  const retryOutbox = useCallback(() => setOutboxAttempt((n) => n + 1), [])
   const value = useMemo(
     () =>
-      session && signOutControls ? { ...session, userId, status, signOut: signOutControls } : null,
-    [session, userId, status, signOutControls],
+      session && signOutControls
+        ? { ...session, userId, status, signOut: signOutControls, outboxAttempt, retryOutbox }
+        : null,
+    [session, userId, status, signOutControls, outboxAttempt, retryOutbox],
   )
   // After a failed sign-out, the deleted database stays hidden until the new one is open.
   if (!value || value.generation !== generation || signOutStep.step === 'deleting') {
@@ -252,15 +259,14 @@ export type OutboxView =
   | { state: 'loaded'; summary: OutboxSummary }
 
 export const useOutbox = (): OutboxView => {
-  const { ctx } = useData()
-  // Bumped by retry, so the query runs again.
-  const [attempt, setAttempt] = useState(0)
-  const read = useLiveQuery(() => readOutbox(ctx.db), [ctx.db, attempt])
-  const retry = useCallback(() => setAttempt((n) => n + 1), [])
+  const { ctx, outboxAttempt, retryOutbox } = useData()
+  const read = useLiveQuery(() => readOutbox(ctx.db), [ctx.db, outboxAttempt])
   return useMemo((): OutboxView => {
     if (read === undefined) return { state: 'loading' }
-    return read.ok ? { state: 'loaded', summary: read.summary } : { state: 'failed', retry }
-  }, [read, retry])
+    return read.ok
+      ? { state: 'loaded', summary: read.summary }
+      : { state: 'failed', retry: retryOutbox }
+  }, [read, retryOutbox])
 }
 
 export const useUnits = (): Units => {

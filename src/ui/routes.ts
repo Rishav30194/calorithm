@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { z } from 'zod/mini'
 
-import { isDay } from '@/domain/dates'
+import { EARLIEST_DAY, isDay } from '@/domain/dates'
 
 // Hash routes (#/weight): GitHub Pages serves one file, so a refresh on any screen still works.
 export const tabs = ['log', 'weight', 'checkin', 'settings'] as const
@@ -37,7 +37,10 @@ const parseLog = ([list, id]: string[]): Route => {
   const fallback: Route = { tab: 'log', screen: 'log', date: null }
   switch (list) {
     case 'day':
-      return id !== undefined && isDay(id) ? { tab: 'log', screen: 'log', date: id } : fallback
+      // The database keeps no day before EARLIEST_DAY, so the log never opens one.
+      return id !== undefined && isDay(id) && id >= EARLIEST_DAY
+        ? { tab: 'log', screen: 'log', date: id }
+        : fallback
     case 'foods':
       return id === undefined
         ? { tab: 'log', screen: 'foods' }

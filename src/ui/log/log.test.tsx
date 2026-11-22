@@ -416,6 +416,18 @@ describe('LogDay', () => {
     return handlers
   }
 
+  it('offers no day before 2000-01-01, which the database doesn’t keep', () => {
+    const handlers = {
+      onAdd: vi.fn(),
+      onCopy: vi.fn(),
+      onOpenEntry: vi.fn(),
+      onSetComplete: vi.fn(),
+    }
+    render(<LogDay date="2000-01-01" today="2026-11-21" day={day} locale="en-US" {...handlers} />)
+    expect(screen.queryByRole('link', { name: text.previousDay })).toBeNull()
+    expect(screen.getByRole('link', { name: text.nextDay })).toBeInTheDocument()
+  })
+
   it('shows the day and meal totals, and every meal', () => {
     renderDay()
     expect(screen.getByText(text.dayTotal).parentElement).toHaveTextContent(

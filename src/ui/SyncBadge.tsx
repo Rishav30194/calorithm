@@ -11,8 +11,11 @@ const message = ({ status, outbox, locale }: Props): string | null => {
     // Nothing until the counts load, so the badge never shows a count it doesn't have yet.
     case 'loading':
       return null
-    // Settings says why and offers to try again.
+    // Settings says why and offers to try again. An expired session or no network needs no
+    // counts, so those still show.
     case 'failed':
+      if (status.problem === 'signed_out') return strings.sync.badge.signedOut
+      if (status.problem === 'offline') return strings.sync.badge.offline(null)
       return strings.sync.badge.unknown
     case 'loaded':
       break

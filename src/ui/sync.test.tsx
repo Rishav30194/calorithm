@@ -65,6 +65,15 @@ describe('counts', () => {
 })
 
 describe('a failed outbox read', () => {
+  it('still says the session expired or the device is offline, which need no counts', () => {
+    const failed: OutboxView = { state: 'failed', retry: vi.fn() }
+    const expired: SyncStatus = { ...synced, problem: 'signed_out' }
+    const { rerender } = render(<SyncBadge status={expired} outbox={failed} locale="en-GB" />)
+    expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.signedOut)
+    rerender(<SyncBadge status={offline} outbox={failed} locale="en-GB" />)
+    expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.offline(null))
+  })
+
   it('shows in the badge as an unknown status', () => {
     render(
       <SyncBadge status={synced} outbox={{ state: 'failed', retry: vi.fn() }} locale="en-GB" />,
