@@ -625,7 +625,7 @@ the general formula.
 
 ## Phase 11 — Barcode scanning
 
-**Status:** Not started
+**Status:** In progress (PR 1 of 2)
 
 **Goal:** scan a packaged food's barcode to add it.
 
@@ -658,25 +658,42 @@ the general formula.
 - How well Open Food Facts covers Indian brands is unknown; check it with real packages at
   the phase's start.
 
-**Proposed plan** (2026-11-22, awaiting the user's approval of the two points marked):
+**Plan** (2026-11-22; the user approved both marked points the same day):
 - Library: `barcode-detector` 3.2.3 (MIT, 2026-10-19; 3.2.4 was under 7 days old), a
   polyfill of the browser's `BarcodeDetector` on `zxing-wasm`. Its reader WebAssembly is
   about 947 kB uncompressed, loaded only when the scanner opens, and self-hosted instead of
   fetched from its default CDN; confirm the setting in the installed version's types.
-  **Needs approval** as a new dependency.
+  Approved as a new dependency.
 - Lookup: Open Food Facts (ODbL), sending only the barcode; attribution "© Open Food Facts
   contributors" wherever its data shows. If a contact is needed, the project's GitHub
-  address, never the user's email. **Needs approval.** Browsers can't set User-Agent, so
-  check Open Food Facts' guidance for browser apps.
+  address, never the user's email (approved). Browsers can't set User-Agent, and Open Food
+  Facts' docs don't cover browser apps; its API allows an `X-User-Agent` header from any
+  origin (checked 2026-11-22), so PR 2 sends the app name and contact there. Unverified as
+  their recommended practice.
 - PR 1 (0.6.0, one migration): nullable `barcode` on foods (schema version 4, in
   `addedColumns`, Dexie index), an optional **Barcode** field on the food form, and lookup
   of your own foods by barcode, test first.
 - PR 2 (0.7.0): **Scan barcode** and **Enter barcode** in the picker; your foods first, then
   Open Food Facts filling the food form; messages for unknown codes, no network, and a
-  denied camera; browser tests with a recorded Open Food Facts response; decision 0028.
+  denied camera; browser tests with a recorded Open Food Facts response; decision 0029.
   Real scanning is checked on the user's iPhone.
 
-**Implementation notes:** none yet.
+**Implementation notes:**
+- PR 1 (0.6.0, migration `20261122040000_foods_barcode`): `src/domain/barcode.ts` checks
+  the GS1 check digit and stores one form per product (decision 0028): EAN-8, EAN-13, or
+  GTIN-14 digits, with a 12-digit UPC-A code as its EAN-13 form, a 14-digit code's leading
+  zero dropped, and a zero-padded EAN-8 code as its 8 digits. The database checks only the
+  digit pattern. UPC-E (8 digits, check digit on the expanded code)
+  isn't read; PR 2 expands it when the scanner reports that format.
+- The barcode is nullable and in `addedColumns` (schema version 4), so sync never clears
+  it (decision 0025): the form refuses to empty a saved barcode, and an edit without one
+  keeps it. Not unique; `findFoodsByBarcode` parses the code it's given and returns active
+  foods by name, then archived ones.
+- 0.5.0 and earlier drop columns they don't know from pulled rows (as 0.5.0 did
+  `catalog_id`), so Dexie version 8 clears the foods pull cursor, and the next pull reads
+  every food again without counting as a resync.
+- Open Food Facts limits product reads to 15 a minute per IP address, and its v2 API is
+  deprecated in favor of v3.6; PR 2 picks the endpoint.
 
 ## Phase 12 — Review against MacroFactor
 

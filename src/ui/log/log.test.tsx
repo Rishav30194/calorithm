@@ -32,6 +32,7 @@ const oats: FoodView = {
   kcal: 150,
   proteinG: 5,
   catalogId: null,
+  barcode: null,
   archived: false,
   carbsG: null,
   fatG: null,

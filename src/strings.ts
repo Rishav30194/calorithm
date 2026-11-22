@@ -135,6 +135,8 @@ export const strings = {
       proteinG: 'Protein per serving (g)',
       carbsG: 'Carbs per serving (g)',
       fatG: 'Fat per serving (g)',
+      barcode: 'Barcode (optional)',
+      barcodeHint: 'The digits under the bars on the pack',
       save: 'Save',
       saving: 'Saving…',
       archive: 'Archive',
@@ -154,6 +156,9 @@ export const strings = {
       proteinG: 'Enter protein from 0 to 1000 g, with up to two decimals.',
       carbsG: 'Enter carbs from 0 to 1000 g.',
       fatG: 'Enter fat from 0 to 1000 g.',
+      barcode: 'Enter the 8, 12, 13, or 14 digits under the bars.',
+      barcodeCheckDigit: 'That barcode’s last digit doesn’t match the others. Check the digits.',
+      barcodeKept: 'A saved barcode can be changed but not removed.',
     },
   },
 

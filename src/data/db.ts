@@ -114,6 +114,23 @@ export const schemaVersions: readonly SchemaVersion[] = [
         })
     },
   },
+  {
+    // A pack's barcode (phase 11): none for stored foods.
+    version: 8,
+    // Indexed, so a scan finds a saved food without reading every food.
+    stores: { foods: 'id, catalog_id, barcode' },
+    upgrade: async (tx) => {
+      await tx
+        .table('foods')
+        .toCollection()
+        .modify((row: Record<string, unknown>) => {
+          row.barcode ??= null
+        })
+      // Older versions dropped the barcode from foods they pulled (as 0.5.0 did catalog_id),
+      // so foods are read again from the start; only the cursor goes, not a resync.
+      await tx.table('sync_state').update('foods', { cursor: null })
+    },
+  },
 ]
 
 export const dbNameFor = (userId: string): string => `calorithm-${userId}`

@@ -4,6 +4,7 @@ import type { LocalDb } from './db'
 import {
   createFood,
   createRecipe,
+  findFoodsByBarcode,
   listFoods,
   listRecipes,
   recipeDetail,
@@ -219,6 +220,55 @@ describe('setRecipeArchived', () => {
 
     await setRecipeArchived(db, time.clock, recipe.id, false)
     expect(recipesSpec.parse(await db.rows('recipes').get(recipe.id))?.archived_at).toBeNull()
+  })
+})
+
+describe('barcodes', () => {
+  const paneer = { ...oats, name: 'Paneer', barcode: '8901234567890' }
+
+  it('saves a barcode, and no barcode when none is given', async () => {
+    expect(await createFood(db, time.clock, userId, paneer)).toMatchObject({
+      barcode: '8901234567890',
+    })
+    expect(await createFood(db, time.clock, userId, oats)).toMatchObject({ barcode: null })
+  })
+
+  it('changes a barcode, and keeps it when an edit gives none (decision 0025)', async () => {
+    const food = await createFood(db, time.clock, userId, paneer)
+
+    await updateFood(db, time.clock, food.id, { ...paneer, barcode: '96385074' })
+    expect(foodsSpec.parse(await db.rows('foods').get(food.id))?.barcode).toBe('96385074')
+
+    await updateFood(db, time.clock, food.id, { ...oats, name: 'Paneer' })
+    expect(foodsSpec.parse(await db.rows('foods').get(food.id))?.barcode).toBe('96385074')
+  })
+
+  it('finds your foods with a barcode: active ones by name, then archived ones', async () => {
+    const block = await createFood(db, time.clock, userId, paneer)
+    const archived = await createFood(db, time.clock, userId, { ...paneer, name: 'Old paneer' })
+    await setFoodArchived(db, time.clock, archived.id, true)
+    await createFood(db, time.clock, userId, { ...paneer, name: 'cubes' })
+    const deleted = await createFood(db, time.clock, userId, { ...paneer, name: 'Gone' })
+    await db.rows('foods').update(deleted.id, { deleted_at: '2026-11-20T10:00:00.000Z' })
+    await createFood(db, time.clock, userId, { ...paneer, barcode: '96385074' })
+    await createFood(db, time.clock, userId, oats)
+
+    const found = await findFoodsByBarcode(db, '8901234567890')
+
+    expect(found.map((food) => [food.name, food.archived])).toEqual([
+      ['cubes', false],
+      ['Paneer', false],
+      ['Old paneer', true],
+    ])
+    expect(found[1]).toMatchObject({ id: block.id, barcode: '8901234567890' })
+    expect(await findFoodsByBarcode(db, '0000000000017')).toEqual([])
+  })
+
+  it('finds a food from any form of its barcode, and nothing for an invalid one', async () => {
+    const food = await createFood(db, time.clock, userId, { ...paneer, barcode: '0036000291452' })
+
+    expect((await findFoodsByBarcode(db, '036000 291452')).map(({ id }) => id)).toEqual([food.id])
+    expect(await findFoodsByBarcode(db, '036000291453')).toEqual([])
   })
 })
 

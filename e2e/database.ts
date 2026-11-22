@@ -94,3 +94,10 @@ export const removeBuiltInCopies = (userId: string, catalogId: string): void => 
     { id: userId, catalog: catalogId },
   )
 }
+
+// The barcode the server holds for a user's food, by name; empty when it has none.
+export const serverBarcodeOf = (userId: string, name: string): string =>
+  runSql(
+    `select coalesce(barcode, '') from public.foods where user_id = :'id' and name = :'name';`,
+    { id: userId, name },
+  )

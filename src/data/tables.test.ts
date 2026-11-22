@@ -78,6 +78,7 @@ const food: FoodRow = {
   carbs_g: 27,
   fat_g: 2.5,
   catalog_id: null,
+  barcode: null,
   archived_at: null,
 }
 
@@ -226,8 +227,12 @@ describe('carbs and fat (decision 0025)', () => {
   })
 
   it('names the columns each version added', () => {
-    expect(foodsSpec.schemaVersion).toBe(3)
-    expect(foodsSpec.addedColumns).toEqual({ 2: ['carbs_g', 'fat_g'], 3: ['catalog_id'] })
+    expect(foodsSpec.schemaVersion).toBe(4)
+    expect(foodsSpec.addedColumns).toEqual({
+      2: ['carbs_g', 'fat_g'],
+      3: ['catalog_id'],
+      4: ['barcode'],
+    })
     expect(logEntriesSpec.schemaVersion).toBe(2)
     expect(logEntriesSpec.addedColumns).toEqual({
       2: ['carbs_g', 'fat_g', 'carbs_g_per_serving', 'fat_g_per_serving'],
@@ -252,6 +257,22 @@ describe('catalog_id (decision 0027)', () => {
     })
     expect(foodsSpec.parse({ ...food, catalog_id: '' })).toBeNull()
     expect(foodsSpec.parse({ ...food, catalog_id: 'x'.repeat(61) })).toBeNull()
+  })
+})
+
+describe('barcode (phase 11)', () => {
+  it('reads a row without the column as having no barcode', () => {
+    const { barcode: _barcode, ...beforeBarcode } = food
+    expect(foodsSpec.parse(beforeBarcode)).toEqual({ ...beforeBarcode, barcode: null })
+  })
+
+  it('accepts the stored forms, and refuses others, as the database does', () => {
+    for (const barcode of ['96385074', '6291041500213', '10012345678902']) {
+      expect(foodsSpec.parse({ ...food, barcode })).toMatchObject({ barcode })
+    }
+    for (const barcode of ['', '036000291452', '62910415002a3', '123456789']) {
+      expect(foodsSpec.parse({ ...food, barcode })).toBeNull()
+    }
   })
 })
 

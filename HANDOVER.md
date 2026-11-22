@@ -6,12 +6,13 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. **Phase 11 (barcode scanning) is next, in a new session.** Its plan is written in
-   `docs/phases.md` (phase 11, "Proposed plan", 2026-11-22) and **awaits the user's
-   approval** of two points: adding `barcode-detector@3.2.3` (MIT; about 947 kB of
-   WebAssembly, loaded only when the scanner opens, self-hosted rather than from its default
-   CDN), and using the project's GitHub address, never the user's email, if Open Food Facts
-   needs a contact. Present that plan, get the approval, then build PR 1.
+1. **Phase 11 PR 1 (0.6.0, optional barcode on foods) is built on `feature/food-barcode`**,
+   with `/code-review` and `/security-review` done (code review fixes are in the second
+   commit). Next: run `npm run check:full`, then push and open the PR when the user asks.
+   It holds migration `20261122040000_foods_barcode`, so it merges only after the user
+   applies that migration to the hosted project. The user approved both plan points on
+   2026-11-22: `barcode-detector@3.2.3`, and the project's GitHub address as the Open Food
+   Facts contact. PR 2 (scanner and Open Food Facts lookup, 0.7.0, decision 0029) follows.
    Where things stand: phases 1 to 10 are done. The app is live at
    `https://rishav30194.github.io/calorithm/` as 0.5.0 (tag `v0.5.0`), with built-in
    foods, recent and frequent foods, and carbs and fat. The hosted project has migrations
@@ -50,8 +51,11 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
   searching offline before the list is cached, then online.
 - Does Supabase's free plan include downloadable backups? The user checks in the dashboard.
 - Exact rate limit of Supabase's built-in email sending. Matters only before friends join.
-- Open Food Facts asks API users to name their app and a contact; browsers can't set the
-  User-Agent. Check their current guidance for browser apps at phase 11's start.
+- Open Food Facts asks API users to name their app and a contact in the User-Agent, which
+  browsers can't set, and its docs don't cover browser apps. Its API allows an
+  `X-User-Agent` header from any origin (checked 2026-11-22); PR 2 plans to use it, but that
+  isn't confirmed as their recommended practice. Their docs also ask apps to fill in a usage
+  form; that's the user's call.
 - How well Open Food Facts covers Indian brands (for example Swad or Amul paneer) is
   unknown; phase 11 starts by trying real packages.
 

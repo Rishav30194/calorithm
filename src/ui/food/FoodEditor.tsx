@@ -26,8 +26,18 @@ const initialValues = (food: FoodView | null, locale: string): FoodFormValues =>
         // Not set on foods saved before carbs and fat existed: left empty to fill in.
         carbsG: food.carbsG === null ? '' : show(food.carbsG),
         fatG: food.fatG === null ? '' : show(food.fatG),
+        barcode: food.barcode ?? '',
       }
-    : { name: '', servingSize: '', servingUnit: '', kcal: '', proteinG: '', carbsG: '', fatG: '' }
+    : {
+        name: '',
+        servingSize: '',
+        servingUnit: '',
+        kcal: '',
+        proteinG: '',
+        carbsG: '',
+        fatG: '',
+        barcode: '',
+      }
 }
 
 export const FoodEditor = ({ food, locale, backHref, onSave, onSetArchived }: Props) => {
@@ -64,7 +74,7 @@ export const FoodEditor = ({ food, locale, backHref, onSave, onSetArchived }: Pr
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     setFailed(false)
-    const parsed = parseFoodForm(values)
+    const parsed = parseFoodForm(values, food?.barcode ?? null)
     if (!parsed.ok) {
       setErrors(parsed.errors)
       setAttempt((n) => n + 1)
@@ -135,6 +145,14 @@ export const FoodEditor = ({ food, locale, backHref, onSave, onSetArchived }: Pr
           onChange={set('fatG')}
           inputMode="decimal"
           error={errors.fatG}
+        />
+        <TextField
+          label={text.barcode}
+          hint={text.barcodeHint}
+          value={values.barcode}
+          onChange={set('barcode')}
+          inputMode="numeric"
+          error={errors.barcode}
         />
         {failed && (
           <p role="alert" className="text-danger">

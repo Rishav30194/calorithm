@@ -1,6 +1,7 @@
 import { z } from 'zod/mini'
 
 import type { FoodInput, RecipeInput } from '@/data/foods'
+import { parseBarcode } from '@/domain/barcode'
 import { strings } from '@/strings'
 
 // Form fields hold text as typed. One decimal mark, a point or a comma, may follow with up to
@@ -54,6 +55,7 @@ export type FoodFormValues = {
   proteinG: string
   carbsG: string
   fatG: string
+  barcode: string
 }
 
 export type FoodField = keyof FoodFormValues
@@ -62,7 +64,29 @@ export type FoodFormResult =
   | { ok: true; input: FoodInput }
   | { ok: false; errors: Errors<FoodField> }
 
-export const parseFoodForm = (values: FoodFormValues): FoodFormResult => {
+// An empty field means no barcode, unless the food has one saved: sync can't clear it back to
+// not set (decision 0025), so the field then must hold a barcode.
+const barcodeField = (
+  errors: Errors<FoodField>,
+  text: string,
+  saved: string | null,
+): { barcode?: string } | undefined => {
+  const messages = strings.foods.errors
+  if (text.trim() === '') {
+    if (saved === null) return {}
+    errors.barcode = messages.barcodeKept
+    return undefined
+  }
+  const parsed = parseBarcode(text)
+  if (parsed.ok) return { barcode: parsed.barcode }
+  errors.barcode = parsed.reason === 'check_digit' ? messages.barcodeCheckDigit : messages.barcode
+  return undefined
+}
+
+export const parseFoodForm = (
+  values: FoodFormValues,
+  savedBarcode: string | null = null,
+): FoodFormResult => {
   const errors: Errors<FoodField> = {}
   const messages = strings.foods.errors
   const parsed = {
@@ -79,8 +103,9 @@ export const parseFoodForm = (values: FoodFormValues): FoodFormResult => {
     proteinG: field(errors, 'proteinG', grams, toNumber(values.proteinG), messages.proteinG),
     carbsG: field(errors, 'carbsG', grams, toNumber(values.carbsG), messages.carbsG),
     fatG: field(errors, 'fatG', grams, toNumber(values.fatG), messages.fatG),
+    barcode: barcodeField(errors, values.barcode, savedBarcode),
   }
-  const { name: n, servingSize, servingUnit, kcal: k, proteinG, carbsG, fatG } = parsed
+  const { name: n, servingSize, servingUnit, kcal: k, proteinG, carbsG, fatG, barcode } = parsed
   if (
     n === undefined ||
     servingSize === undefined ||
@@ -88,13 +113,14 @@ export const parseFoodForm = (values: FoodFormValues): FoodFormResult => {
     k === undefined ||
     proteinG === undefined ||
     carbsG === undefined ||
-    fatG === undefined
+    fatG === undefined ||
+    barcode === undefined
   ) {
     return { ok: false, errors }
   }
   return {
     ok: true,
-    input: { name: n, servingSize, servingUnit, kcal: k, proteinG, carbsG, fatG },
+    input: { name: n, servingSize, servingUnit, kcal: k, proteinG, carbsG, fatG, ...barcode },
   }
 }
 

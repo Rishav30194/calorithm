@@ -67,14 +67,14 @@ export type Database = {
                   ]
                 },"foods": {
                   Row: {
-                    "archived_at": string | null,"carbs_g": number | null,"catalog_id": string | null,"client_updated_at": string,"deleted_at": string | null,"fat_g": number | null,"id": string,"kcal": number,"name": string,"protein_g": number,"schema_version": number,"serving_size": number,"serving_unit": string,"updated_at": string,"user_id": string
+                    "archived_at": string | null,"barcode": string | null,"carbs_g": number | null,"catalog_id": string | null,"client_updated_at": string,"deleted_at": string | null,"fat_g": number | null,"id": string,"kcal": number,"name": string,"protein_g": number,"schema_version": number,"serving_size": number,"serving_unit": string,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "archived_at"?: string | null,"carbs_g"?: number | null,"catalog_id"?: string | null,"client_updated_at": string,"deleted_at"?: string | null,"fat_g"?: number | null,"id": string,"kcal": number,"name": string,"protein_g": number,"schema_version": number,"serving_size": number,"serving_unit": string,"updated_at"?: string,"user_id"?: string
+                    "archived_at"?: string | null,"barcode"?: string | null,"carbs_g"?: number | null,"catalog_id"?: string | null,"client_updated_at": string,"deleted_at"?: string | null,"fat_g"?: number | null,"id": string,"kcal": number,"name": string,"protein_g": number,"schema_version": number,"serving_size": number,"serving_unit": string,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "archived_at"?: string | null,"carbs_g"?: number | null,"catalog_id"?: string | null,"client_updated_at"?: string,"deleted_at"?: string | null,"fat_g"?: number | null,"id"?: string,"kcal"?: number,"name"?: string,"protein_g"?: number,"schema_version"?: number,"serving_size"?: number,"serving_unit"?: string,"updated_at"?: string,"user_id"?: string
+                    "archived_at"?: string | null,"barcode"?: string | null,"carbs_g"?: number | null,"catalog_id"?: string | null,"client_updated_at"?: string,"deleted_at"?: string | null,"fat_g"?: number | null,"id"?: string,"kcal"?: number,"name"?: string,"protein_g"?: number,"schema_version"?: number,"serving_size"?: number,"serving_unit"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     
