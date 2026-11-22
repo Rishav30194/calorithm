@@ -132,6 +132,7 @@ export const strings = {
       amount: (unit: string) => `Amount (${unit})`,
       // One serving's weight, beside the servings field.
       perServing: (amount: string) => `1 serving is ${amount}`,
+      weight: (amount: string, unit: string) => `${amount} ${unit}`,
       preview: (nutrients: string) => `That’s ${nutrients}`,
       error: 'Enter servings from 0.01 to 1000, or an amount that comes to that.',
       log: 'Log',

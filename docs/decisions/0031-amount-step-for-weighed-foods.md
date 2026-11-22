@@ -14,8 +14,9 @@ with, so grams couldn't be shown reliably once the food changed.
 
 ## Decision
 
-A food whose serving is a weight or volume (unit g, ml, kg, or l) opens an amount step when
-picked, prefilled with one serving, or with the servings last logged for a recent pick. It
+A food whose serving is a weight or volume (unit g, gm, gms, gram, grams, kg, ml, l, litre,
+or liter) opens an amount step when picked, prefilled with one serving, or with the servings
+last logged for a recent pick. It
 has **Amount (g)** linked to **Servings** and a live preview of the four values. Count foods
 (1 roti, "tsp (3 g)") still log in one tap. Each log entry copies the food's serving size
 and unit (nullable `serving_size` and `serving_unit`, schema version 3), and the entry
@@ -36,4 +37,8 @@ dialog offers grams whenever that serving has a weight, including a bracketed on
 - Servings keep two decimals, so grams round to the nearest step: 1 g for a 100 g serving,
   0.03 g for a 3 g one.
 - Entries logged before 0.10.0 have no serving and show servings only.
+- A recent pick carries over its servings, not its grams: if the food's serving changed
+  since, the prefilled grams follow the new serving.
+- A food saved and logged from a barcode scan or a nutrition label logs one serving without
+  the amount step; the entry can then be edited in grams.
 - Revisit if the extra tap proves slower than the arithmetic it saves.

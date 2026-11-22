@@ -190,10 +190,14 @@ export const logEntriesSpec: TableSpec<LogEntryRow> = {
           null,
         ),
         serving_unit: z._default(
+          // Counted in characters, as Postgres's char_length does, not UTF-16 units.
           z.nullable(
-            z
-              .string()
-              .check(z.refine((unit) => unit.trim().length >= 1 && unit.trim().length <= 20)),
+            z.string().check(
+              z.refine((unit) => {
+                const length = [...unit.trim()].length
+                return length >= 1 && length <= 20
+              }),
+            ),
           ),
           null,
         ),

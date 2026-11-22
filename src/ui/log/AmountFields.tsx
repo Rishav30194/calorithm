@@ -17,6 +17,7 @@ type Props = {
   perServing: Nutrients
   initialServings: number
   locale: string
+  // Shown on the field typed last, which is the one that didn't parse.
   error: string | undefined
   // The servings typed or worked out from the amount; null while they don't parse.
   onChange: (servings: number | null) => void
@@ -39,17 +40,21 @@ export const AmountFields = ({
     portion ? show(amountForServings(initialServings, portion)) : '',
   )
   const [servings, setServings] = useState<number | null>(initialServings)
+  const [typedAmount, setTypedAmount] = useState(portion !== null)
 
   const report = (value: number | null) => {
     setServings(value)
     onChange(value)
   }
 
+  // The other field follows; while this one doesn't parse, the other is cleared rather than
+  // left showing a value that no longer matches.
   const typeServings = (value: string) => {
     setServingsText(value)
+    setTypedAmount(false)
     const parsed = parseServings(value)
     report(parsed)
-    if (parsed !== null && portion) setAmountText(show(amountForServings(parsed, portion)))
+    if (portion) setAmountText(parsed === null ? '' : show(amountForServings(parsed, portion)))
   }
 
   const typeAmount = (value: string) => {
@@ -59,8 +64,9 @@ export const AmountFields = ({
       portion && Number.isFinite(amount) && amount > 0
         ? parseServings(show(servingsForAmount(amount, portion)))
         : null
+    setTypedAmount(true)
     report(parsed)
-    if (parsed !== null) setServingsText(show(parsed))
+    setServingsText(parsed === null ? '' : show(parsed))
   }
 
   return (
@@ -71,20 +77,21 @@ export const AmountFields = ({
           value={amountText}
           onChange={typeAmount}
           inputMode="decimal"
-          invalid={error !== undefined}
+          error={typedAmount ? error : undefined}
+          autoFocus
         />
       )}
       <TextField
         label={text.servings}
         hint={
           portion
-            ? text.perServing(`${formatAmount(portion.amount, locale)} ${portion.unit}`)
+            ? text.perServing(text.weight(formatAmount(portion.amount, locale), portion.unit))
             : undefined
         }
         value={servingsText}
         onChange={typeServings}
         inputMode="decimal"
-        error={error}
+        error={typedAmount ? undefined : error}
       />
       {servings !== null && (
         <p role="status" className="text-muted">

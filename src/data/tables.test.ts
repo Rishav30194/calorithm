@@ -299,6 +299,8 @@ describe('log entry serving (phase 14)', () => {
     expect(logEntriesSpec.parse({ ...served, serving_size: 1.005 })).toBeNull()
     expect(logEntriesSpec.parse({ ...served, serving_unit: ' ' })).toBeNull()
     expect(logEntriesSpec.parse({ ...served, serving_unit: 'x'.repeat(21) })).toBeNull()
+    // 12 emoji are 24 UTF-16 units but 12 characters, which the database accepts.
+    expect(logEntriesSpec.parse({ ...served, serving_unit: '🍗'.repeat(12) })).not.toBeNull()
   })
 })
 

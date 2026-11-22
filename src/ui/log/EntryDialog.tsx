@@ -37,7 +37,8 @@ export const EntryDialog = ({ entry, locale, onSave, onRemove, onClose }: Props)
   const submit = (event: FormEvent) => {
     event.preventDefault()
     if (servings === null) {
-      setError(strings.log.amount.error)
+      // Without a weight there's no amount field to mention.
+      setError(entry.portion ? strings.log.amount.error : strings.recipes.errors.itemServings)
       return
     }
     setError(undefined)

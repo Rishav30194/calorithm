@@ -240,10 +240,21 @@ export const LogPicker = ({
       }
     >
       {amountFor ? (
-        <div className="flex flex-col gap-3">
+        <form
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault()
+            logAmount()
+          }}
+          className="flex flex-col gap-3"
+        >
           <button
             type="button"
-            onClick={() => setAmountFor(null)}
+            onClick={() => {
+              setAmountFor(null)
+              setFailed(false)
+              setAmountError(undefined)
+            }}
             className="inline-flex min-h-11 items-center self-start text-accent"
           >
             {strings.log.label.back}
@@ -266,14 +277,13 @@ export const LogPicker = ({
             }}
           />
           <button
-            type="button"
+            type="submit"
             disabled={busy}
-            onClick={logAmount}
             className="min-h-11 rounded-lg bg-accent px-4 font-semibold text-accent-text disabled:opacity-60"
           >
             {strings.log.amount.log}
           </button>
-        </div>
+        </form>
       ) : panel === 'label' ? (
         <LabelPanel
           barcode={null}

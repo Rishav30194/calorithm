@@ -115,6 +115,53 @@ describe('LogPicker', () => {
     expect(onClose).toHaveBeenCalled()
   })
 
+  it('logs a count food’s quick pick in one tap, with the servings last logged', async () => {
+    const roti: FoodView = { ...oats, id: 'f9', name: 'Roti', servingSize: 1, servingUnit: 'roti' }
+    const onPick = vi.fn(async () => true)
+    render(
+      <LogPicker
+        meal="breakfast"
+        picks={{
+          recent: [{ source: { kind: 'food', id: 'f9' }, name: 'Roti', servings: 2, count: 1 }],
+          mostUsed: [],
+          scores: new Map(),
+        }}
+        foods={[roti]}
+        recipes={[]}
+        builtIn={undefined}
+        locale="en-US"
+        onPickBuiltIn={vi.fn()}
+        onSearch={vi.fn()}
+        onRetryBuiltIn={vi.fn()}
+        onLookup={vi.fn()}
+        onLogScanned={vi.fn()}
+        onLogNew={vi.fn()}
+        onPick={onPick}
+        onClose={vi.fn()}
+      />,
+    )
+    const recent = screen.getByRole('heading', { name: text.picker.recent }).closest('section')
+    if (!recent) throw new Error('no recent section')
+    await userEvent.click(within(recent).getByRole('button', { name: /Roti/ }))
+
+    expect(onPick).toHaveBeenCalledWith({ kind: 'food', id: 'f9' }, 2)
+    expect(screen.queryByLabelText(/^Amount/)).toBeNull()
+  })
+
+  it('logs from the amount step with Enter, and clears its error on Back', async () => {
+    const { onPick } = renderPicker(vi.fn(async () => false))
+    await userEvent.type(screen.getByLabelText(text.picker.search), 'Oats')
+    await userEvent.click(screen.getByRole('button', { name: /Oats/ }))
+    expect(screen.getByLabelText(text.amount.amount('g'))).toHaveFocus()
+
+    await userEvent.keyboard('{Enter}')
+    expect(onPick).toHaveBeenCalledWith({ kind: 'food', id: 'f1' }, 1)
+    expect(await screen.findByRole('alert')).toHaveTextContent(text.picker.failed)
+
+    await userEvent.click(screen.getByRole('button', { name: text.label.back }))
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
   it('goes back from the amount step to the list without logging', async () => {
     const { onPick } = renderPicker()
     await userEvent.type(screen.getByLabelText(text.picker.search), 'Oats')
@@ -330,7 +377,7 @@ describe('EntryDialog', () => {
     await userEvent.type(field, '0')
     await userEvent.click(screen.getByRole('button', { name: text.entry.save }))
     expect(onSave).not.toHaveBeenCalled()
-    expect(field).toHaveAccessibleDescription(strings.log.amount.error)
+    expect(field).toHaveAccessibleDescription(strings.recipes.errors.itemServings)
 
     await userEvent.clear(field)
     await userEvent.type(field, '1,5')
@@ -374,6 +421,11 @@ describe('EntryDialog', () => {
     await userEvent.clear(servings)
     await userEvent.type(servings, '1.5')
     expect(grams).toHaveValue('150')
+
+    // An amount that comes to under 0.01 servings clears Servings rather than leave 1.5.
+    await userEvent.clear(grams)
+    await userEvent.type(grams, '0.3')
+    expect(servings).toHaveValue('')
 
     await userEvent.clear(grams)
     await userEvent.type(grams, '70')
