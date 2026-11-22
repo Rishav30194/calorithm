@@ -8,7 +8,9 @@ a rewrite. It holds health data, so correctness and privacy come before speed of
 
 1. The session-start facts (printed by a hook) and `HANDOVER.md`: the live git, PR, and CI
    state, then the next steps, open questions, and warnings.
-2. `docs/phases.md`: the current phase, its scope, and its acceptance criteria.
+2. `docs/phases.md`: each phase's scope, acceptance criteria, and implementation notes. All
+   seven phases are done; new work comes from `HANDOVER.md` and `PLAN.md`'s growth
+   checklists.
 3. `PLAN.md`: product scope, data model, and how the numbers work.
 4. `docs/architecture.md`: how the app is built. Read it before touching sync or the schema.
 
@@ -35,7 +37,8 @@ Follow `docs/ai-workflow.md`. In short:
    for that phase's written scope, not for changes outside it.
 2. **Test first** in `src/domain/` and `src/data/sync/`: write the failing test, run it, see it
    fail, then write the code. A hook blocks commits that change code there without a test.
-3. **Small steps.** One PR is one phase or one part of a phase. Commit each working step.
+3. **Small steps.** One PR is one change: a fix, a feature, or one part of a larger plan.
+   Commit each working step.
 4. **Prove it.** Claim a result only after running it in this session. Report failing,
    skipped, and unfinished work without being asked.
 5. **Review before the PR.** Run `/code-review` on the branch and `/security-review` when the
@@ -76,8 +79,9 @@ Changes to `.claude/` and `.github/workflows/` need the user's approval.
 - Deleting or renaming files.
 - Changing `package.json` scripts, build config, CI, or anything in `.claude/`.
 - Pushing, opening or merging a PR.
-- Anything against the hosted Supabase project: `supabase link`, `db push`, or dashboard
-  settings. Claude never runs these; the user does.
+- Anything against the hosted Supabase project: `supabase link`, a CLI command with
+  `--remote` that changes the database, or dashboard settings. Claude never runs these; the
+  user does. Read-only checks through the public API with the publishable key are allowed.
 
 ## Commands
 
@@ -184,7 +188,10 @@ docs/           architecture, phases, decisions, workflow
 
 - Branches: `feature/`, `fix/`, or `chore/`. Never commit to `main`.
 - Commit messages: a short imperative sentence, no period.
-- PRs use `.github/pull_request_template.md` and are squash-merged by the user.
+- PRs use `.github/pull_request_template.md` and are squash-merged by the user, or by Claude
+  when the user approves that merge.
+- A PR that changes what users get bumps `version` in `package.json`; the deploy tags it.
+  See `docs/development.md`, "Versions and tags".
 
 ## Secrets
 

@@ -9,8 +9,9 @@ yourself: Claude never touches the hosted project or the repository settings.
 | Database and sign-in | A hosted Supabase project on the free plan |
 | Keep-awake | `.github/workflows/keep-awake.yml`, Mondays and Thursdays, so one failed run still leaves a request inside the week |
 
-Dashboard menu names in this guide were not checked against the live dashboards; if one has
-moved, search the settings for it.
+The production setup was done on 2026-11-21 by following this guide, which confirmed its
+dashboard menu names; if one moves later, search the settings for it. Keep this guide to
+rebuild production or to set up a second project.
 
 ## One-time setup
 

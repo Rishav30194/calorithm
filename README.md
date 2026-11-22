@@ -4,7 +4,9 @@ A calorie and protein tracker that installs on your phone and works offline. Eve
 estimates your maintenance calories from what you ate and how your weight trended, then sets
 your targets for the next week.
 
-**Status:** in development. Progress by phase is in [the phase plan](docs/phases.md).
+**Status:** live at [rishav30194.github.io/calorithm](https://rishav30194.github.io/calorithm/)
+for invited accounts; sign-ups are off. All build phases are done; see
+[the phase plan](docs/phases.md).
 
 ## Features
 
