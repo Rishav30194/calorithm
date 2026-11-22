@@ -10,7 +10,7 @@
 #                     `npm run check:fast` must pass
 #   git push       -> not from main, never forced
 #   gh pr create   -> `npm run check:full` must pass
-#   supabase       -> no reset or push against a linked or remote database
+#   supabase       -> no reset or push against a linked or remote database (CLI 3.x: --remote)
 set -uo pipefail
 
 root="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
@@ -80,7 +80,7 @@ if grep -Eq ">[[:space:]]*([^[:space:];|&]*/)?\.env(\.[[:alnum:]_-]+)*([^[:alnum
   block "Writing to .env files is off-limits. Tell the user which key to set."
 fi
 
-if grep -Eq '(^|[^[:alnum:]_./-])supabase[[:space:]]+db[[:space:]]+(reset|push)([[:space:]].*)?--(linked|db-url)' <<<"$cmd"; then
+if grep -Eq '(^|[^[:alnum:]_./-])supabase[[:space:]]+db[[:space:]]+(reset|push)([[:space:]].*)?--(linked|db-url|remote)' <<<"$cmd"; then
   block "supabase db reset or push against a linked or remote database is never run by Claude. Ask the user."
 fi
 

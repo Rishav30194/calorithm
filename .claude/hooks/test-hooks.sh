@@ -70,7 +70,13 @@ echo "== remote database guard =="
 b 2 "db push linked" 'npx supabase db push --linked'
 b 2 "db reset linked" 'supabase db reset --linked'
 b 2 "db push db-url" 'supabase db push --db-url postgres://x'
+b 2 "db push remote" 'npx supabase db push --remote'
+b 2 "db push remote ref" 'supabase db push --dry-run --remote=abcdefghijklmnopqrst'
+b 2 "db reset remote" 'supabase db reset --remote --yes'
+b 2 "db push remote with env" 'SUPABASE_DB_PASSWORD="$(x)" npx supabase db push --remote'
 b 0 "local db reset" 'npx supabase db reset'
+b 0 "local db push" 'npx supabase db push'
+b 0 "remote migration list" 'npx supabase migration list --remote'
 
 echo "== commit gate: no repository, no package.json =="
 b 0 "commit before scaffold" 'git commit -m "x"'

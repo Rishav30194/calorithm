@@ -165,6 +165,9 @@ docs/           architecture, phases, decisions, workflow
   `client_updated_at` with the trigger that skips older updates, `deleted_at`,
   `schema_version`, row-level security enabled in the creating migration, and the policy
   `user_id = (select auth.uid())`. See `docs/architecture.md`, "Sync".
+- Supabase grants nothing on new tables, locally or hosted. The creating migration grants
+  exactly what the app uses (`select, insert, update` to `authenticated` for a user table),
+  and `supabase/tests/privileges.test.sql` checks the set.
 - Schema changes that clients see ship in two releases: add and accept both shapes, then
   remove the old shape once no client sends it. See `docs/architecture.md`, "Schema versions".
 - Every table and policy gets pgTAP tests in the same PR.
