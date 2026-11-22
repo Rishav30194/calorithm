@@ -432,14 +432,33 @@ Check-in rules: decision 0021.
 - Keep-awake workflow, twice a week so one failed run still leaves a request inside the week.
 
 **Acceptance criteria:**
-- [ ] The live app installs on the phone and opens offline.
-- [ ] An entry made on the phone appears on a laptop, and the reverse.
-- [ ] A new deployment shows the update prompt on the phone.
-- [ ] The keep-awake workflow has run successfully once.
-- [ ] Export from the live app downloads a valid file.
+- [ ] The live app installs on the phone and opens offline. (A headless browser reloaded
+  the live app offline with its data on 2026-11-21; the phone install is still to check.)
+- [ ] An entry made on the phone appears on a laptop, and the reverse. (Phone to laptop
+  checked 2026-11-21; laptop to phone waits for the user's confirmation.)
+- [ ] A new deployment shows the update prompt on the phone. (Version 0.2.0 is the new
+  deployment.)
+- [x] The keep-awake workflow has run successfully once. (Run on 2026-11-22 UTC, reading
+  `app_config` from the hosted project.)
+- [x] Export from the live app downloads a valid file. (`calorithm-export-2026-11-21.json`
+  with the export header and every row, checked 2026-11-21.)
 
 **Plan** (approved 2026-11-21): one PR with the deploy and keep-awake workflows and
 `docs/production.md`, then the user's setup and the checks in that document. The repository
 is made public, because GitHub Pages on the Free plan serves only public repositories.
 
-**Implementation notes:** none yet.
+**Implementation notes:**
+- PR #27: `deploy.yml` publishes to Pages after CI passes on `main`, only for the commit
+  still at its head, and stops early on a missing or wrong Supabase secret.
+  `keep-awake.yml` reads `app_config` on Mondays and Thursdays. Decision 0024 records making
+  the repository public.
+- PR #28: the hosted project grants nothing on new tables, unlike local Supabase at the time,
+  so migration `20261121090000` grants each table's privileges explicitly, and local runs
+  with `auto_expose_new_tables = false` to match. The hook now blocks every hosted database
+  change, which CLI 3.x names with `--remote`.
+- Hosted setup, 2026-11-21: the user created the project, turned off sign-ups, and set the
+  secrets. Claude applied the first 14 migrations with the user's one-off approval, and the
+  user applied the grants migration. Deleting a throwaway account through the live app
+  removed it, and its sign-in then failed.
+- Releases are tagged: `v0.1.0` marks the first live version, and from 0.2.0 the deploy
+  workflow tags each deployed version (`docs/development.md`, "Versions and tags").
