@@ -6,23 +6,28 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phases 1 to 7 are done; phase 7 finished 2026-11-21. The app is live at
-   `https://rishav30194.github.io/calorithm/` as version 0.2.0 (tag `v0.2.0`) against the
-   hosted project. Phases 8 to 12 were added 2026-11-21 at the user's request: carbs and
-   fat, recent and frequent foods, built-in Indian and gym foods, barcode scanning, then a
-   review against MacroFactor once the user subscribes. The user wants macros only (kcal,
-   protein, carbs, fat), no AI logging, and no bulk food database.
-   Phase 8 is done: release 2's migration `20261122030000` raises `min_app_version` to
-   0.3.0. **The user applies it to the hosted project before it merges.**
-   Phase 9 (recent and frequent foods, 0.4.0) is merged (#36).
-   Phase 10 (built-in foods, 0.5.0) is merged (#37, #38). Next: phase 11 (barcode
-   scanning); present its plan with two questions: the contact address Open Food Facts asks
-   for, and the scanning library and its size.
-   Bump the version for each release (`docs/development.md`, "Versions and tags"), and apply hosted migrations before merging the PR that needs them: every push
-   to `main` deploys at once while CI is paused.
-   The hosted test account (the user knows which) holds the user's phone entries; never
-   delete it or its data without the user's approval. If not yet done, the user deletes the
-   Keychain item: `security delete-generic-password -s calorithm-supabase-db`.
+1. **Phase 11 (barcode scanning) is next, in a new session.** Its plan is written in
+   `docs/phases.md` (phase 11, "Proposed plan", 2026-11-22) and **awaits the user's
+   approval** of two points: adding `barcode-detector@3.2.3` (MIT; about 947 kB of
+   WebAssembly, loaded only when the scanner opens, self-hosted rather than from its default
+   CDN), and using the project's GitHub address, never the user's email, if Open Food Facts
+   needs a contact. Present that plan, get the approval, then build PR 1.
+   Where things stand: phases 1 to 10 are done. The app is live at
+   `https://rishav30194.github.io/calorithm/` as 0.5.0 (tag `v0.5.0`), with built-in
+   foods, recent and frequent foods, and carbs and fat. The hosted project has migrations
+   through `20261122030000`, and `min_app_version` is 0.3.0. The user's phone and laptop
+   run 0.5.0. Phase 12 (review against MacroFactor) waits for the user's subscription.
+   The user wants macros only (kcal, protein, carbs, fat), no AI logging, no bulk food
+   database, and Indian foods with no beef or pork.
+   How releases go: bump the version for each user-facing release (`docs/development.md`,
+   "Versions and tags"). A PR with a migration waits until the user applies it to the
+   hosted project (`docs/production.md`, step 6, VPN off), because every push to `main`
+   deploys at once while CI is paused. The user asks for push, PR, and merge explicitly
+   each time; the permission check blocks a push they haven't asked for.
+   The hosted test account (the user knows which) holds the user's phone entries and a few
+   test foods; never delete it or its data without the user's approval. If not yet done,
+   the user deletes the Keychain item: `security delete-generic-password -s
+   calorithm-supabase-db`.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
@@ -45,9 +50,10 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
   searching offline before the list is cached, then online.
 - Does Supabase's free plan include downloadable backups? The user checks in the dashboard.
 - Exact rate limit of Supabase's built-in email sending. Matters only before friends join.
-- No hosted Supabase project exists yet (checked 2026-11-21: the user's account has only an
-  unrelated project, which must not be linked). Phase 7's scope lists the hosted checks,
-  including account deletion with a throwaway account.
+- Open Food Facts asks API users to name their app and a contact; browsers can't set the
+  User-Agent. Check their current guidance for browser apps at phase 11's start.
+- How well Open Food Facts covers Indian brands (for example Swad or Amul paneer) is
+  unknown; phase 11 starts by trying real packages.
 
 ## Watch out for
 
@@ -65,8 +71,15 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 183.8 kB of the 200 kB budget (CI on `main`, 2026-11-21); the
-  log, food, and backup screens load on demand. A new screen of any size should too.
+- First-load JavaScript is 185.0 kB of the 200 kB budget (0.5.0, 2026-11-22); the log,
+  food, and backup screens and the built-in food list load on demand. A new screen of any
+  size, and the barcode scanner, should too.
+- The built-in food list is rebuilt from USDA CSV downloads that aren't committed;
+  `docs/catalog.md` explains it. The build refuses ambiguous portions and changed
+  descriptions.
+- Built-in items hide once copied, so a browser test that picks one first removes the seed
+  user's copy (`removeBuiltInCopies` in `e2e/database.ts`) and runs in the desktop project
+  only.
 - The browser tests run a production build, so React's development double-run isn't covered.
   After changing `DataProvider`, also check `npm run dev` for console errors. Another project's service worker
   at `localhost:4173/` can take over the page; use incognito or unregister it in DevTools.
