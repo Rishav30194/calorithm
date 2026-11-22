@@ -74,7 +74,7 @@ export const strings = {
       builtInFailed: 'Built-in foods couldn’t load.',
       builtInRetry: 'Try again',
       builtInSource:
-        'Built-in values from USDA FoodData Central. Picking one adds it to your foods.',
+        'Built-in values from USDA FoodData Central and the UK’s CoFID, which contains public sector information licensed under the Open Government Licence v3.0. Items marked “estimate” are worked out from USDA values. Picking one adds it to your foods.',
       noMatch: 'Nothing matches your search.',
       close: 'Close',
       failed: 'Couldn’t log that. Try again.',
@@ -201,8 +201,7 @@ export const strings = {
       archive: 'Archive',
       restore: 'Restore',
       archivedNote: 'Archived. It stays on past days and in recipes, but not in pickers.',
-      fromBuiltIn:
-        'Added from the built-in foods (USDA FoodData Central). Check the values against your pack.',
+      fromBuiltIn: 'Added from the built-in foods. Check the values against your pack.',
       fromOpenFoodFacts: 'Values from Open Food Facts.',
       notFound: 'This food isn’t on this device. It may have been removed on another device.',
       saveFailed: 'Couldn’t save. Try again.',

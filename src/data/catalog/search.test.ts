@@ -39,6 +39,23 @@ describe('searchCatalog (decision 0027)', () => {
     expect(names(searchCatalog(foods, 'meric', new Set()))).toEqual([])
   })
 
+  // Phase 14: spices USDA doesn't have, from CoFID or marked as estimates.
+  it('finds the spices added from CoFID and as estimates, by their common names', () => {
+    for (const [query, name] of [
+      ['garam masala', 'Garam masala'],
+      ['kadi patta', 'Curry leaves'],
+      ['kala namak', 'Black salt'],
+      ['amchur', 'Amchur (estimate)'],
+      ['ajwain', 'Ajwain (estimate)'],
+      ['kalonji', 'Kalonji (estimate)'],
+      ['chaat masala', 'Chaat masala (estimate)'],
+    ] as const) {
+      expect(names(searchCatalog(foods, query, new Set()))).toContain(name)
+    }
+    // No open source gives asafoetida's energy and carbs, so it isn't offered.
+    expect(names(searchCatalog(foods, 'hing', new Set()))).toEqual([])
+  })
+
   it('leaves out items already copied into your foods', () => {
     expect(names(searchCatalog(foods, 'haldi', new Set(['turmeric'])))).toEqual([])
   })

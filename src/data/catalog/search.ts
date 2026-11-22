@@ -11,7 +11,8 @@ export type CatalogFood = {
   proteinG: number
   carbsG: number
   fatG: number
-  source: { dataset: string; fdcId: number }
+  // A USDA food by id, a CoFID food by code, or the basis of an estimate (decision 0032).
+  source: { dataset: string; fdcId?: number; foodCode?: string; basis?: string }
 }
 
 // Its own chunk, loaded the first time someone searches; the service worker caches it for
