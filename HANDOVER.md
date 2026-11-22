@@ -18,6 +18,10 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    change** (inside the **Email** provider panel), **Site URL** (the dashboard refused the
    trailing-slash form; the guide now gives it without one), then migrations, secrets, and
    the checks.
+   Claude's read-only checks of the hosted project (2026-11-21) found sign-ups still on
+   (`disable_signup: false` from `/auth/v1/settings`) and no tables or `delete_account`
+   (PostgREST 404s), although this folder is linked to the right project. Recheck both
+   after the user fixes them.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
@@ -35,9 +39,6 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 
 ## Open questions
 
-- Local Supabase accepted a wrong publishable key on the keep-awake request (2026-11-21).
-  Whether hosted Supabase refuses it is unverified; the workflow's first run shows a good key
-  works.
 
 - Does Supabase's free plan include downloadable backups? The user checks in the dashboard.
 - Exact rate limit of Supabase's built-in email sending. Matters only before friends join.
