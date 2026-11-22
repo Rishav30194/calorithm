@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useEffect, useId, useRef, useState } from 'react'
 
 import type { FoodInput } from '@/data/foods'
 import { type LabelReading, parseNutritionLabel } from '@/domain/label'
@@ -20,6 +20,13 @@ type Props = {
   backLabel?: string
   // After the food is logged, the picker closes.
   onDone: () => void
+  // Reads a photo's text; tests pass their own.
+  readPhoto?: (photo: Blob, onProgress: (progress: number) => void) => Promise<string>
+}
+
+const readWithTesseract = async (photo: Blob, onProgress: (progress: number) => void) => {
+  const { readLabelPhoto } = await import('./labelReader')
+  return readLabelPhoto(photo, onProgress)
 }
 
 type Step = { kind: 'paste' } | { kind: 'form'; reading: LabelReading | null }
@@ -56,15 +63,26 @@ export const LabelPanel = ({
   onBack,
   backLabel,
   onDone,
+  readPhoto = readWithTesseract,
 }: Props) => {
   const text = strings.log.label
   const [step, setStep] = useState<Step>({ kind: 'paste' })
   const [labelText, setLabelText] = useState('')
   const [error, setError] = useState<string | undefined>(undefined)
+  // Progress from 0 to 1 while a photo is read; null otherwise.
+  const [progress, setProgress] = useState<number | null>(null)
+  const [photoFailed, setPhotoFailed] = useState(false)
+  // A photo still being read when the panel closes is ignored.
+  const open = useRef(true)
+  useEffect(
+    () => () => {
+      open.current = false
+    },
+    [],
+  )
 
-  const read = (event: FormEvent) => {
-    event.preventDefault()
-    const reading = parseNutritionLabel(labelText)
+  const readText = (value: string) => {
+    const reading = parseNutritionLabel(value)
     if (valuesRead(reading) === 0) {
       setError(text.nothingRead)
       return
@@ -72,6 +90,35 @@ export const LabelPanel = ({
     setError(undefined)
     setStep({ kind: 'form', reading })
   }
+
+  const read = (event: FormEvent) => {
+    event.preventDefault()
+    readText(labelText)
+  }
+
+  // The photo's text goes into the text box, so a misread can be corrected and read again.
+  const choosePhoto = async (event: ChangeEvent<HTMLInputElement>) => {
+    const photo = event.target.files?.[0]
+    event.target.value = ''
+    if (!photo) return
+    setError(undefined)
+    setPhotoFailed(false)
+    setProgress(0)
+    const recognized = await readPhoto(photo, setProgress).catch(() => null)
+    if (!open.current) return
+    setProgress(null)
+    if (recognized === null) {
+      setPhotoFailed(true)
+      return
+    }
+    setLabelText(recognized)
+    readText(recognized)
+  }
+
+  const photoHintId = useId()
+
+  const percent = (value: number) =>
+    new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }).format(value)
 
   // The form shows its own error when this returns false.
   const logNew = async (input: FoodInput): Promise<boolean> => {
@@ -91,6 +138,33 @@ export const LabelPanel = ({
       </button>
       {step.kind === 'paste' && (
         <form onSubmit={read} noValidate className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg bg-accent px-4 font-semibold text-accent-text focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent">
+              <input
+                type="file"
+                accept="image/*"
+                disabled={progress !== null}
+                onChange={(event) => void choosePhoto(event)}
+                aria-describedby={photoHintId}
+                className="sr-only"
+              />
+              {text.photo}
+            </label>
+            <p id={photoHintId} className="text-sm text-muted">
+              {text.photoHint}
+            </p>
+          </div>
+          {progress !== null && (
+            <p role="status" className="text-muted">
+              {text.reading(percent(progress))}
+            </p>
+          )}
+          {photoFailed && (
+            <p role="alert" className="text-danger">
+              {text.photoFailed}
+            </p>
+          )}
+          <h3 className="text-sm font-semibold text-muted">{text.or}</h3>
           <TextField
             label={text.text}
             hint={text.textHint}
@@ -104,7 +178,8 @@ export const LabelPanel = ({
           />
           <button
             type="submit"
-            className="min-h-11 rounded-lg bg-accent px-4 font-semibold text-accent-text"
+            disabled={progress !== null}
+            className="min-h-11 rounded-lg border border-border px-4 font-semibold disabled:opacity-60"
           >
             {text.read}
           </button>

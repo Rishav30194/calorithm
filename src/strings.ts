@@ -119,6 +119,13 @@ export const strings = {
       check:
         'Read from the label. Name the food and check each value against the label, then save.',
       partial: 'Some values couldn’t be read. They’re left empty for you to type.',
+      photo: 'Photo of label',
+      photoHint:
+        'Take or choose a sharp photo of the nutrition table, straight on. It’s read on your phone; the first time downloads about 4.5 MB.',
+      reading: (percent: string) => `Reading the photo… ${percent}`,
+      photoFailed:
+        'Couldn’t read the photo. Try a sharper photo taken straight on, or paste the text instead.',
+      or: 'Or paste the label’s text',
     },
     entry: {
       servings: 'Servings',

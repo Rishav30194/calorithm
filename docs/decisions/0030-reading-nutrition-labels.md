@@ -40,4 +40,7 @@ recognition (phase 13, PR 2). Nothing is sent to a server, and no AI reads the l
 - A name whose values text recognition puts on the following lines is joined back into
   one row. A table read wholly column by column, all names first and then all numbers,
   still leaves values empty; PR 2's checks with real photos show how often.
+- Photo reading uses `tesseract.js` on the device: about 4.4 MB to download on first use,
+  cached afterwards. Its language data is served at a fixed path by a build plugin, because
+  tesseract.js 7.0.0 can't take the data directly.
 - Revisit if text recognition proves too weak on the user's labels.

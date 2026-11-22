@@ -8,14 +8,13 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 1. **Phase 13 (nutrition label) is in progress**, ahead of phase 12, which waits for the
    user's MacroFactor subscription. Phase 11 is done (the user confirmed scanning on the
-   iPhone, 2026-11-22). PR 1 (0.8.0: the label parser and **Paste label text**) is built on
-   `feature/nutrition-label`, which also carries the phase 11 close-out commit, with
-   `check:full` and `/code-review` done (all 9 findings fixed in its last commit; no
-   security review needed, as it touches no auth, sync, or import). Push and open its PR
-   when the user asks. No migration. PR 2 (0.9.0) adds **Photo of label** with
-   `tesseract.js` 7.0.0, which the user approved on 2026-11-22 with an estimated 5 to 8 MB
-   first-use download: measure the real size, self-host it, cache it after first use, and
-   test with a generated label image. Then the user checks real labels on the iPhone.
+   iPhone, 2026-11-22). Both PRs are built on `feature/nutrition-label`, to merge together
+   as one PR when the user asks: 0.8.0 (the label parser and **Paste label text**) and
+   0.9.0 (**Photo of label**, read on the device with `tesseract.js` 7.0.0, approved
+   2026-11-22). The branch also carries the phase 11 close-out commit. No migration.
+   After the deploy: check on the live site that GitHub Pages serves the reader's scripts
+   gzipped (about 4.4 MB on first use), then the user tries real labels on the iPhone,
+   including Indian packs, and phase 13 can close.
    Where things stand: phases 1 to 11 are done. The app is live at
    `https://rishav30194.github.io/calorithm/` as 0.7.0 (tag `v0.7.0`), with barcode
    scanning, built-in foods, recent and frequent foods, and carbs and fat. The hosted
@@ -80,10 +79,13 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
   `playwright install chromium` should install both; unverified while CI is paused.
 - Open Food Facts allows 15 product reads a minute per IP address; probing it by hand during
   development hits that quickly.
+- `vite.config.ts` copies the label reader's English data to `tessdata/eng-VERSION/`,
+  because tesseract.js 7.0.0 can't take language data directly (it uses the data as the
+  language's name). Recheck this when upgrading tesseract.js.
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 186.6 kB of the 200 kB budget (0.8.0, 2026-11-22); the log,
+- First-load JavaScript is 187.2 kB of the 200 kB budget (0.9.0, 2026-11-22); the log,
   food, and backup screens and the built-in food list load on demand. A new screen of any
   size, and the barcode scanner, should too.
 - The built-in food list is rebuilt from USDA CSV downloads that aren't committed;

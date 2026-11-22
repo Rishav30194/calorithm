@@ -737,7 +737,7 @@ the general formula.
 
 ## Phase 13 — Nutrition label
 
-**Status:** In progress (PR 1 of 2)
+**Status:** In progress (PRs 1 and 2 built; the iPhone check is left)
 
 **Goal:** fill the food form from a pack's nutrition facts label, when there's no barcode or
 Open Food Facts doesn't know it.
@@ -767,8 +767,8 @@ Phase 12 waits for the user's MacroFactor subscription, so this phase runs first
 - [x] Pasted label text fills the form, and a value the parser can't read stays empty.
 - [ ] A photo of a real label on the iPhone fills the four numbers, or leaves unread ones
   empty for the user to type.
-- [ ] Text recognition loads on demand and leaves first-load JavaScript within budget.
-- [ ] End-to-end tests cover paste, and a photo built from a generated label image.
+- [x] Text recognition loads on demand and leaves first-load JavaScript within budget.
+- [x] End-to-end tests cover paste, and a photo built from a generated label image.
 
 **Plan:**
 - PR 1 (0.8.0): the parser, test first; **Read nutrition label** with **Paste label text**
@@ -793,3 +793,21 @@ Phase 12 waits for the user's MacroFactor subscription, so this phase runs first
   **Read the label** on the barcode flow's not-found and unreachable form keeps the barcode
   and anything already typed, and values read from the label replace only what they cover.
   `TextField` takes `rows` for a text area.
+- PR 2 (0.9.0): **Photo of label** in `LabelPanel` takes a photo or a picture from the
+  library (`accept="image/*"`), and `labelReader.ts` reads it on the device with
+  `tesseract.js` 7.0.0 (LSTM only, the SIMD core) and `@tesseract.js-data/eng` 1.0.0
+  ("best int" English). The photo is scaled to at most 2000 pixels first. The recognized
+  text goes into the text box, so a misread can be corrected and read again.
+- Everything loads on first use from the app: the worker (111 kB), the SIMD core (3.9 MB,
+  1.46 MB gzipped), and the English data (2.95 MB, already gzipped), about 4.4 MB to
+  download if GitHub Pages compresses scripts (unverified). They stay out of the precache
+  and a `CacheFirst` rule (`label-reader`) keeps them after first use. First-load
+  JavaScript is 187.2 kB.
+- tesseract.js 7.0.0 starts the engine with a passed-in language's data as its name, so
+  language data can't be handed over directly. A plugin in `vite.config.ts` (approved by the
+  user) copies it to `tessdata/eng-1.0.0/eng.traineddata.gz` in the build and serves it in
+  `npm run dev`; the path carries the package version so the cache refreshes on a change.
+- A browser without WebAssembly SIMD can't start the core; the panel then says the photo
+  couldn't be read and offers pasting.
+- The browser test draws a label on a canvas and runs real recognition on it in both
+  projects, and checks no request leaves the machine.

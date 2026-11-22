@@ -149,3 +149,54 @@ describe('LabelPanel errors', () => {
     expect(screen.queryByRole('button', { name: text.enterByHand })).toBeNull()
   })
 })
+
+describe('LabelPanel photos', () => {
+  const photo = new File(['photo'], 'label.jpg', { type: 'image/jpeg' })
+  const renderWith = (
+    readPhoto: (photo: Blob, onProgress: (p: number) => void) => Promise<string>,
+  ) =>
+    render(
+      <LabelPanel
+        barcode={null}
+        locale="en-US"
+        onLogNew={vi.fn(async () => true)}
+        onBack={vi.fn()}
+        onDone={vi.fn()}
+        readPhoto={readPhoto}
+      />,
+    )
+
+  it('reads a photo’s text into the form, showing progress meanwhile', async () => {
+    let finish: (text: string) => void = () => {}
+    const readPhoto = vi.fn((_photo: Blob, onProgress: (p: number) => void) => {
+      onProgress(0.4)
+      return new Promise<string>((resolve) => (finish = resolve))
+    })
+    renderWith(readPhoto)
+
+    await userEvent.upload(screen.getByLabelText(text.photo), photo)
+    expect(readPhoto).toHaveBeenCalledWith(photo, expect.any(Function))
+    expect(screen.getByRole('status')).toHaveTextContent(text.reading('40%'))
+
+    finish(label)
+    expect(await screen.findByLabelText(editor.kcal)).toHaveValue('373')
+  })
+
+  it('puts a photo’s text in the box when it holds no values, for correcting', async () => {
+    renderWith(vi.fn(async () => 'Nutrition information Protein'))
+    await userEvent.upload(screen.getByLabelText(text.photo), photo)
+
+    expect(await screen.findByLabelText(text.text)).toHaveValue('Nutrition information Protein')
+    expect(screen.getByLabelText(text.text)).toHaveAccessibleDescription(
+      expect.stringContaining(text.nothingRead),
+    )
+  })
+
+  it('says when the photo can’t be read, and keeps pasting available', async () => {
+    renderWith(vi.fn(async () => Promise.reject(new Error('no SIMD'))))
+    await userEvent.upload(screen.getByLabelText(text.photo), photo)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(text.photoFailed)
+    expect(screen.getByLabelText(text.text)).toBeEnabled()
+  })
+})
