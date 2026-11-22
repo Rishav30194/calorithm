@@ -734,3 +734,48 @@ the general formula.
 - [ ] The approved improvements are written up as phases here.
 
 **Implementation notes:** none yet.
+
+## Phase 13 — Nutrition label
+
+**Status:** In progress (PR 1 of 2)
+
+**Goal:** fill the food form from a pack's nutrition facts label, when there's no barcode or
+Open Food Facts doesn't know it.
+
+Phase 12 waits for the user's MacroFactor subscription, so this phase runs first.
+
+**Scope:**
+- A pure parser in `src/domain/` reads label text into a serving (per 100 g, per 100 ml, or
+  the label's serving) and kcal, protein, carbs, and fat. It handles the US "Nutrition
+  Facts" panel, EU and UK "Nutrition information" tables, and Indian FSSAI "Nutritional
+  information" tables; converts kJ to kcal; takes total carbohydrate and total fat, never
+  their sub-lines (sugars, saturated); and prefers the per-100 column when there are two.
+  A value it can't read is left empty, never guessed.
+- Two ways in, both opening the food form filled in, for you to check and save:
+  - **Paste label text:** the iPhone's Live Text copies a label's text from the camera or a
+    photo. No download, and works offline.
+  - **Photo of label:** on-device text recognition (`tesseract.js` 7.0.0, Apache-2.0),
+    loaded only on first use and self-hosted. Photos never leave the phone. Approved by the
+    user on 2026-11-22; its download size is measured in PR 2.
+- Entry points: **Read nutrition label** in the picker, and **Read the label** on the
+  barcode flow's not-found and unreachable form, which keeps the barcode.
+- No AI and no server: the user wants none, and a static app can't hide an API key.
+
+**Acceptance criteria:**
+- [ ] Parser tests cover the three label formats with synthetic text, including kJ only,
+  two columns, and noisy text recognition output, plus property tests.
+- [ ] Pasted label text fills the form, and a value the parser can't read stays empty.
+- [ ] A photo of a real label on the iPhone fills the four numbers, or leaves unread ones
+  empty for the user to type.
+- [ ] Text recognition loads on demand and leaves first-load JavaScript within budget.
+- [ ] End-to-end tests cover paste, and a photo built from a generated label image.
+
+**Plan:**
+- PR 1 (0.8.0): the parser, test first; **Read nutrition label** with **Paste label text**
+  in the picker and on the barcode form; decision 0030 (parsing rules and leaving values
+  empty rather than guessing).
+- PR 2 (0.9.0): **Photo of label** with `tesseract.js`, self-hosted, cached after first
+  use; browser tests with a generated label image; the user checks real labels on the
+  iPhone.
+
+**Implementation notes:** none yet.
