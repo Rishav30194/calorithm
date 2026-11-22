@@ -2,6 +2,7 @@ import fc from 'fast-check'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { closeAll, manualClock, openDb, userId } from '../sync/testing/fixtures'
+import { foodsSpec } from '../tables'
 import { buildExport } from './backup'
 import { type ExportFile, MAX_EXPORT_CHARS, parseExport } from './format'
 import { seedSample } from './testing'
@@ -92,7 +93,9 @@ describe('parseExport', () => {
   it('keeps carbs and fat from rows that have them, in a format version 1 file', () => {
     const result = parseExport(JSON.stringify(sample), context)
     expect(result.ok && result.file.version).toBe(1)
-    expect(result.ok && result.file.tables.foods[0]).toMatchObject({ schema_version: 2 })
+    expect(result.ok && result.file.tables.foods[0]).toMatchObject({
+      schema_version: foodsSpec.schemaVersion,
+    })
     expect(result.ok && result.file.tables.foods.every((food) => food.carbs_g !== null)).toBe(true)
   })
 

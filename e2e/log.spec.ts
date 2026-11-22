@@ -1,6 +1,7 @@
 import { expect, type Page, test } from '@playwright/test'
 
-import { expectNoAxeViolations, signIn } from './helpers'
+import { removeBuiltInCopies } from './database'
+import { expectNoAxeViolations, seedUser, signIn } from './helpers'
 
 // The local database keeps rows between runs, and the phone and desktop projects share the
 // seed user, so each test works on its own far-future day with uniquely named foods.
@@ -215,3 +216,33 @@ for (const colorScheme of ['light', 'dark'] as const) {
     })
   })
 }
+
+test.describe('built-in foods (phase 10)', () => {
+  // Both projects share the seed user, so one project resets and copies the item.
+  test.skip(({ isMobile }) => isMobile, 'Runs in the desktop project only')
+
+  test('a Hindi name finds a built-in food, and picking it adds it to your foods', async ({
+    page,
+  }) => {
+    removeBuiltInCopies(seedUser.id, 'turmeric')
+    const day = randomDay()
+    await signIn(page)
+    await openDay(page, day)
+
+    await page.getByRole('button', { name: 'Add to Lunch' }).click()
+    const picker = page.getByRole('dialog', { name: 'Add to Lunch' })
+    await picker.getByLabel('Search foods and recipes').fill('haldi')
+    const builtIn = picker.getByRole('region', { name: 'Built-in foods' })
+    await expect(builtIn).toContainText('USDA FoodData Central')
+    await builtIn.getByRole('button', { name: /Turmeric/ }).click()
+    await expect(picker).toHaveCount(0)
+    await expect(meal(page, 'Lunch')).toContainText('Turmeric')
+    await expect(meal(page, 'Lunch')).toContainText('9 kcal')
+
+    await page.goto('./#/log/foods')
+    await page.getByLabel('Search foods').fill('Turmeric')
+    await page.getByRole('link', { name: /Turmeric/ }).click()
+    await expect(page.getByText(/Added from the built-in foods/)).toBeVisible()
+    await expect(page.getByLabel('Carbs per serving (g)')).toHaveValue('2')
+  })
+})

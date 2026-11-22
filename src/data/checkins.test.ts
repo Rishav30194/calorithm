@@ -63,6 +63,7 @@ const food: FoodRow = {
   protein_g: 5,
   carbs_g: null,
   fat_g: null,
+  catalog_id: null,
   archived_at: null,
   updated_at: '',
   client_updated_at: '',

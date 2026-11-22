@@ -77,6 +77,7 @@ const food: FoodRow = {
   protein_g: 5,
   carbs_g: 27,
   fat_g: 2.5,
+  catalog_id: null,
   archived_at: null,
 }
 
@@ -213,6 +214,8 @@ describe('carbs and fat (decision 0025)', () => {
     } = logEntry
 
     expect(foodsSpec.parse(oldFood)).toEqual({ ...oldFood, carbs_g: null, fat_g: null })
+    const { catalog_id: _catalogId, ...beforeCatalog } = food
+    expect(foodsSpec.parse(beforeCatalog)).toEqual({ ...beforeCatalog, catalog_id: null })
     expect(logEntriesSpec.parse(oldEntry)).toEqual({
       ...oldEntry,
       carbs_g: null,
@@ -222,9 +225,9 @@ describe('carbs and fat (decision 0025)', () => {
     })
   })
 
-  it('writes version 2, and names the columns version 2 added', () => {
-    expect(foodsSpec.schemaVersion).toBe(2)
-    expect(foodsSpec.addedColumns).toEqual({ 2: ['carbs_g', 'fat_g'] })
+  it('names the columns each version added', () => {
+    expect(foodsSpec.schemaVersion).toBe(3)
+    expect(foodsSpec.addedColumns).toEqual({ 2: ['carbs_g', 'fat_g'], 3: ['catalog_id'] })
     expect(logEntriesSpec.schemaVersion).toBe(2)
     expect(logEntriesSpec.addedColumns).toEqual({
       2: ['carbs_g', 'fat_g', 'carbs_g_per_serving', 'fat_g_per_serving'],
@@ -239,6 +242,16 @@ describe('carbs and fat (decision 0025)', () => {
     expect(logEntriesSpec.parse({ ...logEntry, fat_g: -0.1 })).toBeNull()
     // Like protein, a large logged total is left for the database to refuse.
     expect(logEntriesSpec.parse({ ...logEntry, carbs_g: 16000 })).not.toBeNull()
+  })
+})
+
+describe('catalog_id (decision 0027)', () => {
+  it('accepts a built-in item id, and refuses an empty or over-long one, as the database does', () => {
+    expect(foodsSpec.parse({ ...food, catalog_id: 'turmeric' })).toMatchObject({
+      catalog_id: 'turmeric',
+    })
+    expect(foodsSpec.parse({ ...food, catalog_id: '' })).toBeNull()
+    expect(foodsSpec.parse({ ...food, catalog_id: 'x'.repeat(61) })).toBeNull()
   })
 })
 

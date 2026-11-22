@@ -107,6 +107,7 @@ describe('push', () => {
         protein_g: 5,
         carbs_g: null,
         fat_g: null,
+        catalog_id: null,
         archived_at: null,
       },
       time.clock,

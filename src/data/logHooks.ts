@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import {
   type Meal,
@@ -9,6 +9,7 @@ import {
   totalsByMeal,
 } from '@/domain/nutrition'
 
+import { type CatalogFood, loadCatalog } from './catalog/search'
 import { useData } from './DataProvider'
 import {
   changeServings,
@@ -16,6 +17,7 @@ import {
   dayComplete,
   entriesOn,
   type LoggedEntry,
+  logCatalogFood,
   logSource,
   type QuickPicks,
   quickPicks,
@@ -69,6 +71,7 @@ type Slot = { date: string; meal: Meal }
 
 export type LogActions = {
   log: (slot: Slot, source: Source, servings: number) => Promise<boolean>
+  logCatalog: (slot: Slot, item: CatalogFood) => Promise<boolean>
   changeServings: (id: string, servings: number) => Promise<boolean>
   remove: (id: string) => Promise<void>
   copyMeal: (from: Slot, to: Slot) => Promise<number>
@@ -87,6 +90,10 @@ export const useLogActions = (): LogActions => {
     return {
       log: async (slot, source, servings) =>
         (await synced(logSource(ctx.db, ctx.clock, userId, { ...slot, source, servings }))).ok,
+      logCatalog: async (slot, item) => {
+        await synced(logCatalogFood(ctx.db, ctx.clock, userId, slot, item))
+        return true
+      },
       changeServings: async (id, servings) =>
         (await synced(changeServings(ctx.db, ctx.clock, id, servings))).ok,
       remove: (id) => synced(removeEntry(ctx.db, ctx.clock, id)),
@@ -96,4 +103,21 @@ export const useLogActions = (): LogActions => {
         synced(setDayComplete(ctx.db, ctx.clock, userId, date, complete)),
     }
   }, [ctx, engine, userId])
+}
+
+export type CatalogState = CatalogFood[] | 'loading' | 'failed'
+
+// The built-in food list, loaded once it's wanted (the first search), then kept. After a
+// failure, retry() loads it again. Whether a browser retries a failed dynamic import without
+// a reload is unverified.
+export const useCatalog = (
+  wanted: boolean,
+): { state: CatalogState | undefined; retry: () => void } => {
+  const [state, setState] = useState<CatalogState | undefined>(undefined)
+  useEffect(() => {
+    if (!wanted || state !== undefined) return
+    setState('loading')
+    loadCatalog().then(setState, () => setState('failed'))
+  }, [wanted, state])
+  return { state, retry: () => setState(undefined) }
 }

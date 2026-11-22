@@ -79,3 +79,18 @@ export const restoreDeleteMeUser = (): void => {
     { id, email, password },
   )
 }
+
+// Removes a user's copies of one built-in food, with anything that uses them, so the item is
+// offered again (built-in items hide once copied).
+export const removeBuiltInCopies = (userId: string, catalogId: string): void => {
+  runSql(
+    `
+    delete from public.log_entries
+      where food_id in (select id from public.foods where user_id = :'id' and catalog_id = :'catalog');
+    delete from public.recipe_items
+      where food_id in (select id from public.foods where user_id = :'id' and catalog_id = :'catalog');
+    delete from public.foods where user_id = :'id' and catalog_id = :'catalog';
+    `,
+    { id: userId, catalog: catalogId },
+  )
+}

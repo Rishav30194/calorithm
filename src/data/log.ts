@@ -14,10 +14,10 @@ import {
   sourceKey,
   useScores,
 } from '@/domain/nutrition'
-
+import type { CatalogFood } from './catalog/search'
 import { dayId } from './dayId'
 import type { LocalDb } from './db'
-import { foodNutrients, recipeIngredients } from './foods'
+import { createFood, foodNutrients, recipeIngredients } from './foods'
 import { type Clock, softDelete, writeRow } from './repository'
 import {
   daysSpec,
@@ -110,6 +110,42 @@ export const logFood = (
     perServing: foodNutrients(food),
   })
 }
+
+// Logs one serving of a built-in item (decision 0027), copying it into your foods first unless
+// a copy is already there, so a repeated tap never makes a second copy.
+export const logCatalogFood = (
+  db: LocalDb,
+  clock: Clock,
+  userId: string,
+  target: Target,
+  item: CatalogFood,
+): Promise<LogEntryRow> =>
+  db.transaction('rw', db.rows('foods'), db.rows('log_entries'), db.outbox, async () => {
+    const existing = (await db.rows('foods').where('catalog_id').equals(item.id).toArray()).flatMap(
+      (raw) => {
+        const food = foodsSpec.parse(raw)
+        return food && food.deleted_at === null ? [food] : []
+      },
+    )[0]
+    // An archived copy comes back: the picker only offers the item again once it's archived.
+    const restored =
+      existing && existing.archived_at !== null
+        ? await writeRow(db, foodsSpec, { ...existing, archived_at: null }, clock)
+        : existing
+    const food =
+      restored ??
+      (await createFood(db, clock, userId, {
+        name: item.name,
+        servingSize: item.servingSize,
+        servingUnit: item.servingUnit,
+        kcal: item.kcal,
+        proteinG: item.proteinG,
+        carbsG: item.carbsG,
+        fatG: item.fatG,
+        catalogId: item.id,
+      }))
+    return logFood(db, clock, userId, { ...target, food, servings: 1 })
+  })
 
 export const logRecipe = async (
   db: LocalDb,

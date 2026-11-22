@@ -67,7 +67,14 @@ export const strings = {
       all: 'All foods and recipes',
       recipe: 'Recipe',
       recipeDetail: (nutrients: string) => `Recipe · ${nutrients}`,
-      empty: 'No foods or recipes yet. Add some from Foods and Recipes on the log screen.',
+      empty:
+        'No foods or recipes yet. Search the built-in foods, or add your own from Foods and Recipes on the log screen.',
+      builtIn: 'Built-in foods',
+      builtInLoading: 'Loading built-in foods…',
+      builtInFailed: 'Built-in foods couldn’t load.',
+      builtInRetry: 'Try again',
+      builtInSource:
+        'Built-in values from USDA FoodData Central. Picking one adds it to your foods.',
       noMatch: 'Nothing matches your search.',
       close: 'Close',
       failed: 'Couldn’t log that. Try again.',
@@ -133,6 +140,8 @@ export const strings = {
       archive: 'Archive',
       restore: 'Restore',
       archivedNote: 'Archived. It stays on past days and in recipes, but not in pickers.',
+      fromBuiltIn:
+        'Added from the built-in foods (USDA FoodData Central). Check the values against your pack.',
       notFound: 'This food isn’t on this device. It may have been removed on another device.',
       saveFailed: 'Couldn’t save. Try again.',
       archiveFailed: 'Couldn’t change that. Try again.',

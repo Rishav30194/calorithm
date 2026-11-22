@@ -29,6 +29,7 @@ const oats: FoodView = {
   proteinG: 5,
   carbsG: 27,
   fatG: 2.5,
+  catalogId: null,
   archived: false,
 }
 const milk: FoodView = {

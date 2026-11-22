@@ -2,13 +2,14 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { dayId } from './dayId'
 import type { LocalDb } from './db'
-import { createFood, createRecipe, setFoodArchived, updateFood } from './foods'
+import { createFood, createRecipe, listFoods, setFoodArchived, updateFood } from './foods'
 import {
   changeServings,
   copyMealTo,
   dayComplete,
   entriesBetween,
   entriesOn,
+  logCatalogFood,
   logFood,
   logRecipe,
   logSource,
@@ -601,5 +602,59 @@ describe('carbs and fat (decision 0025)', () => {
     const entry = await logRecipe(db, time.clock, userId, { ...at, recipe, servings: 1 })
 
     expect(entry).toMatchObject({ kcal: 310, carbs_g: null, fat_g: null })
+  })
+})
+
+describe('logCatalogFood (decision 0027)', () => {
+  const turmeric = {
+    id: 'turmeric',
+    name: 'Turmeric',
+    aliases: ['haldi'],
+    category: 'spices',
+    servingSize: 1,
+    servingUnit: 'tsp (3 g)',
+    kcal: 9,
+    proteinG: 0.3,
+    carbsG: 2,
+    fatG: 0.1,
+    source: { dataset: 'SR Legacy', fdcId: 172231 },
+  }
+  const at = { date: '2026-11-22', meal: 'lunch' } as const
+
+  it('copies the item into your foods with its id, then logs one serving of it', async () => {
+    const entry = await logCatalogFood(db, time.clock, userId, at, turmeric)
+
+    const foods = await listFoods(db)
+    expect(foods).toEqual([
+      expect.objectContaining({
+        name: 'Turmeric',
+        servingUnit: 'tsp (3 g)',
+        kcal: 9,
+        carbsG: 2,
+        catalogId: 'turmeric',
+      }),
+    ])
+    expect(entry).toMatchObject({ food_id: foods[0]?.id, servings: 1, kcal: 9, carbs_g: 2 })
+  })
+
+  it('logs the copy you already have instead of copying the item again', async () => {
+    const first = await logCatalogFood(db, time.clock, userId, at, turmeric)
+    const second = await logCatalogFood(db, time.clock, userId, at, turmeric)
+
+    expect(await listFoods(db)).toHaveLength(1)
+    expect(second.food_id).toBe(first.food_id)
+  })
+
+  // The picker offers the item again once its copy is archived; picking it brings the copy
+  // back rather than logging a food you can no longer see.
+  it('restores an archived copy when the item is picked again', async () => {
+    const first = await logCatalogFood(db, time.clock, userId, at, turmeric)
+    if (!first.food_id) throw new Error('no food logged')
+    await setFoodArchived(db, time.clock, first.food_id, true)
+
+    const second = await logCatalogFood(db, time.clock, userId, at, turmeric)
+
+    expect(second.food_id).toBe(first.food_id)
+    expect(await listFoods(db)).toEqual([expect.objectContaining({ archived: false })])
   })
 })

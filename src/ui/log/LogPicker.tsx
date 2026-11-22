@@ -1,7 +1,9 @@
 import { useState } from 'react'
-
+import type { CatalogFood } from '@/data/catalog/search'
+import { searchCatalog } from '@/data/catalog/search'
 import type { FoodView, RecipeView } from '@/data/foods'
 import type { QuickPicks } from '@/data/log'
+import type { CatalogState } from '@/data/logHooks'
 import { formatAmount } from '@/domain/format'
 import { type Meal, type QuickPick, type Source, sourceKey } from '@/domain/nutrition'
 import { strings } from '@/strings'
@@ -14,12 +16,23 @@ type Props = {
   picks: QuickPicks | undefined
   foods: FoodView[] | undefined
   recipes: RecipeView[] | undefined
+  // The built-in food list (decision 0027); undefined until the first search asks for it.
+  builtIn: CatalogState | undefined
   locale: string
   onPick: (source: Source, servings: number) => Promise<boolean>
+  onPickBuiltIn: (item: CatalogFood) => Promise<boolean>
+  onSearch: () => void
+  onRetryBuiltIn: () => void
   onClose: () => void
 }
 
-type Row = { key: string; source: Source; servings: number; name: string; detail: string }
+type Row = {
+  key: string
+  // A built-in item has no source until it's copied into your foods.
+  pick: { source: Source; servings: number } | { builtIn: CatalogFood }
+  name: string
+  detail: string
+}
 
 const PickList = ({
   title,
@@ -52,7 +65,19 @@ const PickList = ({
 
 // Opened from a meal's Add button: one more tap on any row logs it, so a saved food takes two
 // taps from the log screen.
-export const LogPicker = ({ meal, picks, foods, recipes, locale, onPick, onClose }: Props) => {
+export const LogPicker = ({
+  meal,
+  picks,
+  foods,
+  recipes,
+  builtIn,
+  locale,
+  onPick,
+  onPickBuiltIn,
+  onSearch,
+  onRetryBuiltIn,
+  onClose,
+}: Props) => {
   const text = strings.log.picker
   const [query, setQuery] = useState('')
   const [busy, setBusy] = useState(false)
@@ -64,21 +89,20 @@ export const LogPicker = ({ meal, picks, foods, recipes, locale, onPick, onClose
   const quick = (prefix: string, list: QuickPick[] | undefined): Row[] =>
     (list ?? []).map((pick) => ({
       key: `${prefix}:${pick.source.kind}:${pick.source.id}`,
-      source: pick.source,
-      servings: pick.servings,
+      pick: { source: pick.source, servings: pick.servings },
       name: pick.name,
       detail: servingsText(pick.servings),
     }))
 
   const scoreOf = (source: Source) => picks?.scores.get(sourceKey(source)) ?? 0
   const needle = query.trim().toLocaleLowerCase()
-  const catalog: Row[] = [
+  const saved: (Row & { source: Source })[] = [
     ...(foods ?? [])
       .filter((food) => !food.archived)
       .map((food) => ({
         key: `all:food:${food.id}`,
         source: { kind: 'food' as const, id: food.id },
-        servings: 1,
+        pick: { source: { kind: 'food' as const, id: food.id }, servings: 1 },
         name: food.name,
         detail: strings.foods.detail(
           strings.foods.serving(formatAmount(food.servingSize, locale), food.servingUnit),
@@ -90,7 +114,7 @@ export const LogPicker = ({ meal, picks, foods, recipes, locale, onPick, onClose
       .map((recipe) => ({
         key: `all:recipe:${recipe.id}`,
         source: { kind: 'recipe' as const, id: recipe.id },
-        servings: 1,
+        pick: { source: { kind: 'recipe' as const, id: recipe.id }, servings: 1 },
         name: recipe.name,
         detail: text.recipeDetail(macroText(recipe.perServing, locale)),
       })),
@@ -103,18 +127,42 @@ export const LogPicker = ({ meal, picks, foods, recipes, locale, onPick, onClose
         a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
     )
 
+  // Built-in items you've already copied show as your own food instead.
+  const copied = new Set(
+    (foods ?? []).flatMap((food) => (!food.archived && food.catalogId ? [food.catalogId] : [])),
+  )
+  const builtInRows: Row[] = Array.isArray(builtIn)
+    ? searchCatalog(builtIn, needle, copied).map((item) => ({
+        key: `builtin:${item.id}`,
+        pick: { builtIn: item },
+        name: item.name,
+        detail: strings.foods.detail(
+          strings.foods.serving(formatAmount(item.servingSize, locale), item.servingUnit),
+          macroText(item, locale),
+        ),
+      }))
+    : []
+
+  const search = (value: string) => {
+    setQuery(value)
+    if (value.trim() !== '') onSearch()
+  }
+
   const pick = async (row: Row) => {
     if (busy) return
     setBusy(true)
     setFailed(false)
-    const ok = await onPick(row.source, row.servings).catch(() => false)
+    const ok = await ('builtIn' in row.pick
+      ? onPickBuiltIn(row.pick.builtIn)
+      : onPick(row.pick.source, row.pick.servings)
+    ).catch(() => false)
     setBusy(false)
     if (ok) onClose()
     else setFailed(true)
   }
 
   const loading = foods === undefined || recipes === undefined
-  const nothingSaved = !loading && catalog.length === 0 && needle === ''
+  const nothingSaved = !loading && saved.length === 0 && needle === ''
 
   return (
     <Modal
@@ -133,22 +181,41 @@ export const LogPicker = ({ meal, picks, foods, recipes, locale, onPick, onClose
       )}
       {loading ? (
         <p className="text-muted">{strings.loading}</p>
-      ) : nothingSaved ? (
-        <p className="text-muted">{text.empty}</p>
       ) : (
         <>
+          {nothingSaved && <p className="text-muted">{text.empty}</p>}
           {needle === '' && (
             <>
               <PickList title={text.recent} rows={quick('recent', picks?.recent)} onPick={pick} />
               <PickList title={text.mostUsed} rows={quick('most', picks?.mostUsed)} onPick={pick} />
             </>
           )}
-          <TextField label={text.search} value={query} onChange={setQuery} type="search" />
-          {catalog.length === 0 ? (
-            <p className="text-muted">{text.noMatch}</p>
-          ) : (
-            <PickList title={text.all} rows={catalog} onPick={pick} />
+          <TextField label={text.search} value={query} onChange={search} type="search" />
+          {saved.length > 0 && <PickList title={text.all} rows={saved} onPick={pick} />}
+          {needle !== '' && (
+            <section aria-label={text.builtIn} className="flex flex-col gap-1">
+              {builtIn === 'loading' && <p className="text-muted">{text.builtInLoading}</p>}
+              {builtIn === 'failed' && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-muted">{text.builtInFailed}</p>
+                  <button
+                    type="button"
+                    onClick={onRetryBuiltIn}
+                    className="min-h-11 rounded-lg border border-border px-3 font-medium"
+                  >
+                    {text.builtInRetry}
+                  </button>
+                </div>
+              )}
+              <PickList title={text.builtIn} rows={builtInRows} onPick={pick} />
+              {builtInRows.length > 0 && <p className="text-xs text-muted">{text.builtInSource}</p>}
+            </section>
           )}
+          {needle !== '' &&
+            saved.length === 0 &&
+            builtInRows.length === 0 &&
+            // Only once the list has loaded: not while loading, nor beside its error.
+            Array.isArray(builtIn) && <p className="text-muted">{text.noMatch}</p>}
         </>
       )}
     </Modal>
