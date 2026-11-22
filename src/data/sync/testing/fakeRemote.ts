@@ -120,7 +120,8 @@ export class FakeRemote implements Remote {
       const stored = this.store(table).get(row.id)
       // public.skip_stale_update(): an older edit leaves the stored row alone.
       if (stored && toMicros(row.client_updated_at) < toMicros(stored.client_updated_at)) return []
-      return [{ ...row, updated_at: updatedAt }]
+      // Like PostgREST's upsert, a column the row leaves out keeps its stored value.
+      return [{ ...stored, ...row, updated_at: updatedAt }]
     })
 
     if (this.holdNextUpsert) {

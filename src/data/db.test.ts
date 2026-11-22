@@ -113,7 +113,11 @@ describe('LocalDb', () => {
 
     const after = open('calorithm-test-upgrade-v3')
     expect(await after.table('profile').get('p1')).toEqual({ id: 'p1', units: 'imperial' })
-    expect(await after.table('log_entries').get('l1')).toEqual({ id: 'l1', date: '2026-11-20' })
+    // Later versions add fields to log entries; this case checks only that its data survived.
+    expect(await after.table('log_entries').get('l1')).toMatchObject({
+      id: 'l1',
+      date: '2026-11-20',
+    })
     expect(await after.outbox.count()).toBe(1)
     await after.table('weights').put({ id: 'w1', date: '2026-11-20' })
     expect(await after.table('weights').where('date').equals('2026-11-20').count()).toBe(1)
@@ -157,6 +161,35 @@ describe('LocalDb', () => {
       key: 'lastExportDay',
       value: '2026-11-21',
     })
+  })
+
+  it('marks carbs and fat not set on existing foods and log entries when upgraded to version 6', async () => {
+    const [v1, v2, v3, v4, v5] = schemaVersions
+    if (!v1 || !v2 || !v3 || !v4 || !v5) throw new Error('missing schema versions')
+    const before = open('calorithm-test-upgrade-v6', [v1, v2, v3, v4, v5])
+    await before.table('foods').put({ id: 'f1', name: 'Oats', kcal: 150 })
+    await before.table('log_entries').put({ id: 'l1', date: '2026-11-20', kcal: 225 })
+    await before.table('weights').put({ id: 'w1', date: '2026-11-20' })
+    before.close()
+
+    const after = open('calorithm-test-upgrade-v6')
+    expect(await after.table('foods').get('f1')).toEqual({
+      id: 'f1',
+      name: 'Oats',
+      kcal: 150,
+      carbs_g: null,
+      fat_g: null,
+    })
+    expect(await after.table('log_entries').get('l1')).toEqual({
+      id: 'l1',
+      date: '2026-11-20',
+      kcal: 225,
+      carbs_g: null,
+      fat_g: null,
+      carbs_g_per_serving: null,
+      fat_g_per_serving: null,
+    })
+    expect(await after.table('weights').get('w1')).toEqual({ id: 'w1', date: '2026-11-20' })
   })
 
   it('keeps existing data across an upgrade that adds a table', async () => {

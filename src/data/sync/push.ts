@@ -68,13 +68,21 @@ const settle = async (
 const fail = (db: LocalDb, spec: TableSpec, entry: Entry, code: string, message: string) =>
   settle(db, spec, entry, { failure: { code, message } })
 
-// Brings the row up to the table's current shape, then checks it.
+// Brings the row up to the table's current shape, then checks it. Columns added after the
+// entry's version are left out, so the upsert keeps the server's values for them.
 const prepare = (spec: TableSpec, entry: Entry): Record<string, unknown> | null => {
   const row =
     entry.schemaVersion < spec.schemaVersion && spec.upgrade
       ? spec.upgrade(entry.row, entry.schemaVersion)
       : entry.row
-  return spec.parse(row)
+  const parsed: Record<string, unknown> | null = spec.parse(row)
+  if (!parsed) return null
+  const prepared = { ...parsed }
+  for (const [version, columns] of Object.entries(spec.addedColumns ?? {})) {
+    if (Number(version) <= entry.schemaVersion) continue
+    for (const column of columns) delete prepared[column]
+  }
+  return prepared
 }
 
 const idOf = (row: Record<string, unknown>): string | null =>

@@ -44,3 +44,4 @@ change a decision, write a new record that supersedes the old one.
 | [0022](0022-export-file-and-import-merge.md) | Export file format and how import merges | Accepted |
 | [0023](0023-account-deletion-needs-a-recent-password-sign-in.md) | Account deletion needs a recent password sign-in | Accepted |
 | [0024](0024-public-repository-for-github-pages.md) | Public repository for GitHub Pages | Accepted |
+| [0025](0025-carbs-and-fat-nullable.md) | Carbs and fat as nullable columns | Accepted |

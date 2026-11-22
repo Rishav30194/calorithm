@@ -22,6 +22,9 @@ export type TableSpec<Row extends SyncRow = SyncRow> = {
   parse: (raw: unknown) => Row | null
   // Brings an outbox row written by an older app version up to schemaVersion before it's sent.
   upgrade?: (row: Record<string, unknown>, fromVersion: number) => Record<string, unknown>
+  // Columns each schema version added. An entry written before a version is sent without
+  // that version's columns, so the server keeps the values a newer device stored.
+  addedColumns?: Readonly<Record<number, readonly string[]>>
   // Rows this row references. A foreign key error while one of them has a failed change keeps
   // the row queued instead of failing it for good (decision 0019).
   parents?: (row: Record<string, unknown>) => ParentRef[]
@@ -48,6 +51,19 @@ const parser =
     return result.success ? result.data : null
   }
 
+// Matches the column's numeric precision, so a value the server would round is rejected here.
+const decimals = (places: number) => {
+  const scale = 10 ** places
+  return z.refine<number>((value) => Math.abs(value * scale - Math.round(value * scale)) < 1e-6)
+}
+
+const between = (min: number, max: number) => [z.gte(min), z.lte(max)] as const
+
+// Carbs or fat in grams, not set (null) on rows saved before version 2 (decision 0025). A row
+// without the column, such as an older local copy or export, reads as not set.
+const grams = (places: number, max: number) =>
+  z._default(z.nullable(z.number().check(...between(0, max), decimals(places))), null)
+
 export type ProfileRow = Tables<'profile'>
 
 const profileSchema = z.object({
@@ -72,7 +88,8 @@ export type FoodRow = Tables<'foods'>
 
 export const foodsSpec: TableSpec<FoodRow> = {
   name: 'foods',
-  schemaVersion: 1,
+  schemaVersion: 2,
+  addedColumns: { 2: ['carbs_g', 'fat_g'] },
   parse: parser(
     z.object({
       ...syncColumns,
@@ -81,6 +98,8 @@ export const foodsSpec: TableSpec<FoodRow> = {
       serving_unit: z.string(),
       kcal: z.int(),
       protein_g: z.number(),
+      carbs_g: grams(1, 1000),
+      fat_g: grams(1, 1000),
       archived_at: z.nullable(z.string()),
     }),
   ),
@@ -129,7 +148,8 @@ export type LogEntryRow = Tables<'log_entries'>
 
 export const logEntriesSpec: TableSpec<LogEntryRow> = {
   name: 'log_entries',
-  schemaVersion: 1,
+  schemaVersion: 2,
+  addedColumns: { 2: ['carbs_g', 'fat_g', 'carbs_g_per_serving', 'fat_g_per_serving'] },
   parse: parser(
     z.object({
       ...syncColumns,
@@ -143,6 +163,10 @@ export const logEntriesSpec: TableSpec<LogEntryRow> = {
       protein_g: z.number(),
       kcal_per_serving: z.number(),
       protein_g_per_serving: z.number(),
+      carbs_g: grams(1, 10000),
+      fat_g: grams(1, 10000),
+      carbs_g_per_serving: grams(3, 10000),
+      fat_g_per_serving: grams(3, 10000),
       logged_at: z.string(),
     }),
   ),
@@ -170,14 +194,6 @@ export const weightsSpec: TableSpec<WeightRow> = {
 }
 
 export type CheckinRow = Tables<'checkins'>
-
-// Matches the column's numeric precision, so a value the server would round is rejected here.
-const decimals = (places: number) => {
-  const scale = 10 ** places
-  return z.refine<number>((value) => Math.abs(value * scale - Math.round(value * scale)) < 1e-6)
-}
-
-const between = (min: number, max: number) => [z.gte(min), z.lte(max)] as const
 
 type CheckinFields = Omit<CheckinRow, keyof SyncRow>
 

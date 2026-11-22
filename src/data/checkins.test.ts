@@ -61,6 +61,8 @@ const food: FoodRow = {
   serving_unit: 'g',
   kcal: 1100,
   protein_g: 5,
+  carbs_g: null,
+  fat_g: null,
   archived_at: null,
   updated_at: '',
   client_updated_at: '',

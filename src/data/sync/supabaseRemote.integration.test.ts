@@ -92,6 +92,42 @@ describe('createSupabaseRemote', () => {
     expect(await storedProfile()).toEqual(stored)
   })
 
+  // An entry queued before carbs and fat existed is sent without them (decision 0025); the
+  // server must keep the values a newer device stored, not clear them.
+  it('keeps a stored column that an upsert leaves out', async () => {
+    const id = crypto.randomUUID()
+    const food = {
+      id,
+      user_id: userId,
+      name: 'Synthetic oats',
+      serving_size: 40,
+      serving_unit: 'g',
+      kcal: 150,
+      protein_g: 5,
+      archived_at: null,
+      updated_at: new Date().toISOString(),
+      deleted_at: null,
+    }
+    await remote.upsert('foods', [
+      { ...food, carbs_g: 27, fat_g: 2.5, client_updated_at: nextTime(), schema_version: 2 },
+    ])
+
+    const result = await remote.upsert('foods', [
+      {
+        ...food,
+        name: 'Synthetic oats, renamed',
+        client_updated_at: nextTime(),
+        schema_version: 1,
+      },
+    ])
+
+    expect(result.ok && result.value[0]).toMatchObject({
+      name: 'Synthetic oats, renamed',
+      carbs_g: 27,
+      fat_g: 2.5,
+    })
+  })
+
   it('returns rows by id, and nothing for ids the server doesn’t have', async () => {
     await remote.upsert('profile', [profile()])
 

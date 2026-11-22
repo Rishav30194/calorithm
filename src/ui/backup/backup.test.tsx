@@ -177,6 +177,8 @@ describe('BackupView', () => {
             serving_unit: 'bar',
             kcal: 200,
             protein_g: 10,
+            carbs_g: null,
+            fat_g: null,
             archived_at: null,
             updated_at: weight.updated_at,
             client_updated_at: weight.client_updated_at,

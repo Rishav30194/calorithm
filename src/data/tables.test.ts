@@ -75,6 +75,8 @@ const food: FoodRow = {
   serving_unit: 'g',
   kcal: 150,
   protein_g: 5,
+  carbs_g: 27,
+  fat_g: 2.5,
   archived_at: null,
 }
 
@@ -114,6 +116,10 @@ const logEntry: LogEntryRow = {
   protein_g: 7.5,
   kcal_per_serving: 150,
   protein_g_per_serving: 5,
+  carbs_g: 40.5,
+  fat_g: 3.8,
+  carbs_g_per_serving: 27,
+  fat_g_per_serving: 2.5,
   logged_at: '2026-11-20T08:00:00.000Z',
 }
 
@@ -192,6 +198,44 @@ describe('food and log table specs', () => {
     const missing: Record<string, unknown> = { ...row }
     delete missing[column]
     expect(spec.parse(missing)).toBeNull()
+  })
+})
+
+describe('carbs and fat (decision 0025)', () => {
+  it('reads a food or log entry saved before carbs and fat with them not set', () => {
+    const { carbs_g: _carbs, fat_g: _fat, ...oldFood } = food
+    const {
+      carbs_g: _entryCarbs,
+      fat_g: _entryFat,
+      carbs_g_per_serving: _carbsPerServing,
+      fat_g_per_serving: _fatPerServing,
+      ...oldEntry
+    } = logEntry
+
+    expect(foodsSpec.parse(oldFood)).toEqual({ ...oldFood, carbs_g: null, fat_g: null })
+    expect(logEntriesSpec.parse(oldEntry)).toEqual({
+      ...oldEntry,
+      carbs_g: null,
+      fat_g: null,
+      carbs_g_per_serving: null,
+      fat_g_per_serving: null,
+    })
+  })
+
+  it('writes version 2, and names the columns version 2 added', () => {
+    expect(foodsSpec.schemaVersion).toBe(2)
+    expect(foodsSpec.addedColumns).toEqual({ 2: ['carbs_g', 'fat_g'] })
+    expect(logEntriesSpec.schemaVersion).toBe(2)
+    expect(logEntriesSpec.addedColumns).toEqual({
+      2: ['carbs_g', 'fat_g', 'carbs_g_per_serving', 'fat_g_per_serving'],
+    })
+  })
+
+  it('rejects carbs or fat with more than one decimal or out of range, as the database does', () => {
+    expect(foodsSpec.parse({ ...food, carbs_g: 1.25 })).toBeNull()
+    expect(foodsSpec.parse({ ...food, fat_g: -1 })).toBeNull()
+    expect(foodsSpec.parse({ ...food, fat_g: 1000.1 })).toBeNull()
+    expect(logEntriesSpec.parse({ ...logEntry, carbs_g: 10000.1 })).toBeNull()
   })
 })
 

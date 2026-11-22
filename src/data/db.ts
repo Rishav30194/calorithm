@@ -1,4 +1,4 @@
-import Dexie, { type Table } from 'dexie'
+import Dexie, { type Table, type Transaction } from 'dexie'
 
 import type { SyncRow } from './tables'
 
@@ -31,7 +31,12 @@ export type SyncState = {
 // Local-only settings for this device, never synced.
 export type MetaEntry = { key: 'lastExportDay'; value: string }
 
-export type SchemaVersion = { version: number; stores: Record<string, string | null> }
+export type SchemaVersion = {
+  version: number
+  stores: Record<string, string | null>
+  // Rewrites rows already stored, for a change in their shape rather than in the stores.
+  upgrade?: (tx: Transaction) => Promise<void>
+}
 
 // One entry per local schema change, never edited once released. A new version lists only
 // the stores it adds or changes, and gets an upgrade test in db.test.ts.
@@ -72,6 +77,29 @@ export const schemaVersions: readonly SchemaVersion[] = [
       meta: 'key',
     },
   },
+  {
+    // Carbs and fat (decision 0025): rows stored before them read as not set.
+    version: 6,
+    stores: {},
+    upgrade: async (tx) => {
+      await tx
+        .table('foods')
+        .toCollection()
+        .modify((row: Record<string, unknown>) => {
+          row.carbs_g ??= null
+          row.fat_g ??= null
+        })
+      await tx
+        .table('log_entries')
+        .toCollection()
+        .modify((row: Record<string, unknown>) => {
+          row.carbs_g ??= null
+          row.fat_g ??= null
+          row.carbs_g_per_serving ??= null
+          row.fat_g_per_serving ??= null
+        })
+    },
+  },
 ]
 
 export const dbNameFor = (userId: string): string => `calorithm-${userId}`
@@ -83,8 +111,9 @@ export class LocalDb extends Dexie {
 
   constructor(name: string, versions: readonly SchemaVersion[] = schemaVersions) {
     super(name)
-    for (const { version, stores } of versions) {
-      this.version(version).stores(stores)
+    for (const { version, stores, upgrade } of versions) {
+      const declared = this.version(version).stores(stores)
+      if (upgrade) declared.upgrade(upgrade)
     }
   }
 

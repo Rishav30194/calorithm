@@ -221,6 +221,8 @@ A phone can stay offline for weeks with outbox entries in an old shape. To stay 
 2. A change clients see ships in two releases. The first adds the new columns, with defaults,
    and accepts both shapes. The second removes the old columns once no client sends the old
    shape.
+   A column a version adds is listed in its table's `addedColumns`; push sends an entry from
+   an earlier version without it, and the upsert keeps the server's value (decision 0025).
 3. The `app_config` table holds `min_app_version`. A client below it shows a required
    **Update** screen and stops syncing, so it can't send a shape the server no longer accepts.
 4. Dexie's own schema version upgrades the local tables, with an upgrade test for each version.
