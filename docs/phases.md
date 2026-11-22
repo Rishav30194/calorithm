@@ -485,13 +485,21 @@ is made public, because GitHub Pages on the Free plan serves only public reposit
   question).
 
 **Acceptance criteria:**
-- [ ] A food saved with carbs and fat shows them on the food, in a recipe's totals, and in
-  the log, rounded to one decimal place.
-- [ ] Editing a food's carbs or fat doesn't change entries already logged.
-- [ ] A device on the previous version keeps syncing while the new columns exist (the first
-  release accepts both shapes).
-- [ ] Export then import reproduces carbs and fat; a version 1 file still imports.
-- [ ] pgTAP covers the new columns' ranges, and fast-check covers the new totals.
+- [x] A food saved with carbs and fat shows them on the food, in a recipe's totals, and in
+  the log, rounded to one decimal place. (`e2e/foods.spec.ts`, `src/ui/log/log.test.tsx`,
+  and the live app on 0.3.0, 2026-11-21)
+- [x] Editing a food's carbs or fat doesn't change entries already logged.
+  (`src/data/log.test.ts`)
+- [x] A device on the previous version keeps syncing while the new columns exist (the first
+  release accepts both shapes). (`supabase/tests/carbs_fat.test.sql` accepts rows without
+  them, and the push and integration tests prove a version 1 entry keeps stored values;
+  not watched on a real device running 0.2.0.)
+- [x] Export then import reproduces carbs and fat; a version 1 file still imports.
+  (`src/data/backup/backup.test.ts` restores every row of foods and log entries exactly;
+  `src/data/backup/format.test.ts` imports rows from before carbs and fat; the export
+  format stays version 1, see the implementation notes)
+- [x] pgTAP covers the new columns' ranges, and fast-check covers the new totals.
+  (`supabase/tests/carbs_fat.test.sql` and `src/domain/nutrition.test.ts`)
 
 **Decided** (2026-11-21): no carbs or fat targets, only totals. Kcal and protein stay the
 targets the weekly check-in sets.
@@ -502,7 +510,22 @@ instead of adding `NOT NULL`). PR 2: totals, the food form, recipes, and the log
 version 0.3.0; it must also carry carbs and fat through copy and repeat in `src/data/log.ts`,
 which build entries from kcal and protein only. PR 3: export format version 2.
 
-**Implementation notes:** none yet.
+**Implementation notes:**
+- PR #33: nullable `carbs_g` and `fat_g` on foods, and those plus per-serving copies on log
+  entries; schema version 2 with `addedColumns`; Dexie version 6. Push never sends an added
+  column as null and splits upserts by column set, because postgrest-js sends one column
+  list per request and null for a column a row lacks (decision 0025).
+- PR #34 (0.3.0): the form requires carbs and fat; every nutrient line reads "kcal ·
+  protein · carbs · fat" through `src/ui/macros.ts`. A day's totals add the known values
+  and say when some are missing; a recipe's carbs or fat are not set if any ingredient's
+  are, since a logged recipe is one entry. Logged totals are checked locally for precision
+  only, like protein.
+- PR 3 (0.3.1): the planned export format version 2 was dropped (review of PR 3). Rows carry
+  their own `schema_version`, so 0.2.0 already refuses a file with carbs and fat as
+  `newer_version`, and a format bump would only have stopped 0.3.0 importing a newer app's
+  file. The format stays version 1. Import now refuses carbs or fat on log entries that the
+  database's ranges would refuse.
+- Left for release 2: raise `min_app_version` to 0.3.0 once every device runs it.
 
 ## Phase 9 — Recent and frequent foods
 

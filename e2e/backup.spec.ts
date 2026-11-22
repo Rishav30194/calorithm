@@ -67,7 +67,9 @@ test('an export imported into another account brings its data across (phase 6 cr
 
   const file = JSON.parse(await readFile(path, 'utf8'))
   expect(file).toMatchObject({ format: 'calorithm-export', version: 1, user_id: seedUser.id })
-  expect(file.tables.foods.map((food: { name: string }) => food.name)).toContain(name)
+  expect(file.tables.foods).toContainEqual(
+    expect.objectContaining({ name, carbs_g: 27, fat_g: 2.5 }),
+  )
   await expect(yourData(page).getByRole('status')).toContainText('Exported.')
   await expect(yourData(page).getByText(/^Last exported on this device:/)).toBeVisible()
 

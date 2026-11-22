@@ -27,6 +27,9 @@ import {
 } from '../tables'
 
 export const EXPORT_FORMAT = 'calorithm-export'
+// Carbs and fat (decision 0025) didn't need a new format version: rows carry their own
+// schema_version, so an app that can't read a row's version refuses the file
+// (`newer_version`), and rows from before carbs and fat import with them not set.
 export const EXPORT_VERSION = 1
 
 // Many years of heavy logging fit well under this; a larger file is refused before parsing.
@@ -130,6 +133,9 @@ const textFits = (value: string, max: number): boolean => {
 
 const within = (value: number, min: number, max: number): boolean => value >= min && value <= max
 
+const optionalWithin = (value: number | null, min: number, max: number): boolean =>
+  value === null || within(value, min, max)
+
 const positiveUpTo = (value: number, max: number): boolean => value > 0 && value <= max
 
 const optionalTimestamp = (value: string | null): boolean => value === null || isTimestamp(value)
@@ -192,6 +198,11 @@ const fitsDatabase = (context: ParseContext) => ({
     within(row.kcal, 0, 100000) &&
     within(row.protein_g, 0, 10000) &&
     hasDecimals(row.protein_g, 1) &&
+    // Carbs and fat may be not set (decision 0025); when set, the database's ranges apply.
+    optionalWithin(row.carbs_g, 0, 10000) &&
+    optionalWithin(row.fat_g, 0, 10000) &&
+    optionalWithin(row.carbs_g_per_serving, 0, 10000) &&
+    optionalWithin(row.fat_g_per_serving, 0, 10000) &&
     within(row.kcal_per_serving, 0, 100000) &&
     hasDecimals(row.kcal_per_serving, 3) &&
     within(row.protein_g_per_serving, 0, 10000) &&
