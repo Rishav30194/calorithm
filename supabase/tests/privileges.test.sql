@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(18);
+select plan(20);
 
 -- The hosted project grants nothing on new tables, so each privilege here comes from a
 -- migration, which revokes everything first so local and hosted defaults can't differ.
@@ -22,6 +22,11 @@ select table_privs_are('public', t, 'authenticated',
   format('a signed-in user can read, add, and update %s, but not delete', t))
 from unnest(array['profile', 'foods', 'recipes', 'recipe_items', 'days', 'log_entries', 'weights',
   'checkins']) as t;
+
+select function_privs_are('public', 'delete_account', array[]::name[], 'anon', array[]::text[],
+  'a signed-out request cannot delete an account');
+select function_privs_are('public', 'delete_account', array[]::name[], 'authenticated',
+  array['EXECUTE'], 'a signed-in user can delete their own account');
 
 select * from finish();
 rollback;

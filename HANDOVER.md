@@ -47,7 +47,6 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 
 ## Open questions
 
-
 - Does Supabase's free plan include downloadable backups? The user checks in the dashboard.
 - Exact rate limit of Supabase's built-in email sending. Matters only before friends join.
 - No hosted Supabase project exists yet (checked 2026-11-21: the user's account has only an
@@ -86,6 +85,8 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
   `auto_expose_new_tables = false`) nor hosted Supabase grants anything by default.
   `supabase/tests/privileges.test.sql` checks the exact set for each table; add new tables
   to it.
+- Local Supabase accepts a wrong publishable key; hosted refuses it with `Invalid API key`
+  (checked 2026-11-21). Test key handling against hosted, not local.
 - Supabase CLI 3.x commands such as `db push` and `migration list` target the local
   database unless given `--remote`, even with a project linked. The first hosted push
   (2026-11-21) went to local Docker for this reason.

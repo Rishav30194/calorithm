@@ -36,7 +36,7 @@ moved, search the settings for it.
 
    ```sh
    npx supabase link --project-ref PROJECT_REF
-   read -s "SUPABASE_DB_PASSWORD?Database password: "; echo; export SUPABASE_DB_PASSWORD
+   printf 'Database password: '; read -rs SUPABASE_DB_PASSWORD; echo; export SUPABASE_DB_PASSWORD
    npx supabase db push --remote --dry-run
    npx supabase db push --remote
    npx supabase migration list --remote

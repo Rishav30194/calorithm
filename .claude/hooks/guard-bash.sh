@@ -10,7 +10,8 @@
 #                     `npm run check:fast` must pass
 #   git push       -> not from main, never forced
 #   gh pr create   -> `npm run check:full` must pass
-#   supabase       -> no reset or push against a linked or remote database (CLI 3.x: --remote)
+#   supabase       -> no command that changes a linked or remote database (db push and reset,
+#                     migration up, down, repair, and squash, seed)
 set -uo pipefail
 
 root="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
@@ -80,8 +81,10 @@ if grep -Eq ">[[:space:]]*([^[:space:];|&]*/)?\.env(\.[[:alnum:]_-]+)*([^[:alnum
   block "Writing to .env files is off-limits. Tell the user which key to set."
 fi
 
-if grep -Eq '(^|[^[:alnum:]_./-])supabase[[:space:]]+db[[:space:]]+(reset|push)([[:space:]].*)?--(linked|db-url|remote)' <<<"$cmd"; then
-  block "supabase db reset or push against a linked or remote database is never run by Claude. Ask the user."
+# One line, so a flag after a backslash line break still counts. CLI 3.x names the linked
+# project with --remote; older versions use --linked.
+if tr '\n' ' ' <<<"$cmd" | grep -Eq '(^|[^[:alnum:]_./-])supabase[[:space:]]+(db[[:space:]]+(reset|push)|migrations?[[:space:]]+(up|down|repair|squash)|seed)([[:space:]].*)?--(linked|db-url|remote)'; then
+  block "Changing a linked or remote database is never done by Claude. Ask the user to run it."
 fi
 
 if runs_git commit; then
