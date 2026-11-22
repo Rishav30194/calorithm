@@ -9,7 +9,7 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 1. **Phase 14 is built**: PR 1 (0.10.0, logging by weight, #45) and PR 2 (0.11.0, built-in
    foods in recipes and on the Foods screen, #46) are deployed; PR 3 (0.12.0, spices from
    CoFID and labelled estimates, decision 0032) is on `feature/spice-gaps` with
-   `check:full` done, no migration; push and open its PR when the user asks, then mark
+   `check:full` and `/code-review` done (findings fixed), no migration; push and open its PR when the user asks, then mark
    phase 14 done once the user has tried logging by weight on the iPhone. The hosted
    project has migrations through `20261122050000`; Dexie version 9 rereads each device's
    log entries once. Follow-up: route foods saved from a barcode scan or a label through
