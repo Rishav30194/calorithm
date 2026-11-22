@@ -24,7 +24,7 @@ type Props = {
   items: CatalogItem[]
   // More matches for the search, below the list, such as the built-in foods. With them the
   // search shows even when the list is empty.
-  extra?: (query: string) => ReactNode
+  extra?: (query: string, shown: number) => ReactNode
   // Told of each search, so the extra matches can load on the first one.
   onSearch?: (query: string) => void
 }
@@ -96,7 +96,7 @@ export const CatalogList = ({ title, back, add, text, items, extra, onSearch }: 
               ))}
             </ul>
           )}
-          {extra?.(query)}
+          {extra?.(query, shown.length)}
         </>
       )}
     </div>

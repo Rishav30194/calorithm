@@ -32,7 +32,7 @@ type Props = {
     onSearch: () => void
     onRetry: () => void
     // Copies the item into your foods, or finds the copy made before.
-    onCopy: (item: CatalogFood) => Promise<{ id: string }>
+    onCopy: (item: CatalogFood) => Promise<FoodView>
   }
 }
 
@@ -61,6 +61,7 @@ export const RecipeEditor = ({
   const [errors, setErrors] = useState<Partial<Record<RecipeField, string>>>({})
   const [itemErrors, setItemErrors] = useState<Record<string, string>>({})
   const [picking, setPicking] = useState(false)
+  const [copies, setCopies] = useState<FoodView[]>([])
   const [saving, setSaving] = useState(false)
   const [failed, setFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
@@ -89,7 +90,8 @@ export const RecipeEditor = ({
   }
 
   // Foods by id, archived ones too, since a recipe can keep an archived ingredient.
-  const foodById = new Map(foods.map((food) => [food.id, food]))
+  // Copies of built-in foods are known here at once, before the foods query catches up.
+  const foodById = new Map([...copies, ...foods].map((food) => [food.id, food]))
   const nameOf = (foodId: string) =>
     foodById.get(foodId)?.name ?? recipe?.items.find((item) => item.foodId === foodId)?.name ?? ''
   const perServingOf = (foodId: string): Nutrients | null => {
@@ -274,7 +276,9 @@ export const RecipeEditor = ({
             onSearch: builtIn.onSearch,
             onRetry: builtIn.onRetry,
             onPick: async (item) => {
-              addFood((await builtIn.onCopy(item)).id)
+              const copy = await builtIn.onCopy(item)
+              setCopies((old) => [...old, copy])
+              addFood(copy.id)
               return true
             },
           }}

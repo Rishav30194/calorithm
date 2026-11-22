@@ -12,16 +12,33 @@ type Props = {
   // Built-in items already copied into your foods, which show as your own instead.
   copied: ReadonlySet<string>
   locale: string
+  // How many of your own foods match, so "no match" shows only when nothing does.
+  ownMatches: number
+  noMatch: string
   busy: boolean
   onRetry: () => void
   onPick: (item: CatalogFood) => void
 }
 
 // Built-in foods matching a search, wherever a food is picked or added (phase 14).
-export const BuiltInMatches = ({ state, query, copied, locale, busy, onRetry, onPick }: Props) => {
+export const BuiltInMatches = ({
+  state,
+  query,
+  copied,
+  locale,
+  ownMatches,
+  noMatch,
+  busy,
+  onRetry,
+  onPick,
+}: Props) => {
   const text = strings.log.picker
   if (query.trim() === '') return null
   const matches = Array.isArray(state) ? searchCatalog(state, query, copied) : []
+  // Only once the list has loaded: not while loading, nor beside its error.
+  if (Array.isArray(state) && matches.length === 0 && ownMatches === 0) {
+    return <p className="text-muted">{noMatch}</p>
+  }
   return (
     <section aria-label={text.builtIn} className="flex flex-col gap-1">
       {state === 'loading' && <p className="text-muted">{text.builtInLoading}</p>}

@@ -55,9 +55,9 @@ const Foods = ({ locale }: { locale: string }) => {
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
   if (!foods) return <Loading />
-  const copied = new Set(
-    foods.flatMap((food) => (!food.archived && food.catalogId ? [food.catalogId] : [])),
-  )
+  // Archived copies count too: they're in your list behind Show archived, so the same item
+  // isn't offered twice.
+  const copied = new Set(foods.flatMap((food) => (food.catalogId ? [food.catalogId] : [])))
   // A built-in item becomes one of your foods and opens for checking against your pack.
   const addBuiltIn = async (item: CatalogFood) => {
     setBusy(true)
@@ -83,7 +83,7 @@ const Foods = ({ locale }: { locale: string }) => {
       onSearch={(query) => {
         if (query.trim() !== '') setSearched(true)
       }}
-      extra={(query) => (
+      extra={(query, shown) => (
         <>
           {failed && (
             <p role="alert" className="text-danger">
@@ -95,6 +95,8 @@ const Foods = ({ locale }: { locale: string }) => {
             query={query}
             copied={copied}
             locale={locale}
+            ownMatches={shown}
+            noMatch={strings.foods.noMatch}
             busy={busy}
             onRetry={catalog.retry}
             onPick={(item) => void addBuiltIn(item)}

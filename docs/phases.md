@@ -878,5 +878,10 @@ wherever you pick a food.
   `extra` and `onSearch`) show `BuiltInMatches` under the search, loading the list on the
   first search. A pick in the recipe picker adds the copy as an ingredient; on the **Foods**
   screen it opens the copy in the editor. Both show the search even with no foods of your
-  own. `searchCatalog` matches word starts: "chili powder" finds "Red chili powder", "hing"
-  no longer finds "jhinga".
+  own. `searchCatalog` matches word starts (after any character that isn't a letter or
+  digit): "chili powder" finds "Red chili powder", "hing" no longer finds "jhinga".
+- The recipe picker remembers each copy until the foods query has it, so a new ingredient is
+  named and counted at once. Like the meal picker, it restores an archived copy when its
+  built-in item is picked; the **Foods** screen counts archived copies as added, so "Show
+  archived" never lists an item twice. "No match" shows only when neither your foods nor
+  the loaded built-in list match.

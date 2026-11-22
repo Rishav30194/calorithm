@@ -315,7 +315,7 @@ export type RecipeDetail = RecipeView & { items: RecipeItemView[] }
 const byName = (a: { name: string }, b: { name: string }) =>
   a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
 
-const toFoodView = (food: FoodRow): FoodView => ({
+export const toFoodView = (food: FoodRow): FoodView => ({
   id: food.id,
   name: food.name,
   servingSize: food.serving_size,

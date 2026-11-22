@@ -222,7 +222,7 @@ const noBuiltIn = () => ({
   state: undefined,
   onSearch: vi.fn(),
   onRetry: vi.fn(),
-  onCopy: vi.fn(async () => ({ id: 'copied' })),
+  onCopy: vi.fn(async () => oats),
 })
 
 const onion = {
@@ -244,13 +244,15 @@ describe('RecipeEditor', () => {
 
   // Phase 14: groceries go into a recipe without being saved as foods first.
   it('adds a built-in food as an ingredient, copying it into your foods', async () => {
-    const builtIn = {
-      ...noBuiltIn(),
-      state: [onion],
-      onCopy: vi.fn(async () => ({ id: 'f-onion' })),
+    const onionFood: FoodView = {
+      ...oats,
+      id: 'f-onion',
+      name: 'Onion',
+      kcal: 40,
+      catalogId: 'onion',
     }
-    const onionFood: FoodView = { ...oats, id: 'f-onion', name: 'Onion', catalogId: 'onion' }
-    const { rerender } = render(
+    const builtIn = { ...noBuiltIn(), state: [onion], onCopy: vi.fn(async () => onionFood) }
+    render(
       <RecipeEditor
         recipe={null}
         foods={[oats]}
@@ -268,19 +270,27 @@ describe('RecipeEditor', () => {
     await userEvent.click(within(picker).getByRole('button', { name: /Onion/ }))
     expect(builtIn.onCopy).toHaveBeenCalledWith(onion)
 
-    // The copy arrives in your foods, and the recipe lists it as an ingredient.
-    rerender(
+    // Named and counted at once, before your foods list has the copy.
+    expect(screen.getByLabelText('Servings of Onion')).toHaveValue('1')
+    expect(screen.getByText(recipeText.totals).parentElement).toHaveTextContent('40 kcal')
+  })
+
+  it('says when nothing matches, neither your foods nor the built-in ones', async () => {
+    render(
       <RecipeEditor
         recipe={null}
-        foods={[oats, onionFood]}
+        foods={[oats]}
         locale="en-US"
         backHref="#/log/recipes"
         onSave={vi.fn()}
         onSetArchived={vi.fn()}
-        builtIn={builtIn}
+        builtIn={{ ...noBuiltIn(), state: [onion] }}
       />,
     )
-    expect(screen.getByLabelText('Servings of Onion')).toHaveValue('1')
+    await userEvent.click(screen.getByRole('button', { name: recipeText.addIngredient }))
+    const picker = screen.getByRole('dialog', { name: strings.recipes.picker.title })
+    await userEvent.type(within(picker).getByLabelText(strings.recipes.picker.search), 'xyzzy')
+    expect(within(picker).getByText(strings.recipes.picker.noMatch)).toBeInTheDocument()
   })
 
   const renderNew = (onSave = vi.fn(async () => true)) => {

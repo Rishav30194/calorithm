@@ -25,7 +25,7 @@ const SEARCH_LIMIT = 20
 // "puffed rice" matches "rice" but "jhinga" doesn't match "hing".
 const wordStartsWith = (name: string, needle: string): boolean =>
   name
-    .split(/(?<=[\s,(/-])/)
+    .split(/(?<=[^\p{L}\p{N}])/u)
     .some((_, index, words) => words.slice(index).join('').trimStart().startsWith(needle))
 
 // Built-in foods whose name or a Hindi alias has a word starting with the search, names

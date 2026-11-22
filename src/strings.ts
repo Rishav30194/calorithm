@@ -268,7 +268,7 @@ export const strings = {
     picker: {
       title: 'Add an ingredient',
       search: 'Search foods',
-      empty: 'None of your own foods yet. Search to find built-in foods.',
+      empty: 'No more of your foods to add. Search to find built-in foods.',
       noMatch: 'No foods match your search.',
       close: 'Close',
     },
