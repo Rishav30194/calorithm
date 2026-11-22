@@ -79,8 +79,7 @@ test('yesterday’s food is re-logged in one tap, and editing the food leaves th
   await page.getByRole('button', { name: 'Save' }).click()
   await expect(page.getByText('Day total').locator('..')).toContainText('300 kcal')
 
-  // The picker's Yesterday section is relative to today, so this uses the day after and its
-  // Next day link rather than the device's real yesterday.
+  // The day after, through its Next day link, rather than the device's real days.
   await page.getByRole('link', { name: 'Next day' }).click()
   await expect(page).toHaveURL(new RegExp(nextDay(day)))
   await logFromSearch(page, 'Dinner', oats)
@@ -98,17 +97,12 @@ test('yesterday’s food is re-logged in one tap, and editing the food leaves th
   await expect(meal(page, 'Lunch')).toContainText('2 servings · 300 kcal')
 })
 
-test('the picker offers yesterday’s foods with the servings last logged', async ({ page }) => {
+test('the picker offers recent foods with the servings last logged', async ({ page }) => {
   const rice = unique('Rice')
+  const day = randomDay()
   await signIn(page)
   await addFood(page, rice, '270')
-  const yesterday = await page.evaluate(() => {
-    const now = new Date()
-    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
-    const pad = (n: number) => String(n).padStart(2, '0')
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
-  })
-  await openDay(page, yesterday)
+  await openDay(page, day)
   await logFromSearch(page, 'Dinner', rice)
   await meal(page, 'Dinner')
     .getByRole('button', { name: new RegExp(rice) })
@@ -116,13 +110,15 @@ test('the picker offers yesterday’s foods with the servings last logged', asyn
   await page.getByLabel('Servings').fill('1.5')
   await page.getByRole('button', { name: 'Save' }).click()
 
-  await openDay(page, null)
+  // Recent is relative to the day being logged; the day after a random far-future day has
+  // no entries from other tests ahead of this one.
+  await page.getByRole('link', { name: 'Next day' }).click()
+  await expect(page).toHaveURL(new RegExp(nextDay(day)))
   await page.getByRole('button', { name: 'Add to Dinner' }).click()
   const picker = page.getByRole('dialog', { name: 'Add to Dinner' })
-  const yesterdaySection = picker.locator('section', {
-    has: page.getByRole('heading', { name: 'Yesterday' }),
-  })
-  await yesterdaySection.getByRole('button', { name: new RegExp(rice) }).click()
+  const recent = picker.locator('section', { has: page.getByRole('heading', { name: 'Recent' }) })
+  await expect(recent.getByRole('button').first()).toContainText(rice)
+  await recent.getByRole('button', { name: new RegExp(rice) }).click()
 
   await expect(meal(page, 'Dinner').getByRole('button', { name: new RegExp(rice) })).toContainText(
     '1.5 servings',

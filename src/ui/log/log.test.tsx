@@ -45,9 +45,12 @@ const chili: RecipeView = {
   perServing: { kcal: 500, proteinG: 30, carbsG: null, fatG: null },
 }
 const picks: QuickPicks = {
-  today: [],
-  yesterday: [{ source: { kind: 'food', id: 'f1' }, name: 'Oats', servings: 2, count: 1 }],
+  recent: [{ source: { kind: 'food', id: 'f1' }, name: 'Oats', servings: 2, count: 1 }],
   mostUsed: [],
+  scores: new Map([
+    ['food:f1', 1],
+    ['recipe:r1', 0.5],
+  ]),
 }
 
 const entry = (overrides: Partial<LoggedEntry> = {}): LoggedEntry => ({
@@ -72,7 +75,6 @@ describe('LogPicker', () => {
     render(
       <LogPicker
         meal="breakfast"
-        isToday
         picks={picks}
         foods={[oats, butter]}
         recipes={[chili]}
@@ -86,12 +88,10 @@ describe('LogPicker', () => {
 
   it('logs a quick pick with the servings last logged, in one tap, then closes', async () => {
     const { onPick, onClose } = renderPicker()
-    const yesterday = screen
-      .getByRole('heading', { name: text.picker.yesterday })
-      .closest('section')
-    if (!yesterday) throw new Error('no yesterday section')
+    const recent = screen.getByRole('heading', { name: text.picker.recent }).closest('section')
+    if (!recent) throw new Error('no recent section')
 
-    await userEvent.click(within(yesterday).getByRole('button', { name: /Oats/ }))
+    await userEvent.click(within(recent).getByRole('button', { name: /Oats/ }))
 
     expect(onPick).toHaveBeenCalledWith({ kind: 'food', id: 'f1' }, 2)
     expect(onClose).toHaveBeenCalled()
@@ -117,28 +117,46 @@ describe('LogPicker', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
-  it('names the first rows after the day being logged when it isn’t today', () => {
+  // Phase 9 criterion: frequent matches above rare ones, then by name.
+  it('ranks search matches by how much they are used, then by name', async () => {
+    const bran: FoodView = { ...oats, id: 'f3', name: 'Oat bran' }
+    const cookie: FoodView = { ...oats, id: 'f4', name: 'Oat cookie' }
     render(
       <LogPicker
         meal="lunch"
-        isToday={false}
-        picks={picks}
-        foods={[oats]}
+        picks={{
+          ...picks,
+          scores: new Map([
+            ['food:f1', 1],
+            ['food:f3', 4],
+          ]),
+        }}
+        foods={[cookie, oats, bran]}
         recipes={[]}
         locale="en-US"
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,
     )
-    expect(screen.getByRole('heading', { name: text.picker.dayBefore })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: text.picker.yesterday })).not.toBeInTheDocument()
+    await userEvent.type(screen.getByLabelText(text.picker.search), 'oat')
+
+    const all = screen.getByRole('heading', { name: text.picker.all }).closest('section')
+    if (!all) throw new Error('no list of all foods')
+    expect(
+      within(all)
+        .getAllByRole('button')
+        .map((button) => button.textContent),
+    ).toEqual([
+      expect.stringContaining('Oat bran'),
+      expect.stringContaining('Oats'),
+      expect.stringContaining('Oat cookie'),
+    ])
   })
 
   it('shows loading, then the empty state when nothing is saved', () => {
     const { rerender } = render(
       <LogPicker
         meal="lunch"
-        isToday
         picks={undefined}
         foods={undefined}
         recipes={undefined}
@@ -152,8 +170,7 @@ describe('LogPicker', () => {
     rerender(
       <LogPicker
         meal="lunch"
-        isToday
-        picks={{ today: [], yesterday: [], mostUsed: [] }}
+        picks={{ recent: [], mostUsed: [], scores: new Map() }}
         foods={[]}
         recipes={[]}
         locale="en-US"

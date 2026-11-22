@@ -1,3 +1,5 @@
+import { daysBetween } from './dates'
+
 export const meals = ['breakfast', 'lunch', 'dinner', 'snacks'] as const
 
 export type Meal = (typeof meals)[number]
@@ -141,34 +143,71 @@ export const totalsByMeal = (
 
 export type QuickPick = { source: Source; name: string; servings: number; count: number }
 
-// The foods and recipes logged most often, each once, with the name and servings from the
-// latest time it was logged. Ties go to the most recent, then to the name.
-export const mostUsed = (entries: readonly Entry[], limit: number): QuickPick[] => {
-  const bySource = new Map<string, { latest: Entry; count: number }>()
+export const sourceKey = (source: Source): string => `${source.kind}:${source.id}`
+
+// A log counts 1 on the day and half as much every this many days older, so last month's
+// habit outranks last year's.
+const HALF_LIFE_DAYS = 30
+
+// How much each food or recipe has been used up to `today`, weighting recent logs more.
+// Entries after `today` don't count.
+export const useScores = (entries: readonly Entry[], today: string): Map<string, number> => {
+  const scores = new Map<string, number>()
   for (const entry of entries) {
-    const key = `${entry.source.kind}:${entry.source.id}`
-    const seen = bySource.get(key)
-    if (!seen) {
-      bySource.set(key, { latest: entry, count: 1 })
-    } else {
-      seen.count += 1
-      // Entries come oldest first, so on the same date the later one wins.
-      if (entry.date >= seen.latest.date) seen.latest = entry
-    }
+    const age = daysBetween(entry.date, today)
+    if (age < 0) continue
+    const key = sourceKey(entry.source)
+    scores.set(key, (scores.get(key) ?? 0) + 0.5 ** (age / HALF_LIFE_DAYS))
   }
-  return [...bySource.values()]
+  return scores
+}
+
+type Seen = { latest: Entry; count: number; order: number }
+
+// Each source once, with the name and servings from its latest entry: the latest date, and
+// on one date the later in the list, since entries come in the order they were logged.
+const bySource = (entries: readonly Entry[]): Map<string, Seen> => {
+  const seen = new Map<string, Seen>()
+  entries.forEach((entry, order) => {
+    const key = sourceKey(entry.source)
+    const previous = seen.get(key)
+    const count = (previous?.count ?? 0) + 1
+    seen.set(
+      key,
+      !previous || entry.date >= previous.latest.date
+        ? { latest: entry, count, order }
+        : { ...previous, count },
+    )
+  })
+  return seen
+}
+
+const toPick = ({ latest, count }: Seen): QuickPick => ({
+  source: latest.source,
+  name: latest.name,
+  servings: latest.servings,
+  count,
+})
+
+// The foods and recipes logged most, by use score, then the most recent, then the name.
+export const mostUsed = (entries: readonly Entry[], today: string, limit: number): QuickPick[] => {
+  const scores = useScores(entries, today)
+  const scoreOf = (seen: Seen) => scores.get(sourceKey(seen.latest.source)) ?? 0
+  return [...bySource(entries).values()]
     .sort(
       (a, b) =>
-        b.count - a.count ||
+        scoreOf(b) - scoreOf(a) ||
         // YYYY-MM-DD strings sort as dates.
         b.latest.date.localeCompare(a.latest.date) ||
         a.latest.name.localeCompare(b.latest.name),
     )
     .slice(0, Math.max(0, limit))
-    .map(({ latest, count }) => ({
-      source: latest.source,
-      name: latest.name,
-      servings: latest.servings,
-      count,
-    }))
+    .map(toPick)
 }
+
+// The foods and recipes logged most recently, each once, newest first.
+export const recentPicks = (entries: readonly Entry[], limit: number): QuickPick[] =>
+  [...bySource(entries).values()]
+    .sort((a, b) => b.latest.date.localeCompare(a.latest.date) || b.order - a.order)
+    .slice(0, Math.max(0, limit))
+    .map(toPick)

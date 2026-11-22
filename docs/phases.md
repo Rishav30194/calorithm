@@ -529,7 +529,7 @@ which build entries from kcal and protein only. PR 3: export format version 2.
 
 ## Phase 9 — Recent and frequent foods
 
-**Status:** Not started
+**Status:** Done (2026-11-21)
 
 **Goal:** the foods you eat most are one tap away.
 
@@ -545,12 +545,27 @@ which build entries from kcal and protein only. PR 3: export format version 2.
 - Pure ranking functions in `src/domain/`, written test first.
 
 **Acceptance criteria:**
-- [ ] A food logged yesterday appears at the top of **Recent**.
-- [ ] A food logged daily this month outranks one logged often a year ago in **Most used**.
-- [ ] Typing in the picker search puts frequent matches above rare ones.
-- [ ] Example and fast-check tests cover the ranking; archived foods never appear.
+- [x] A food logged yesterday appears at the top of **Recent**. (`recentPicks` tests in
+  `src/domain/nutrition.test.ts`, and `e2e/log.spec.ts` on the day after a logged food)
+- [x] A food logged daily this month outranks one logged often a year ago in **Most used**.
+  (`src/domain/nutrition.test.ts`)
+- [x] Typing in the picker search puts frequent matches above rare ones.
+  (`src/ui/log/log.test.tsx`)
+- [x] Example and fast-check tests cover the ranking; archived foods never appear.
+  (`src/domain/nutrition.test.ts`, and `quickPicks` in `src/data/log.test.ts`)
 
-**Implementation notes:** none yet.
+**Plan** (approved 2026-11-21): one PR, version 0.4.0, no migration. **Recent** replaces
+**Today** and **Yesterday** in the picker, since it holds both and **Copy from…** re-logs a
+whole meal. A log counts 1 on its day, halving every 30 days; **Most used** and the picker's
+list rank by that score, over the last 180 days (decision 0026; the plan said 365, cut after
+timing it).
+
+**Implementation notes:**
+- One PR (0.4.0). `useScores`, `mostUsed`, and `recentPicks` in `src/domain/nutrition.ts`;
+  `quickPicks` returns **Recent**, **Most used**, and the scores, which the picker's search
+  list sorts by. The window is 180 days, not the planned 365: timing a year of synthetic
+  entries gave about 30 ms per refresh on a laptop, and older logs weigh under 1.6%
+  (decision 0026).
 
 ## Phase 10 — Built-in Indian and gym foods
 

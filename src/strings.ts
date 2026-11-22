@@ -61,10 +61,7 @@ export const strings = {
     completeHint: 'Only complete days count toward your weekly estimate.',
     completeFailed: 'Couldn’t save that. Try again.',
     picker: {
-      today: 'Today',
-      yesterday: 'Yesterday',
-      thisDay: 'On this day',
-      dayBefore: 'The day before',
+      recent: 'Recent',
       mostUsed: 'Most used',
       search: 'Search foods and recipes',
       all: 'All foods and recipes',

@@ -6,10 +6,13 @@ import {
   mostUsed,
   type Nutrients,
   type QuickPick,
+  recentPicks,
   recipePerServing,
   roundServings,
   type Source,
   scaleNutrients,
+  sourceKey,
+  useScores,
 } from '@/domain/nutrition'
 
 import { dayId } from './dayId'
@@ -302,38 +305,45 @@ export const entriesBetween = async (
       return entry ? [entry] : []
     })
 
-export type QuickPicks = { today: QuickPick[]; yesterday: QuickPick[]; mostUsed: QuickPick[] }
+export type QuickPicks = {
+  recent: QuickPick[]
+  mostUsed: QuickPick[]
+  // Use scores by source key (`sourceKey`), for ranking search results. Only foods and
+  // recipes that are neither archived nor deleted have one.
+  scores: ReadonlyMap<string, number>
+}
 
-const MOST_USED_DAYS = 60
-const MOST_USED_LIMIT = 10
+// A log 180 days old counts under 1.6% of a new one, so older ones are left unread: the picker
+// re-runs this on every change while open (decision 0026).
+const HISTORY_DAYS = 180
+const PICK_LIMIT = 10
 
-// The picker's one-tap rows. Archived or deleted foods and recipes are left out, and each
-// shows its current name.
+// The picker's one-tap rows, relative to the day being logged. Archived or deleted foods and
+// recipes are left out, and each shows its current name.
 export const quickPicks = async (db: LocalDb, today: string): Promise<QuickPicks> => {
-  const yesterday = addDays(today, -1)
-  const entries = await entriesBetween(db, addDays(today, -(MOST_USED_DAYS - 1)), today)
+  const entries = await entriesBetween(db, addDays(today, -(HISTORY_DAYS - 1)), today)
   const names = new Map<string, string>()
   for (const raw of await db.rows('foods').toArray()) {
     const food = foodsSpec.parse(raw)
     if (food && food.deleted_at === null && food.archived_at === null) {
-      names.set(`food:${food.id}`, food.name)
+      names.set(sourceKey({ kind: 'food', id: food.id }), food.name)
     }
   }
   for (const raw of await db.rows('recipes').toArray()) {
     const recipe = recipesSpec.parse(raw)
     if (recipe && recipe.deleted_at === null && recipe.archived_at === null) {
-      names.set(`recipe:${recipe.id}`, recipe.name)
+      names.set(sourceKey({ kind: 'recipe', id: recipe.id }), recipe.name)
     }
   }
   const available = (picks: QuickPick[]): QuickPick[] =>
     picks.flatMap((pick) => {
-      const name = names.get(`${pick.source.kind}:${pick.source.id}`)
+      const name = names.get(sourceKey(pick.source))
       return name === undefined ? [] : [{ ...pick, name }]
     })
-  const on = (date: string) => entries.filter((entry) => entry.date === date)
+  const scores = new Map([...useScores(entries, today)].filter(([key]) => names.has(key)))
   return {
-    today: available(mostUsed(on(today), Number.POSITIVE_INFINITY)),
-    yesterday: available(mostUsed(on(yesterday), Number.POSITIVE_INFINITY)),
-    mostUsed: available(mostUsed(entries, Number.POSITIVE_INFINITY)).slice(0, MOST_USED_LIMIT),
+    recent: available(recentPicks(entries, Number.POSITIVE_INFINITY)).slice(0, PICK_LIMIT),
+    mostUsed: available(mostUsed(entries, today, Number.POSITIVE_INFINITY)).slice(0, PICK_LIMIT),
+    scores,
   }
 }
