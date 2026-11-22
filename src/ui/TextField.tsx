@@ -75,7 +75,7 @@ export const TextField = ({
           onChange={(event) => onChange(event.target.value)}
           aria-invalid={error || invalid ? true : undefined}
           aria-describedby={describedBy || undefined}
-          // biome-ignore lint/a11y/noAutofocus: only the picker's search field, which opens on request
+          // biome-ignore lint/a11y/noAutofocus: only fields in a dialog the user just opened, such as the picker's search or an amount
           autoFocus={autoFocus}
           className="min-h-11 rounded-lg border border-border bg-bg px-3 text-base aria-[invalid=true]:border-danger"
         />

@@ -59,7 +59,7 @@ const Picker = ({
       onRetryBuiltIn={builtIn.retry}
       locale={locale}
       onPick={(source, servings) => actions.log({ date, meal }, source, servings)}
-      onPickBuiltIn={(item) => actions.logCatalog({ date, meal }, item)}
+      onPickBuiltIn={(item, servings) => actions.logCatalog({ date, meal }, item, servings)}
       onSearch={() => setSearched(true)}
       onLookup={lookUp}
       onLogScanned={(foodId) => actions.logScanned({ date, meal }, foodId)}

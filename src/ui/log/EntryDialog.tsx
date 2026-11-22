@@ -2,10 +2,8 @@ import { type FormEvent, useState } from 'react'
 
 import type { LoggedEntry } from '@/data/log'
 import { strings } from '@/strings'
-import { editableNumber } from '../food/forms'
 import { Modal } from '../Modal'
-import { TextField } from '../TextField'
-import { parseServings } from './parse'
+import { AmountFields } from './AmountFields'
 
 type Props = {
   entry: LoggedEntry
@@ -18,7 +16,7 @@ type Props = {
 
 export const EntryDialog = ({ entry, locale, onSave, onRemove, onClose }: Props) => {
   const text = strings.log.entry
-  const [servings, setServings] = useState(() => editableNumber(entry.servings, locale))
+  const [servings, setServings] = useState<number | null>(entry.servings)
   const [error, setError] = useState<string | undefined>()
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -38,24 +36,28 @@ export const EntryDialog = ({ entry, locale, onSave, onRemove, onClose }: Props)
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    const parsed = parseServings(servings)
-    if (parsed === null) {
-      setError(strings.recipes.errors.itemServings)
+    if (servings === null) {
+      // Without a weight there's no amount field to mention.
+      setError(entry.portion ? strings.log.amount.error : strings.recipes.errors.itemServings)
       return
     }
     setError(undefined)
-    void run(() => onSave(parsed))
+    void run(() => onSave(servings))
   }
 
   return (
     <Modal title={entry.name} onClose={onClose}>
       <form onSubmit={submit} noValidate className="flex flex-col gap-3">
-        <TextField
-          label={text.servings}
-          value={servings}
-          onChange={setServings}
-          inputMode="decimal"
+        <AmountFields
+          portion={entry.portion}
+          perServing={entry.perServing}
+          initialServings={entry.servings}
+          locale={locale}
           error={error}
+          onChange={(value) => {
+            setServings(value)
+            if (value !== null) setError(undefined)
+          }}
         />
         {failed && (
           <p role="alert" className="text-danger">

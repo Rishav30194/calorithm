@@ -6,7 +6,17 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. **Phase 13 (nutrition label) is deployed as 0.9.0** (#43, with 0.8.0 and the phase 11
+1. **Phase 14 PR 1 (0.10.0, logging by weight) is built on `feature/log-by-weight`**, with
+   `check:full`, `/code-review` (all findings fixed or recorded in decision 0031), and no
+   security review needed beyond the sync columns (run `/security-review` before the PR,
+   since it adds synced columns). It holds migration `20261122050000_log_entries_serving`:
+   it merges only after the user applies that to the hosted project. Dexie version 9 clears
+   the `log_entries` pull cursor, so the first sync after updating rereads every log entry.
+   Then PR 2 (built-in foods in the recipe picker and on the Foods screen, word-start
+   search) and PR 3 (garam and chaat masala estimates; single spices after the user
+   approves a source), per `docs/phases.md`, phase 14. Follow-up: route foods saved from a
+   barcode scan or a label through the amount step.
+2. **Phase 13 (nutrition label) is deployed as 0.9.0** (#43, with 0.8.0 and the phase 11
    close-out), ahead of phase 12, which waits for the user's MacroFactor subscription. Live
    check 2026-11-22: GitHub Pages serves the photo reader gzipped, so the first photo
    downloads about 4.5 MB (core 1.48 MB, worker 0.03 MB, English data 2.95 MB). The user
@@ -21,7 +31,7 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    beside the form with **Fix the text**, and maybe a crop step. Phase 13 stays open until
    then; the workaround is cropping to the table in Photos first.
    Where things stand: phases 1 to 11 are done. The app is live at
-   `https://rishav30194.github.io/calorithm/` as 0.9.0 (tag `v0.9.0`), with nutrition
+   `https://rishav30194.github.io/calorithm/` as 0.9.1 (tag `v0.9.1`), with nutrition
    labels, barcode scanning, built-in foods, recent and frequent foods, and carbs and fat. The hosted
    project has migrations through `20261122040000`, and `min_app_version` is 0.3.0. The
    user's phone ran 0.7.0 before this deploy.
@@ -36,10 +46,10 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    test foods; never delete it or its data without the user's approval. If not yet done,
    the user deletes the Keychain item: `security delete-generic-password -s
    calorithm-supabase-db`.
-2. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
+3. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
    data** in settings save the file from the installed app, and that **Import data** opens
    the Files picker.
-3. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+4. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
 
 Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential'`
 (then `push` or `fetch`), because git has no stored GitHub credentials and the global git config stays untouched.

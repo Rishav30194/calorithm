@@ -14,6 +14,7 @@ import {
   sourceKey,
   useScores,
 } from '@/domain/nutrition'
+import { type Portion, weightPerServing } from '@/domain/portion'
 import type { CatalogFood } from './catalog/search'
 import { dayId } from './dayId'
 import type { LocalDb } from './db'
@@ -35,7 +36,17 @@ import {
   recipesSpec,
 } from './tables'
 
-export type LoggedEntry = Entry & { id: string }
+export type LoggedEntry = Entry & {
+  id: string
+  // The weight of one serving as logged, for showing and editing the entry in grams or ml;
+  // null for recipes, pieces, and entries logged before phase 14.
+  portion: Portion | null
+  // The values for one serving, as stored when logged, for previewing a change of servings.
+  perServing: Nutrients
+}
+
+// The food's serving, copied onto an entry when it's logged.
+type Serving = { size: number; unit: string }
 
 type Target = { date: string; meal: Meal }
 
@@ -63,6 +74,7 @@ const newEntry = (
     servings: number
     // Unrounded, so changing the servings later rescales exactly.
     perServing: Nutrients
+    serving: Serving | null
     loggedAt?: string
   },
 ): Promise<LogEntryRow> => {
@@ -93,6 +105,8 @@ const newEntry = (
       carbs_g_per_serving: optionalThousandths(fields.perServing.carbsG),
       fat_g_per_serving: optionalThousandths(fields.perServing.fatG),
       logged_at: fields.loggedAt ?? clock().toISOString(),
+      serving_size: fields.serving?.size ?? null,
+      serving_unit: fields.serving?.unit ?? null,
     },
     clock,
   )
@@ -114,17 +128,20 @@ export const logFood = (
     name: food.name,
     servings: rounded,
     perServing: foodNutrients(food),
+    serving: { size: food.serving_size, unit: food.serving_unit },
   })
 }
 
-// Logs one serving of a built-in item (decision 0027), copying it into your foods first unless
-// a copy is already there, so a repeated tap never makes a second copy.
+// Logs a built-in item (decision 0027), one serving unless the amount step chose others,
+// copying it into your foods first unless a copy is already there, so a repeated tap never
+// makes a second copy.
 export const logCatalogFood = (
   db: LocalDb,
   clock: Clock,
   userId: string,
   target: Target,
   item: CatalogFood,
+  servings = 1,
 ): Promise<LogEntryRow> =>
   db.transaction('rw', db.rows('foods'), db.rows('log_entries'), db.outbox, async () => {
     const existing = (await db.rows('foods').where('catalog_id').equals(item.id).toArray()).flatMap(
@@ -150,7 +167,7 @@ export const logCatalogFood = (
         fatG: item.fatG,
         catalogId: item.id,
       }))
-    return logFood(db, clock, userId, { ...target, food, servings: 1 })
+    return logFood(db, clock, userId, { ...target, food, servings })
   })
 
 export const logRecipe = async (
@@ -169,6 +186,8 @@ export const logRecipe = async (
     name: recipe.name,
     servings: rounded,
     perServing: recipePerServing(ingredients, recipe.servings),
+    // A recipe serving has no weight.
+    serving: null,
   })
 }
 
@@ -192,6 +211,11 @@ const toEntry = (row: LogEntryRow): LoggedEntry | null => {
     proteinG: row.protein_g,
     carbsG: row.carbs_g,
     fatG: row.fat_g,
+    portion:
+      row.serving_size !== null && row.serving_unit !== null
+        ? weightPerServing(row.serving_size, row.serving_unit)
+        : null,
+    perServing: perServingOf(row),
   }
 }
 
@@ -266,6 +290,10 @@ export const copyMealTo = (
           name: row.name,
           servings: row.servings,
           perServing: perServingOf(row),
+          serving:
+            row.serving_size !== null && row.serving_unit !== null
+              ? { size: row.serving_size, unit: row.serving_unit }
+              : null,
           loggedAt: new Date(start + index).toISOString(),
         }),
       )

@@ -160,27 +160,49 @@ export type LogEntryRow = Tables<'log_entries'>
 
 export const logEntriesSpec: TableSpec<LogEntryRow> = {
   name: 'log_entries',
-  schemaVersion: 2,
-  addedColumns: { 2: ['carbs_g', 'fat_g', 'carbs_g_per_serving', 'fat_g_per_serving'] },
+  schemaVersion: 3,
+  addedColumns: {
+    2: ['carbs_g', 'fat_g', 'carbs_g_per_serving', 'fat_g_per_serving'],
+    3: ['serving_size', 'serving_unit'],
+  },
   parse: parser(
-    z.object({
-      ...syncColumns,
-      date: dayDate,
-      meal: z.string(),
-      food_id: z.nullable(z.string()),
-      recipe_id: z.nullable(z.string()),
-      servings: z.number(),
-      name: z.string(),
-      kcal: z.int(),
-      protein_g: z.number(),
-      kcal_per_serving: z.number(),
-      protein_g_per_serving: z.number(),
-      carbs_g: loggedGrams(1),
-      fat_g: loggedGrams(1),
-      carbs_g_per_serving: loggedGrams(3),
-      fat_g_per_serving: loggedGrams(3),
-      logged_at: z.string(),
-    }),
+    z
+      .object({
+        ...syncColumns,
+        date: dayDate,
+        meal: z.string(),
+        food_id: z.nullable(z.string()),
+        recipe_id: z.nullable(z.string()),
+        servings: z.number(),
+        name: z.string(),
+        kcal: z.int(),
+        protein_g: z.number(),
+        kcal_per_serving: z.number(),
+        protein_g_per_serving: z.number(),
+        carbs_g: loggedGrams(1),
+        fat_g: loggedGrams(1),
+        carbs_g_per_serving: loggedGrams(3),
+        fat_g_per_serving: loggedGrams(3),
+        logged_at: z.string(),
+        // The food's serving when logged (phase 14); null for recipes and older entries.
+        serving_size: z._default(
+          z.nullable(z.number().check(z.gt(0), z.lte(10_000), decimals(2))),
+          null,
+        ),
+        serving_unit: z._default(
+          // Counted in characters, as Postgres's char_length does, not UTF-16 units.
+          z.nullable(
+            z.string().check(
+              z.refine((unit) => {
+                const length = [...unit.trim()].length
+                return length >= 1 && length <= 20
+              }),
+            ),
+          ),
+          null,
+        ),
+      })
+      .check(z.refine((row) => (row.serving_size === null) === (row.serving_unit === null))),
   ),
   parents: (row) => [...ref('foods', row.food_id), ...ref('recipes', row.recipe_id)],
 }

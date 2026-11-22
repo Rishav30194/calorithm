@@ -131,6 +131,23 @@ export const schemaVersions: readonly SchemaVersion[] = [
       await tx.table('sync_state').update('foods', { cursor: null })
     },
   },
+  {
+    // The serving each log entry was logged with (phase 14): none for stored entries.
+    version: 9,
+    stores: {},
+    upgrade: async (tx) => {
+      await tx
+        .table('log_entries')
+        .toCollection()
+        .modify((row: Record<string, unknown>) => {
+          row.serving_size ??= null
+          row.serving_unit ??= null
+        })
+      // Older versions dropped the serving from entries they pulled, so entries are read again
+      // from the start; only the cursor goes, not a resync.
+      await tx.table('sync_state').update('log_entries', { cursor: null })
+    },
+  },
 ]
 
 export const dbNameFor = (userId: string): string => `calorithm-${userId}`

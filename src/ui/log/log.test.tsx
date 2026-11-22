@@ -66,6 +66,8 @@ const entry = (overrides: Partial<LoggedEntry> = {}): LoggedEntry => ({
   proteinG: 10,
   carbsG: 54,
   fatG: 5,
+  portion: null,
+  perServing: { kcal: 150, proteinG: 5, carbsG: 27, fatG: 2.5 },
   ...overrides,
 })
 
@@ -95,15 +97,79 @@ describe('LogPicker', () => {
     return { onPick, onClose }
   }
 
-  it('logs a quick pick with the servings last logged, in one tap, then closes', async () => {
+  // Phase 14: a food measured by weight asks for the amount, starting from the last one.
+  it('opens the amount step for a weighed quick pick, with the servings last logged', async () => {
     const { onPick, onClose } = renderPicker()
     const recent = screen.getByRole('heading', { name: text.picker.recent }).closest('section')
     if (!recent) throw new Error('no recent section')
 
     await userEvent.click(within(recent).getByRole('button', { name: /Oats/ }))
+    expect(onPick).not.toHaveBeenCalled()
+    const grams = screen.getByLabelText(text.amount.amount('g'))
+    expect(grams).toHaveValue('80')
 
-    expect(onPick).toHaveBeenCalledWith({ kind: 'food', id: 'f1' }, 2)
+    await userEvent.clear(grams)
+    await userEvent.type(grams, '60')
+    await userEvent.click(screen.getByRole('button', { name: text.amount.log }))
+    expect(onPick).toHaveBeenCalledWith({ kind: 'food', id: 'f1' }, 1.5)
     expect(onClose).toHaveBeenCalled()
+  })
+
+  it('logs a count food’s quick pick in one tap, with the servings last logged', async () => {
+    const roti: FoodView = { ...oats, id: 'f9', name: 'Roti', servingSize: 1, servingUnit: 'roti' }
+    const onPick = vi.fn(async () => true)
+    render(
+      <LogPicker
+        meal="breakfast"
+        picks={{
+          recent: [{ source: { kind: 'food', id: 'f9' }, name: 'Roti', servings: 2, count: 1 }],
+          mostUsed: [],
+          scores: new Map(),
+        }}
+        foods={[roti]}
+        recipes={[]}
+        builtIn={undefined}
+        locale="en-US"
+        onPickBuiltIn={vi.fn()}
+        onSearch={vi.fn()}
+        onRetryBuiltIn={vi.fn()}
+        onLookup={vi.fn()}
+        onLogScanned={vi.fn()}
+        onLogNew={vi.fn()}
+        onPick={onPick}
+        onClose={vi.fn()}
+      />,
+    )
+    const recent = screen.getByRole('heading', { name: text.picker.recent }).closest('section')
+    if (!recent) throw new Error('no recent section')
+    await userEvent.click(within(recent).getByRole('button', { name: /Roti/ }))
+
+    expect(onPick).toHaveBeenCalledWith({ kind: 'food', id: 'f9' }, 2)
+    expect(screen.queryByLabelText(/^Amount/)).toBeNull()
+  })
+
+  it('logs from the amount step with Enter, and clears its error on Back', async () => {
+    const { onPick } = renderPicker(vi.fn(async () => false))
+    await userEvent.type(screen.getByLabelText(text.picker.search), 'Oats')
+    await userEvent.click(screen.getByRole('button', { name: /Oats/ }))
+    expect(screen.getByLabelText(text.amount.amount('g'))).toHaveFocus()
+
+    await userEvent.keyboard('{Enter}')
+    expect(onPick).toHaveBeenCalledWith({ kind: 'food', id: 'f1' }, 1)
+    expect(await screen.findByRole('alert')).toHaveTextContent(text.picker.failed)
+
+    await userEvent.click(screen.getByRole('button', { name: text.label.back }))
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('goes back from the amount step to the list without logging', async () => {
+    const { onPick } = renderPicker()
+    await userEvent.type(screen.getByLabelText(text.picker.search), 'Oats')
+    await userEvent.click(screen.getByRole('button', { name: /Oats/ }))
+    await userEvent.click(screen.getByRole('button', { name: text.label.back }))
+
+    expect(screen.getByLabelText(text.picker.search)).toBeInTheDocument()
+    expect(onPick).not.toHaveBeenCalled()
   })
 
   describe('built-in foods (decision 0027)', () => {
@@ -153,7 +219,8 @@ describe('LogPicker', () => {
       const section = screen.getByRole('region', { name: text.picker.builtIn })
       expect(section).toHaveTextContent(text.picker.builtInSource)
       await userEvent.click(within(section).getByRole('button', { name: /Turmeric/ }))
-      expect(onPickBuiltIn).toHaveBeenCalledWith(haldi)
+      // A teaspoon is a piece, not a weight, so it logs in one tap.
+      expect(onPickBuiltIn).toHaveBeenCalledWith(haldi, 1)
     })
 
     it('shows your copy instead of the built-in item once you have one', async () => {
@@ -198,6 +265,7 @@ describe('LogPicker', () => {
     await userEvent.type(screen.getByLabelText(text.picker.search), 'Oats')
 
     await userEvent.click(screen.getByRole('button', { name: /Oats/ }))
+    await userEvent.click(screen.getByRole('button', { name: text.amount.log }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(text.picker.failed)
     expect(onClose).not.toHaveBeenCalled()
@@ -318,6 +386,67 @@ describe('EntryDialog', () => {
 
     await userEvent.click(screen.getByRole('button', { name: text.entry.remove }))
     expect(onRemove).toHaveBeenCalled()
+  })
+
+  // Phase 14: 70 g of a 100 g serving is 0.7 servings.
+  it('edits a weighed entry in grams, kept in step with servings, with a preview', async () => {
+    const onSave = vi.fn(async () => true)
+    const chicken = entry({
+      name: 'Chicken breast',
+      servings: 1,
+      portion: { amount: 100, unit: 'g' },
+      perServing: { kcal: 165, proteinG: 31, carbsG: 0, fatG: 3.6 },
+    })
+    render(
+      <EntryDialog
+        entry={chicken}
+        locale="en-US"
+        onSave={onSave}
+        onRemove={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+    const grams = screen.getByLabelText(text.amount.amount('g'))
+    const servings = screen.getByLabelText(text.amount.servings)
+    expect(grams).toHaveValue('100')
+    expect(servings).toHaveAccessibleDescription(text.amount.perServing('100 g'))
+
+    await userEvent.clear(grams)
+    await userEvent.type(grams, '70')
+    expect(servings).toHaveValue('0.7')
+    expect(screen.getByRole('status')).toHaveTextContent(
+      text.amount.preview('116 kcal · 21.7 g protein · 0 g carbs · 2.5 g fat'),
+    )
+
+    await userEvent.clear(servings)
+    await userEvent.type(servings, '1.5')
+    expect(grams).toHaveValue('150')
+
+    // An amount that comes to under 0.01 servings clears Servings rather than leave 1.5.
+    await userEvent.clear(grams)
+    await userEvent.type(grams, '0.3')
+    expect(servings).toHaveValue('')
+
+    await userEvent.clear(grams)
+    await userEvent.type(grams, '70')
+    await userEvent.click(screen.getByRole('button', { name: text.entry.save }))
+    expect(onSave).toHaveBeenCalledWith(0.7)
+  })
+
+  it('offers servings only for an entry without a weight', () => {
+    render(
+      <EntryDialog
+        entry={entry()}
+        locale="en-US"
+        onSave={vi.fn()}
+        onRemove={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+    expect(screen.queryByLabelText(/^Amount/)).toBeNull()
+    expect(screen.getByRole('status')).toHaveTextContent(
+      text.amount.preview('300 kcal · 10 g protein · 54 g carbs · 5 g fat'),
+    )
   })
 })
 

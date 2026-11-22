@@ -76,7 +76,7 @@ type Slot = { date: string; meal: Meal }
 
 export type LogActions = {
   log: (slot: Slot, source: Source, servings: number) => Promise<boolean>
-  logCatalog: (slot: Slot, item: CatalogFood) => Promise<boolean>
+  logCatalog: (slot: Slot, item: CatalogFood, servings?: number) => Promise<boolean>
   // A barcode scan's results: a saved food, or a new one saved from the form.
   logScanned: (slot: Slot, foodId: string) => Promise<boolean>
   logNew: (slot: Slot, input: FoodInput | CatalogCopy) => Promise<boolean>
@@ -98,8 +98,8 @@ export const useLogActions = (): LogActions => {
     return {
       log: async (slot, source, servings) =>
         (await synced(logSource(ctx.db, ctx.clock, userId, { ...slot, source, servings }))).ok,
-      logCatalog: async (slot, item) => {
-        await synced(logCatalogFood(ctx.db, ctx.clock, userId, slot, item))
+      logCatalog: async (slot, item, servings) => {
+        await synced(logCatalogFood(ctx.db, ctx.clock, userId, slot, item, servings))
         return true
       },
       logScanned: async (slot, foodId) =>
