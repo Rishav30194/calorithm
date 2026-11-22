@@ -418,7 +418,7 @@ Check-in rules: decision 0021.
 
 ## Phase 7 — Production
 
-**Status:** In progress
+**Status:** Done (2026-11-21)
 
 **Goal:** the app runs on your phone against the hosted database.
 
@@ -432,12 +432,13 @@ Check-in rules: decision 0021.
 - Keep-awake workflow, twice a week so one failed run still leaves a request inside the week.
 
 **Acceptance criteria:**
-- [ ] The live app installs on the phone and opens offline. (A headless browser reloaded
-  the live app offline with its data on 2026-11-21; the phone install is still to check.)
-- [ ] An entry made on the phone appears on a laptop, and the reverse. (Phone to laptop
-  checked 2026-11-21; laptop to phone waits for the user's confirmation.)
-- [ ] A new deployment shows the update prompt on the phone. (Version 0.2.0 is the new
-  deployment.)
+- [x] The live app installs on the phone and opens offline. (The user installed it on an
+  iPhone and opened it in airplane mode, 2026-11-21.)
+- [x] An entry made on the phone appears on a laptop, and the reverse. (The phone's log
+  entries, food, and weigh-in reached a laptop browser, and a laptop food reached the
+  phone, 2026-11-21.)
+- [x] A new deployment shows the update prompt on the phone. (Deploying 0.2.0 showed
+  **Update** and **Later** on the installed app, and **Update** loaded it, 2026-11-21.)
 - [x] The keep-awake workflow has run successfully once. (Run on 2026-11-22 UTC, reading
   `app_config` from the hosted project.)
 - [x] Export from the live app downloads a valid file. (`calorithm-export-2026-11-21.json`
@@ -456,8 +457,8 @@ is made public, because GitHub Pages on the Free plan serves only public reposit
   so migration `20261121090000` grants each table's privileges explicitly, and local runs
   with `auto_expose_new_tables = false` to match. The hook now blocks every hosted database
   change, which CLI 3.x names with `--remote`.
-- Hosted setup, 2026-11-21: the user created the project, turned off sign-ups, and set the
-  secrets. Claude applied the first 14 migrations with the user's one-off approval, and the
+- Hosted setup, 2026-11-21: the user created the project, turned off sign-ups, turned on
+  **Secure password change**, and set the secrets. Claude applied the first 14 migrations with the user's one-off approval, and the
   user applied the grants migration. Deleting a throwaway account through the live app
   removed it, and its sign-in then failed.
 - Releases are tagged: `v0.1.0` marks the first live version, and from 0.2.0 the deploy
