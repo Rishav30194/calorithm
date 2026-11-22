@@ -12,14 +12,13 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    fat, recent and frequent foods, built-in Indian and gym foods, barcode scanning, then a
    review against MacroFactor once the user subscribes. The user wants macros only (kcal,
    protein, carbs, fat), no AI logging, and no bulk food database.
-   Phase 8 is in progress (`docs/phases.md`, decision 0025). PR 1 (#33) and PR 2 (#34,
-   0.3.0) are merged; PR 3 (import range checks for carbs and fat, 0.3.1; the export format
-   stays version 1) needs no migration. Every
-   acceptance criterion is checked. Left: release 2, a migration raising `min_app_version`
-   to 0.3.0 once the user confirms every device runs 0.3.0 or later; then mark phase 8
-   done. Bump the version for each release (`docs/development.md`, "Versions and tags"),
-   and apply hosted migrations before merging the PR that needs them: every push to
-   `main` deploys at once while CI is paused.
+   Phase 8: all three PRs are merged (#33 to #35, 0.3.1). Left: release 2, a migration
+   raising `min_app_version` to 0.3.0 once the user confirms every device runs 0.3.0 or
+   later; then mark phase 8 done.
+   Phase 9 (recent and frequent foods, 0.4.0) is built on its branch; it needs no
+   migration. Bump the version for each release (`docs/development.md`, "Versions and
+   tags"), and apply hosted migrations before merging the PR that needs them: every push
+   to `main` deploys at once while CI is paused.
    The hosted test account (the user knows which) holds the user's phone entries; never
    delete it or its data without the user's approval. If not yet done, the user deletes the
    Keychain item: `security delete-generic-password -s calorithm-supabase-db`.

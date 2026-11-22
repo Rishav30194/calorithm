@@ -1,6 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 
+import { addDays } from './dates'
 import {
   type Entry,
   isMeal,
@@ -8,6 +9,7 @@ import {
   missingCarbsOrFat,
   mostUsed,
   type QuickPick,
+  recentPicks,
   recipeEntryNutrients,
   recipePerServing,
   recipeTotals,
@@ -16,8 +18,10 @@ import {
   roundProtein,
   roundServings,
   scaleNutrients,
+  sourceKey,
   sumNutrients,
   totalsByMeal,
+  useScores,
 } from './nutrition'
 
 const decimalsOf = (value: number): number => {
@@ -309,9 +313,103 @@ describe('carbs and fat (decision 0025)', () => {
   })
 })
 
+// The day the picker logs into; ranking is relative to it.
+const today = '2026-11-21'
+
+describe('useScores', () => {
+  const oats = { kind: 'food', id: 'oats' } as const
+
+  it('counts a log on the day as 1, halving every 30 days', () => {
+    const scores = useScores(
+      [
+        entry({ source: oats, date: today }),
+        entry({ source: oats, date: '2026-10-22' }), // 30 days before: 0.5
+      ],
+      today,
+    )
+    expect(scores.get('food:oats')).toBeCloseTo(1.5, 10)
+  })
+
+  it('ignores entries after the day', () => {
+    expect(useScores([entry({ source: oats, date: '2026-11-22' })], today).size).toBe(0)
+  })
+
+  it('never lowers a score for another log, and a newer log counts more than an older one', () => {
+    const day = fc.integer({ min: 0, max: 400 }).map((ago) => addDays(today, -ago))
+    fc.assert(
+      fc.property(fc.array(day, { maxLength: 30 }), day, day, (dates, a, b) => {
+        const logs = dates.map((date) => entry({ source: oats, date }))
+        const before = useScores(logs, today).get('food:oats') ?? 0
+        const plusA = useScores([...logs, entry({ source: oats, date: a })], today).get('food:oats')
+        const plusB = useScores([...logs, entry({ source: oats, date: b })], today).get('food:oats')
+        expect(plusA).toBeGreaterThan(before)
+        if (a > b) expect(plusA).toBeGreaterThan(plusB ?? 0)
+      }),
+    )
+  })
+})
+
+describe('recentPicks', () => {
+  const food = (id: string) => ({ kind: 'food', id }) as const
+
+  it('lists each food or recipe once, newest logged first, with its latest servings', () => {
+    const picks = recentPicks(
+      [
+        entry({ source: food('rice'), name: 'Rice', date: '2026-11-19', servings: 1 }),
+        entry({ source: food('oats'), name: 'Oats', date: '2026-11-20', servings: 2 }),
+        entry({ source: food('rice'), name: 'Rice', date: '2026-11-20', servings: 1.5 }),
+        entry({ source: food('dal'), name: 'Dal', date: '2026-11-18' }),
+      ],
+      10,
+    )
+    expect(picks.map((pick) => [pick.name, pick.servings, pick.count])).toEqual([
+      ['Rice', 1.5, 2],
+      ['Oats', 2, 1],
+      ['Dal', 1, 1],
+    ])
+  })
+
+  it('returns at most the limit, each source once, in reverse order of last use', () => {
+    fc.assert(
+      fc.property(
+        fc.array(fc.constantFrom('a', 'b', 'c', 'd', 'e'), { maxLength: 40 }),
+        fc.integer({ min: 0, max: 6 }),
+        (ids, limit) => {
+          const picks = recentPicks(
+            ids.map((id) => entry({ source: food(id), name: id })),
+            limit,
+          )
+          const listed = picks.map((pick) => pick.source.id)
+          expect(listed.length).toBe(Math.min(limit, new Set(ids).size))
+          expect(new Set(listed).size).toBe(listed.length)
+          const lastUse = (id: string) => (ids as string[]).lastIndexOf(id)
+          for (let i = 1; i < listed.length; i++) {
+            expect(lastUse(listed[i - 1] ?? '')).toBeGreaterThan(lastUse(listed[i] ?? ''))
+          }
+        },
+      ),
+    )
+  })
+})
+
 describe('mostUsed', () => {
+  // Phase 9 criterion: last month's habit outranks last year's.
+  it('ranks a food logged daily this month above one logged often a year ago', () => {
+    const recent = { kind: 'food', id: 'paneer' } as const
+    const old = { kind: 'food', id: 'bread' } as const
+    const logs = [
+      ...Array.from({ length: 60 }, (_, i) =>
+        entry({ source: old, name: 'Bread', date: addDays(today, -(330 + (i % 30))) }),
+      ),
+      ...Array.from({ length: 30 }, (_, i) =>
+        entry({ source: recent, name: 'Paneer', date: addDays(today, -i) }),
+      ),
+    ]
+    expect(mostUsed(logs, today, 10).map((pick) => pick.name)).toEqual(['Paneer', 'Bread'])
+  })
+
   it('returns the exported QuickPick type that the picker uses', () => {
-    expectTypeOf(mostUsed([], 1)).toEqualTypeOf<QuickPick[]>()
+    expectTypeOf(mostUsed([], today, 1)).toEqualTypeOf<QuickPick[]>()
   })
 
   it('ranks by times logged, then by most recent, then by name', () => {
@@ -327,6 +425,7 @@ describe('mostUsed', () => {
         entry({ source: chili, name: 'Chili', date: '2026-11-17' }),
         entry({ source: apple, name: 'Apple', date: '2026-11-17' }),
       ],
+      today,
       10,
     )
     expect(ranked.map((pick) => pick.source.id)).toEqual(['oats', 'yogurt', 'apple', 'chili'])
@@ -336,6 +435,7 @@ describe('mostUsed', () => {
   it('offers the servings from the latest time each was logged', () => {
     const ranked = mostUsed(
       [entry({ date: '2026-11-18', servings: 2 }), entry({ date: '2026-11-19', servings: 1.5 })],
+      today,
       10,
     )
     expect(ranked[0]?.servings).toBe(1.5)
@@ -344,6 +444,7 @@ describe('mostUsed', () => {
   it('on one day, offers the later entry’s servings', () => {
     const ranked = mostUsed(
       [entry({ meal: 'breakfast', servings: 1 }), entry({ meal: 'dinner', servings: 2 })],
+      today,
       10,
     )
     expect(ranked[0]?.servings).toBe(2)
@@ -361,15 +462,18 @@ describe('mostUsed', () => {
         ),
         fc.integer({ min: 0, max: 6 }),
         (logged, limit) => {
-          const ranked = mostUsed(
-            logged.map(({ id, date }) => entry({ source: { kind: 'food', id }, name: id, date })),
-            limit,
+          const listed = logged.map(({ id, date }) =>
+            entry({ source: { kind: 'food', id }, name: id, date }),
           )
+          const ranked = mostUsed(listed, today, limit)
+          const scores = useScores(listed, today)
           const ids = ranked.map((pick) => pick.source.id)
           expect(ids.length).toBeLessThanOrEqual(limit)
           expect(new Set(ids).size).toBe(ids.length)
+          const scoreOf = (pick: QuickPick | undefined) =>
+            pick ? (scores.get(sourceKey(pick.source)) ?? 0) : 0
           for (let i = 1; i < ranked.length; i++) {
-            expect(ranked[i - 1]?.count ?? 0).toBeGreaterThanOrEqual(ranked[i]?.count ?? 0)
+            expect(scoreOf(ranked[i - 1])).toBeGreaterThanOrEqual(scoreOf(ranked[i]))
           }
         },
       ),

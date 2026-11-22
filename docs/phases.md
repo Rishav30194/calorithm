@@ -529,7 +529,7 @@ which build entries from kcal and protein only. PR 3: export format version 2.
 
 ## Phase 9 — Recent and frequent foods
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** the foods you eat most are one tap away.
 
@@ -549,6 +549,11 @@ which build entries from kcal and protein only. PR 3: export format version 2.
 - [ ] A food logged daily this month outranks one logged often a year ago in **Most used**.
 - [ ] Typing in the picker search puts frequent matches above rare ones.
 - [ ] Example and fast-check tests cover the ranking; archived foods never appear.
+
+**Plan** (approved 2026-11-21): one PR, version 0.4.0, no migration. **Recent** replaces
+**Today** and **Yesterday** in the picker, since it holds both and **Copy from…** re-logs a
+whole meal. A log counts 1 on its day, halving every 30 days; **Most used** and the picker's
+list rank by that score, over the last 365 days.
 
 **Implementation notes:** none yet.
 

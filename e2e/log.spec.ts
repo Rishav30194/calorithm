@@ -79,8 +79,7 @@ test('yesterday’s food is re-logged in one tap, and editing the food leaves th
   await page.getByRole('button', { name: 'Save' }).click()
   await expect(page.getByText('Day total').locator('..')).toContainText('300 kcal')
 
-  // The picker's Yesterday section is relative to today, so this uses the day after and its
-  // Next day link rather than the device's real yesterday.
+  // The day after, through its Next day link, rather than the device's real days.
   await page.getByRole('link', { name: 'Next day' }).click()
   await expect(page).toHaveURL(new RegExp(nextDay(day)))
   await logFromSearch(page, 'Dinner', oats)
@@ -98,7 +97,7 @@ test('yesterday’s food is re-logged in one tap, and editing the food leaves th
   await expect(meal(page, 'Lunch')).toContainText('2 servings · 300 kcal')
 })
 
-test('the picker offers yesterday’s foods with the servings last logged', async ({ page }) => {
+test('the picker offers recent foods with the servings last logged', async ({ page }) => {
   const rice = unique('Rice')
   await signIn(page)
   await addFood(page, rice, '270')
@@ -119,10 +118,10 @@ test('the picker offers yesterday’s foods with the servings last logged', asyn
   await openDay(page, null)
   await page.getByRole('button', { name: 'Add to Dinner' }).click()
   const picker = page.getByRole('dialog', { name: 'Add to Dinner' })
-  const yesterdaySection = picker.locator('section', {
-    has: page.getByRole('heading', { name: 'Yesterday' }),
-  })
-  await yesterdaySection.getByRole('button', { name: new RegExp(rice) }).click()
+  // Other tests share this user, so the food is somewhere in Recent rather than always first;
+  // the order is covered by the unit tests.
+  const recent = picker.locator('section', { has: page.getByRole('heading', { name: 'Recent' }) })
+  await recent.getByRole('button', { name: new RegExp(rice) }).click()
 
   await expect(meal(page, 'Dinner').getByRole('button', { name: new RegExp(rice) })).toContainText(
     '1.5 servings',

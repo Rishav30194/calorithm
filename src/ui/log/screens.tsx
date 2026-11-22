@@ -24,18 +24,16 @@ type Dialog =
 
 const Picker = ({
   date,
-  today,
   meal,
   locale,
   onClose,
 }: {
   date: string
-  today: string
   meal: Meal
   locale: string
   onClose: () => void
 }) => {
-  // Today and Yesterday are relative to the day being logged, not the device's date.
+  // Recent and most used are relative to the day being logged, not the device's date.
   const picks = useQuickPicks(date)
   const foods = useFoods()
   const recipes = useRecipes()
@@ -43,7 +41,6 @@ const Picker = ({
   return (
     <LogPicker
       meal={meal}
-      isToday={date === today}
       picks={picks}
       foods={foods}
       recipes={recipes}
@@ -115,7 +112,7 @@ const Day = ({ date, today, locale }: { date: string; today: string; locale: str
         onSetComplete={(complete) => actions.setComplete(date, complete)}
       />
       {dialog.kind === 'add' && (
-        <Picker date={date} today={today} meal={dialog.meal} locale={locale} onClose={close} />
+        <Picker date={date} meal={dialog.meal} locale={locale} onClose={close} />
       )}
       {dialog.kind === 'copy' && (
         <Copy date={date} into={dialog.meal} locale={locale} onClose={close} />

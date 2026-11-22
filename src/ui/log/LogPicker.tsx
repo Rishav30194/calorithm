@@ -3,7 +3,7 @@ import { useState } from 'react'
 import type { FoodView, RecipeView } from '@/data/foods'
 import type { QuickPicks } from '@/data/log'
 import { formatAmount } from '@/domain/format'
-import type { Meal, QuickPick, Source } from '@/domain/nutrition'
+import { type Meal, type QuickPick, type Source, sourceKey } from '@/domain/nutrition'
 import { strings } from '@/strings'
 import { Modal } from '../Modal'
 import { macroText } from '../macros'
@@ -12,7 +12,6 @@ import { TextField } from '../TextField'
 type Props = {
   meal: Meal
   // Whether the day being logged is the device's today, which names the first two rows.
-  isToday: boolean
   picks: QuickPicks | undefined
   foods: FoodView[] | undefined
   recipes: RecipeView[] | undefined
@@ -54,16 +53,7 @@ const PickList = ({
 
 // Opened from a meal's Add button: one more tap on any row logs it, so a saved food takes two
 // taps from the log screen.
-export const LogPicker = ({
-  meal,
-  isToday,
-  picks,
-  foods,
-  recipes,
-  locale,
-  onPick,
-  onClose,
-}: Props) => {
+export const LogPicker = ({ meal, picks, foods, recipes, locale, onPick, onClose }: Props) => {
   const text = strings.log.picker
   const [query, setQuery] = useState('')
   const [busy, setBusy] = useState(false)
@@ -81,6 +71,7 @@ export const LogPicker = ({
       detail: servingsText(pick.servings),
     }))
 
+  const scoreOf = (source: Source) => picks?.scores.get(sourceKey(source)) ?? 0
   const needle = query.trim().toLocaleLowerCase()
   const catalog: Row[] = [
     ...(foods ?? [])
@@ -106,7 +97,12 @@ export const LogPicker = ({
       })),
   ]
     .filter((row) => row.name.toLocaleLowerCase().includes(needle))
-    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+    // What you eat most comes first, then by name.
+    .sort(
+      (a, b) =>
+        scoreOf(b.source) - scoreOf(a.source) ||
+        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    )
 
   const pick = async (row: Row) => {
     if (busy) return
@@ -144,16 +140,7 @@ export const LogPicker = ({
         <>
           {needle === '' && (
             <>
-              <PickList
-                title={isToday ? text.today : text.thisDay}
-                rows={quick('today', picks?.today)}
-                onPick={pick}
-              />
-              <PickList
-                title={isToday ? text.yesterday : text.dayBefore}
-                rows={quick('yesterday', picks?.yesterday)}
-                onPick={pick}
-              />
+              <PickList title={text.recent} rows={quick('recent', picks?.recent)} onPick={pick} />
               <PickList title={text.mostUsed} rows={quick('most', picks?.mostUsed)} onPick={pick} />
             </>
           )}

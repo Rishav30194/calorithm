@@ -388,7 +388,7 @@ describe('entriesBetween', () => {
 })
 
 describe('quickPicks', () => {
-  it('offers today’s, yesterday’s, and the most used, without archived foods', async () => {
+  it('offers the recent and the most used, without archived foods', async () => {
     const oats = await addOats()
     const rice = await createFood(db, time.clock, userId, {
       name: 'Rice',
@@ -432,7 +432,7 @@ describe('quickPicks', () => {
       food: old,
       servings: 1,
     })
-    // Older than the 60-day window: doesn't count toward most used.
+    // About 80 days old: counts toward most used, but much less than this week's logs.
     await logFood(db, time.clock, userId, {
       date: '2026-09-01',
       meal: 'lunch',
@@ -449,12 +449,34 @@ describe('quickPicks', () => {
 
     const picks = await quickPicks(db, '2026-11-21')
 
-    expect(picks.today.map((pick) => [pick.name, pick.servings])).toEqual([['Oats', 2]])
-    expect(picks.yesterday.map((pick) => [pick.name, pick.servings])).toEqual([['Rice', 1.5]])
+    expect(picks.recent.map((pick) => [pick.name, pick.servings])).toEqual([
+      ['Oats', 2],
+      ['Rice', 1.5],
+    ])
+    // Oats was logged three times, but two of them long ago; Rice twice this week.
     expect(picks.mostUsed.map((pick) => [pick.name, pick.count])).toEqual([
       ['Rice', 2],
-      ['Oats', 1],
+      ['Oats', 3],
     ])
+    expect(picks.scores.get(`food:${rice.id}`)).toBeGreaterThan(
+      picks.scores.get(`food:${oats.id}`) ?? 0,
+    )
+    expect(picks.scores.has(`food:${old.id}`)).toBe(false)
+  })
+
+  it('leaves out entries more than a year before the day', async () => {
+    const oats = await addOats()
+    await logFood(db, time.clock, userId, {
+      date: '2025-11-20',
+      meal: 'lunch',
+      food: oats,
+      servings: 1,
+    })
+
+    const picks = await quickPicks(db, '2026-11-21')
+
+    expect(picks.recent).toEqual([])
+    expect(picks.mostUsed).toEqual([])
   })
 
   it('shows a food’s current name, not the name it was logged under', async () => {
@@ -475,7 +497,7 @@ describe('quickPicks', () => {
       fatG: 3,
     })
 
-    expect((await quickPicks(db, '2026-11-21')).today[0]?.name).toBe('Rolled oats')
+    expect((await quickPicks(db, '2026-11-21')).recent[0]?.name).toBe('Rolled oats')
   })
 })
 
