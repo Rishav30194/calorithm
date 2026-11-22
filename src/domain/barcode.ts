@@ -16,11 +16,16 @@ export const gtinCheckDigit = (body: string): string => {
 }
 
 // One stored form per product, so a UPC-A scan finds a food saved from its EAN-13 form: a
-// 12-digit code gets a leading zero, and a 14-digit code with a leading zero loses it.
+// 12-digit code gets a leading zero, and a 14-digit code with a leading zero loses it. GS1
+// reserves the 13-digit prefix 00000 for EAN-8 codes padded with zeros, which keep 8 digits.
 const canonical = (code: string): string => {
-  if (code.length === 12) return `0${code}`
-  if (code.length === 14 && code.startsWith('0')) return code.slice(1)
-  return code
+  const ean13 =
+    code.length === 12
+      ? `0${code}`
+      : code.length === 14 && code.startsWith('0')
+        ? code.slice(1)
+        : code
+  return ean13.length === 13 && ean13.startsWith('00000') ? ean13.slice(5) : ean13
 }
 
 export const parseBarcode = (input: string): BarcodeResult => {

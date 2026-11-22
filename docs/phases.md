@@ -681,12 +681,17 @@ the general formula.
 **Implementation notes:**
 - PR 1 (0.6.0, migration `20261122040000_foods_barcode`): `src/domain/barcode.ts` checks
   the GS1 check digit and stores one form per product (decision 0028): EAN-8, EAN-13, or
-  GTIN-14 digits, with a 12-digit UPC-A code as its EAN-13 form and a 14-digit code's
-  leading zero dropped. The database checks only the digit pattern. UPC-E (8 digits, check digit on the expanded code)
+  GTIN-14 digits, with a 12-digit UPC-A code as its EAN-13 form, a 14-digit code's leading
+  zero dropped, and a zero-padded EAN-8 code as its 8 digits. The database checks only the
+  digit pattern. UPC-E (8 digits, check digit on the expanded code)
   isn't read; PR 2 expands it when the scanner reports that format.
 - The barcode is nullable and in `addedColumns` (schema version 4), so sync never clears
   it (decision 0025): the form refuses to empty a saved barcode, and an edit without one
-  keeps it. Not unique; `findFoodsByBarcode` returns active foods by name, then archived ones.
+  keeps it. Not unique; `findFoodsByBarcode` parses the code it's given and returns active
+  foods by name, then archived ones.
+- 0.5.0 and earlier drop columns they don't know from pulled rows (as 0.5.0 did
+  `catalog_id`), so Dexie version 8 clears the foods pull cursor, and the next pull reads
+  every food again without counting as a resync.
 - Open Food Facts limits product reads to 15 a minute per IP address, and its v2 API is
   deprecated in favor of v3.6; PR 2 picks the endpoint.
 

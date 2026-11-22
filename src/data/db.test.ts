@@ -211,11 +211,16 @@ describe('LocalDb', () => {
     })
   })
 
-  it('gives existing foods no barcode, and indexes barcodes, when upgraded to version 8', async () => {
+  it('gives existing foods no barcode, indexes barcodes, and pulls foods again when upgraded to version 8', async () => {
     const [v1, v2, v3, v4, v5, v6, v7] = schemaVersions
     if (!v1 || !v2 || !v3 || !v4 || !v5 || !v6 || !v7) throw new Error('missing schema versions')
     const before = open('calorithm-test-upgrade-v8', [v1, v2, v3, v4, v5, v6, v7])
     await before.table('foods').put({ id: 'f1', name: 'Oats', catalog_id: null })
+    const cursor = { updatedAt: '2026-11-22T10:00:00.000000+00:00', id: 'f1' }
+    await before.table('sync_state').bulkPut([
+      { table: 'foods', cursor, lastPullAt: 1, unreadable: [] },
+      { table: 'weights', cursor, lastPullAt: 1, unreadable: [] },
+    ])
     before.close()
 
     const after = open('calorithm-test-upgrade-v8')
@@ -225,9 +230,17 @@ describe('LocalDb', () => {
       catalog_id: null,
       barcode: null,
     })
-    await after.table('foods').put({ id: 'f2', name: 'Paneer', barcode: '8901234567894' })
+    // An older version dropped barcodes it pulled, so foods are read again from the start.
+    expect(await after.sync_state.get('foods')).toEqual({
+      table: 'foods',
+      cursor: null,
+      lastPullAt: 1,
+      unreadable: [],
+    })
+    expect(await after.sync_state.get('weights')).toMatchObject({ cursor })
+    await after.table('foods').put({ id: 'f2', name: 'Paneer', barcode: '8901234567890' })
     expect(
-      (await after.table('foods').where('barcode').equals('8901234567894').toArray()).map(
+      (await after.table('foods').where('barcode').equals('8901234567890').toArray()).map(
         (food: { id: string }) => food.id,
       ),
     ).toEqual(['f2'])

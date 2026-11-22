@@ -38,6 +38,12 @@ describe('parseBarcode', () => {
     expect(parseBarcode('06291041500213')).toEqual({ ok: true, barcode: '6291041500213' })
   })
 
+  it('stores an EAN-8 code padded to 12, 13, or 14 digits as its 8 digits', () => {
+    for (const padded of ['000096385074', '0000096385074', '00000096385074']) {
+      expect(parseBarcode(padded)).toEqual({ ok: true, barcode: '96385074' })
+    }
+  })
+
   it('ignores spaces and hyphens around and between digits', () => {
     expect(parseBarcode(' 629 1041-500213 ')).toEqual({ ok: true, barcode: '6291041500213' })
   })

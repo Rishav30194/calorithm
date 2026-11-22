@@ -1,3 +1,4 @@
+import { parseBarcode } from '@/domain/barcode'
 import {
   type Ingredient,
   type Nutrients,
@@ -304,10 +305,12 @@ const liveFoods = async (db: LocalDb): Promise<FoodRow[]> =>
 export const listFoods = async (db: LocalDb): Promise<FoodView[]> =>
   (await liveFoods(db)).map(toFoodView).sort(byName)
 
-// Your foods with a pack's barcode, so a scan finds them without the network: active ones by
-// name, then archived ones, which a scan can restore.
-export const findFoodsByBarcode = async (db: LocalDb, barcode: string): Promise<FoodView[]> => {
-  const foods = (await db.rows('foods').where('barcode').equals(barcode).toArray()).flatMap(
+// Your foods with a pack's barcode, in any form it's scanned or typed, so a scan finds them
+// without the network: active ones by name, then archived ones, which a scan can restore.
+export const findFoodsByBarcode = async (db: LocalDb, code: string): Promise<FoodView[]> => {
+  const parsed = parseBarcode(code)
+  if (!parsed.ok) return []
+  const foods = (await db.rows('foods').where('barcode').equals(parsed.barcode).toArray()).flatMap(
     (raw) => {
       const food = foodsSpec.parse(raw)
       return food && food.deleted_at === null ? [toFoodView(food)] : []

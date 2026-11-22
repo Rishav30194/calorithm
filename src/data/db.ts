@@ -126,6 +126,9 @@ export const schemaVersions: readonly SchemaVersion[] = [
         .modify((row: Record<string, unknown>) => {
           row.barcode ??= null
         })
+      // Older versions dropped the barcode from foods they pulled (as 0.5.0 did catalog_id),
+      // so foods are read again from the start; only the cursor goes, not a resync.
+      await tx.table('sync_state').update('foods', { cursor: null })
     },
   },
 ]
