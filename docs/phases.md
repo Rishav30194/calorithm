@@ -625,7 +625,7 @@ the general formula.
 
 ## Phase 11 — Barcode scanning
 
-**Status:** In progress (PRs 1 and 2 built; the iPhone check is left)
+**Status:** Done (2026-11-22)
 
 **Goal:** scan a packaged food's barcode to add it.
 
@@ -644,8 +644,8 @@ the general formula.
   sending barcodes to Open Food Facts.
 
 **Acceptance criteria:**
-- [ ] Scanning a known product on the iPhone fills in its name and four numbers.
-- [ ] A second scan of a saved product works offline.
+- [x] Scanning a known product on the iPhone fills in its name and four numbers.
+- [x] A second scan of a saved product works offline.
 - [x] An unknown barcode, a denied camera, and no network each show a clear message and a
   way to enter the food by hand.
 - [x] The scanner loads on demand and leaves first-load JavaScript within budget.
@@ -707,8 +707,9 @@ the general formula.
   (`src/data/openFoodFacts/fixtures`). `e2e/camera.spec.ts` feeds Chromium's fake camera a
   generated EAN-13 video, so the real decoder runs; it needs the full Chromium build
   (`channel: 'chromium'`), because Playwright's headless shell has no camera capture.
-- The second-scan-offline criterion is covered for a typed code in the browser tests; the
-  camera path offline, and scanning a real pack, wait for the iPhone check.
+- The second-scan-offline criterion is covered for a typed code in the browser tests. On
+  2026-11-22 the user checked 0.7.0 on the iPhone: scanning real packs filled the form, a
+  saved pack scanned offline, and a denied camera offered typing the code.
 
 ## Phase 12 — Review against MacroFactor
 
