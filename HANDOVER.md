@@ -9,8 +9,10 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 1. **Phase 13 (nutrition label) is in progress**, ahead of phase 12, which waits for the
    user's MacroFactor subscription. Phase 11 is done (the user confirmed scanning on the
    iPhone, 2026-11-22). PR 1 (0.8.0: the label parser and **Paste label text**) is built on
-   `feature/nutrition-label`, which also carries the phase 11 close-out commit; push and
-   open its PR when the user asks. No migration. PR 2 (0.9.0) adds **Photo of label** with
+   `feature/nutrition-label`, which also carries the phase 11 close-out commit, with
+   `check:full` and `/code-review` done (all 9 findings fixed in its last commit; no
+   security review needed, as it touches no auth, sync, or import). Push and open its PR
+   when the user asks. No migration. PR 2 (0.9.0) adds **Photo of label** with
    `tesseract.js` 7.0.0, which the user approved on 2026-11-22 with an estimated 5 to 8 MB
    first-use download: measure the real size, self-host it, cache it after first use, and
    test with a generated label image. Then the user checks real labels on the iPhone.
