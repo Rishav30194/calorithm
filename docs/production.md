@@ -36,11 +36,14 @@ moved, search the settings for it.
 
    ```sh
    npx supabase link --project-ref PROJECT_REF
-   npx supabase db push
+   npx supabase db push --remote --dry-run
+   npx supabase db push --remote
    ```
 
-   `PROJECT_REF` is the ID in the project's dashboard URL. Never pass `--include-seed`: the
-   seed users have a published password.
+   `PROJECT_REF` is the ID in the project's dashboard URL. Without `--remote`, the CLI (3.x)
+   targets the local database. Check the dry run lists every migration before the real push,
+   then check `npx supabase migration list --remote` shows each one under **Remote**. Never
+   pass `--include-seed`: the seed users have a published password.
 7. Note the project URL, `https://PROJECT_REF.supabase.co` with no trailing slash, and the
    publishable key (`sb_publishable_…`) from **Project Settings** > **API Keys**. Never use
    the secret key.
