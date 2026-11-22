@@ -1,0 +1,1926 @@
+{
+  "items": [
+    {
+      "id": "onion",
+      "name": "Onion",
+      "aliases": ["pyaz", "kanda"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 170000,
+      "usdaDescription": "Onions, raw",
+      "portion": null
+    },
+    {
+      "id": "potato",
+      "name": "Potato",
+      "aliases": ["aloo", "batata"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 170026,
+      "usdaDescription": "Potatoes, flesh and skin, raw",
+      "portion": null
+    },
+    {
+      "id": "potato-boiled",
+      "name": "Potato, boiled",
+      "aliases": ["aloo"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 170438,
+      "usdaDescription": "Potatoes, boiled, cooked in skin, flesh, without salt",
+      "portion": null
+    },
+    {
+      "id": "tomato",
+      "name": "Tomato",
+      "aliases": ["tamatar"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 170457,
+      "usdaDescription": "Tomatoes, red, ripe, raw, year round average",
+      "portion": null
+    },
+    {
+      "id": "green-chili",
+      "name": "Green chili",
+      "aliases": ["hari mirch"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 170497,
+      "usdaDescription": "Peppers, hot chili, green, raw",
+      "portion": "1 pepper"
+    },
+    {
+      "id": "garlic",
+      "name": "Garlic",
+      "aliases": ["lahsun"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 169230,
+      "usdaDescription": "Garlic, raw",
+      "portion": null
+    },
+    {
+      "id": "ginger",
+      "name": "Ginger",
+      "aliases": ["adrak"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 169231,
+      "usdaDescription": "Ginger root, raw",
+      "portion": null
+    },
+    {
+      "id": "cauliflower",
+      "name": "Cauliflower",
+      "aliases": ["gobi", "phool gobi"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 169986,
+      "usdaDescription": "Cauliflower, raw",
+      "portion": null
+    },
+    {
+      "id": "cabbage",
+      "name": "Cabbage",
+      "aliases": ["patta gobi", "band gobi"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 169975,
+      "usdaDescription": "Cabbage, raw",
+      "portion": null
+    },
+    {
+      "id": "spinach",
+      "name": "Spinach",
+      "aliases": ["palak"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 168462,
+      "usdaDescription": "Spinach, raw",
+      "portion": null
+    },
+    {
+      "id": "carrot",
+      "name": "Carrot",
+      "aliases": ["gajar"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 170393,
+      "usdaDescription": "Carrots, raw",
+      "portion": null
+    },
+    {
+      "id": "cucumber",
+      "name": "Cucumber",
+      "aliases": ["kheera", "kakdi"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 168409,
+      "usdaDescription": "Cucumber, with peel, raw",
+      "portion": null
+    },
+    {
+      "id": "brinjal",
+      "name": "Brinjal",
+      "aliases": ["baingan", "eggplant"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 169228,
+      "usdaDescription": "Eggplant, raw",
+      "portion": null
+    },
+    {
+      "id": "okra",
+      "name": "Okra",
+      "aliases": ["bhindi", "lady finger"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 169260,
+      "usdaDescription": "Okra, raw",
+      "portion": null
+    },
+    {
+      "id": "green-peas",
+      "name": "Green peas",
+      "aliases": ["matar"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 170419,
+      "usdaDescription": "Peas, green, raw",
+      "portion": null
+    },
+    {
+      "id": "french-beans",
+      "name": "French beans",
+      "aliases": ["green beans"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 169961,
+      "usdaDescription": "Beans, snap, green, raw",
+      "portion": null
+    },
+    {
+      "id": "capsicum-green",
+      "name": "Capsicum, green",
+      "aliases": ["shimla mirch", "bell pepper"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 170427,
+      "usdaDescription": "Peppers, sweet, green, raw",
+      "portion": null
+    },
+    {
+      "id": "capsicum-red",
+      "name": "Capsicum, red",
+      "aliases": ["bell pepper"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 170108,
+      "usdaDescription": "Peppers, sweet, red, raw",
+      "portion": null
+    },
+    {
+      "id": "bitter-gourd",
+      "name": "Bitter gourd",
+      "aliases": ["karela"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 168393,
+      "usdaDescription": "Balsam-pear (bitter gourd), pods, raw",
+      "portion": null
+    },
+    {
+      "id": "bottle-gourd",
+      "name": "Bottle gourd",
+      "aliases": ["lauki", "doodhi"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 169232,
+      "usdaDescription": "Gourd, white-flowered (calabash), raw",
+      "portion": null
+    },
+    {
+      "id": "ridge-gourd",
+      "name": "Ridge gourd",
+      "aliases": ["turai", "tori"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 168414,
+      "usdaDescription": "Gourd, dishcloth (towelgourd), raw",
+      "portion": null
+    },
+    {
+      "id": "pumpkin",
+      "name": "Pumpkin",
+      "aliases": ["kaddu", "kaddoo"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 168448,
+      "usdaDescription": "Pumpkin, raw",
+      "portion": null
+    },
+    {
+      "id": "radish",
+      "name": "Radish",
+      "aliases": ["mooli"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 169276,
+      "usdaDescription": "Radishes, raw",
+      "portion": null
+    },
+    {
+      "id": "beetroot",
+      "name": "Beetroot",
+      "aliases": ["chukandar"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 169145,
+      "usdaDescription": "Beets, raw",
+      "portion": null
+    },
+    {
+      "id": "sweet-potato",
+      "name": "Sweet potato",
+      "aliases": ["shakarkandi"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 168482,
+      "usdaDescription": "Sweet potato, raw, unprepared (Includes foods for USDA's Food Distribution Program)",
+      "portion": null
+    },
+    {
+      "id": "mushroom",
+      "name": "Mushroom",
+      "aliases": ["khumb"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 169251,
+      "usdaDescription": "Mushrooms, white, raw",
+      "portion": null
+    },
+    {
+      "id": "coriander-leaves",
+      "name": "Coriander leaves",
+      "aliases": ["dhania", "cilantro"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 169997,
+      "usdaDescription": "Coriander (cilantro) leaves, raw",
+      "portion": null
+    },
+    {
+      "id": "mint-leaves",
+      "name": "Mint leaves",
+      "aliases": ["pudina"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 173475,
+      "usdaDescription": "Spearmint, fresh",
+      "portion": null
+    },
+    {
+      "id": "lemon",
+      "name": "Lemon",
+      "aliases": ["nimbu"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 167746,
+      "usdaDescription": "Lemons, raw, without peel",
+      "portion": null
+    },
+    {
+      "id": "sweet-corn",
+      "name": "Sweet corn",
+      "aliases": ["bhutta", "makka"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 169998,
+      "usdaDescription": "Corn, sweet, yellow, raw",
+      "portion": null
+    },
+    {
+      "id": "broccoli",
+      "name": "Broccoli",
+      "aliases": [],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 170379,
+      "usdaDescription": "Broccoli, raw",
+      "portion": null
+    },
+    {
+      "id": "drumstick",
+      "name": "Drumstick",
+      "aliases": ["sahjan", "moringa"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 170483,
+      "usdaDescription": "Drumstick pods, raw",
+      "portion": null
+    },
+    {
+      "id": "lettuce",
+      "name": "Lettuce",
+      "aliases": [],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 169248,
+      "usdaDescription": "Lettuce, iceberg (includes crisphead types), raw",
+      "portion": null
+    },
+    {
+      "id": "spring-onion",
+      "name": "Spring onion",
+      "aliases": ["hara pyaz", "scallion"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 170005,
+      "usdaDescription": "Onions, spring or scallions (includes tops and bulb), raw",
+      "portion": null
+    },
+    {
+      "id": "mixed-vegetables-frozen",
+      "name": "Mixed vegetables, frozen",
+      "aliases": ["mix veg"],
+      "category": "vegetables",
+      "dataset": "SR Legacy",
+      "fdcId": 170471,
+      "usdaDescription": "Vegetables, mixed, frozen, unprepared",
+      "portion": null
+    },
+    {
+      "id": "banana",
+      "name": "Banana",
+      "aliases": ["kela"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 173944,
+      "usdaDescription": "Bananas, raw",
+      "portion": "1 medium"
+    },
+    {
+      "id": "apple",
+      "name": "Apple",
+      "aliases": ["seb"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 171688,
+      "usdaDescription": "Apples, raw, with skin (Includes foods for USDA's Food Distribution Program)",
+      "portion": "1 medium"
+    },
+    {
+      "id": "mango",
+      "name": "Mango",
+      "aliases": ["aam"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 169910,
+      "usdaDescription": "Mangos, raw",
+      "portion": null
+    },
+    {
+      "id": "papaya",
+      "name": "Papaya",
+      "aliases": ["papita"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 169926,
+      "usdaDescription": "Papayas, raw",
+      "portion": null
+    },
+    {
+      "id": "orange",
+      "name": "Orange",
+      "aliases": ["santra", "narangi"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 169097,
+      "usdaDescription": "Oranges, raw, all commercial varieties",
+      "portion": "1 fruit"
+    },
+    {
+      "id": "guava",
+      "name": "Guava",
+      "aliases": ["amrood"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 173044,
+      "usdaDescription": "Guavas, common, raw",
+      "portion": "1 fruit"
+    },
+    {
+      "id": "pomegranate",
+      "name": "Pomegranate",
+      "aliases": ["anar"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 169134,
+      "usdaDescription": "Pomegranates, raw",
+      "portion": null
+    },
+    {
+      "id": "grapes",
+      "name": "Grapes",
+      "aliases": ["angoor"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 174683,
+      "usdaDescription": "Grapes, red or green (European type, such as Thompson seedless), raw",
+      "portion": null
+    },
+    {
+      "id": "watermelon",
+      "name": "Watermelon",
+      "aliases": ["tarbooz"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 167765,
+      "usdaDescription": "Watermelon, raw",
+      "portion": null
+    },
+    {
+      "id": "muskmelon",
+      "name": "Muskmelon",
+      "aliases": ["kharbooja", "cantaloupe"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 169092,
+      "usdaDescription": "Melons, cantaloupe, raw",
+      "portion": null
+    },
+    {
+      "id": "pineapple",
+      "name": "Pineapple",
+      "aliases": ["ananas"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 169124,
+      "usdaDescription": "Pineapple, raw, all varieties",
+      "portion": null
+    },
+    {
+      "id": "chikoo",
+      "name": "Chikoo",
+      "aliases": ["sapodilla"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 167759,
+      "usdaDescription": "Sapodilla, raw",
+      "portion": null
+    },
+    {
+      "id": "pear",
+      "name": "Pear",
+      "aliases": ["nashpati"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 169118,
+      "usdaDescription": "Pears, raw",
+      "portion": "1 medium"
+    },
+    {
+      "id": "kiwi",
+      "name": "Kiwi",
+      "aliases": [],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 168153,
+      "usdaDescription": "Kiwifruit, green, raw",
+      "portion": "1 fruit"
+    },
+    {
+      "id": "strawberry",
+      "name": "Strawberry",
+      "aliases": [],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 167762,
+      "usdaDescription": "Strawberries, raw",
+      "portion": null
+    },
+    {
+      "id": "dates",
+      "name": "Dates",
+      "aliases": ["khajur"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 168191,
+      "usdaDescription": "Dates, medjool",
+      "portion": "1 date, pitted"
+    },
+    {
+      "id": "coconut-fresh",
+      "name": "Coconut, fresh",
+      "aliases": ["nariyal"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 170169,
+      "usdaDescription": "Nuts, coconut meat, raw",
+      "portion": null
+    },
+    {
+      "id": "jackfruit",
+      "name": "Jackfruit",
+      "aliases": ["kathal"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 174687,
+      "usdaDescription": "Jackfruit, raw",
+      "portion": null
+    },
+    {
+      "id": "litchi",
+      "name": "Litchi",
+      "aliases": ["lychee"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 169086,
+      "usdaDescription": "Litchis, raw",
+      "portion": null
+    },
+    {
+      "id": "custard-apple",
+      "name": "Custard apple",
+      "aliases": ["sitaphal", "sugar apple"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 168175,
+      "usdaDescription": "Sugar-apples, (sweetsop), raw",
+      "portion": null
+    },
+    {
+      "id": "blueberries",
+      "name": "Blueberries",
+      "aliases": [],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 171711,
+      "usdaDescription": "Blueberries, raw",
+      "portion": null
+    },
+    {
+      "id": "plum",
+      "name": "Plum",
+      "aliases": ["aloo bukhara"],
+      "category": "fruits",
+      "dataset": "SR Legacy",
+      "fdcId": 169949,
+      "usdaDescription": "Plums, raw",
+      "portion": "1 fruit"
+    },
+    {
+      "id": "rice-white-cooked",
+      "name": "Rice, white, cooked",
+      "aliases": ["chawal", "bhaat"],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 168878,
+      "usdaDescription": "Rice, white, long-grain, regular, enriched, cooked",
+      "portion": null
+    },
+    {
+      "id": "rice-white-raw",
+      "name": "Rice, white, raw",
+      "aliases": ["chawal"],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 168877,
+      "usdaDescription": "Rice, white, long-grain, regular, raw, enriched",
+      "portion": null
+    },
+    {
+      "id": "rice-brown-cooked",
+      "name": "Rice, brown, cooked",
+      "aliases": ["chawal"],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 169704,
+      "usdaDescription": "Rice, brown, long-grain, cooked (Includes foods for USDA's Food Distribution Program)",
+      "portion": null
+    },
+    {
+      "id": "whole-wheat-flour",
+      "name": "Whole wheat flour",
+      "aliases": ["atta", "gehu"],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 168944,
+      "usdaDescription": "Wheat flour, whole-grain, soft wheat",
+      "portion": null
+    },
+    {
+      "id": "maida",
+      "name": "Maida",
+      "aliases": ["all-purpose flour", "refined flour"],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 168894,
+      "usdaDescription": "Wheat flour, white, all-purpose, enriched, bleached",
+      "portion": null
+    },
+    {
+      "id": "sooji",
+      "name": "Sooji",
+      "aliases": ["rava", "semolina"],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 169715,
+      "usdaDescription": "Semolina, enriched",
+      "portion": null
+    },
+    {
+      "id": "besan",
+      "name": "Besan",
+      "aliases": ["gram flour", "chickpea flour"],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 174288,
+      "usdaDescription": "Chickpea flour (besan)",
+      "portion": null
+    },
+    {
+      "id": "oats",
+      "name": "Oats",
+      "aliases": ["jai"],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 169705,
+      "usdaDescription": "Oats (Includes foods for USDA's Food Distribution Program)",
+      "portion": null
+    },
+    {
+      "id": "ragi",
+      "name": "Ragi",
+      "aliases": ["finger millet", "nachni"],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 169702,
+      "usdaDescription": "Millet, raw",
+      "portion": null
+    },
+    {
+      "id": "jowar",
+      "name": "Jowar",
+      "aliases": ["sorghum"],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 169716,
+      "usdaDescription": "Sorghum grain",
+      "portion": null
+    },
+    {
+      "id": "quinoa-cooked",
+      "name": "Quinoa, cooked",
+      "aliases": [],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 168917,
+      "usdaDescription": "Quinoa, cooked",
+      "portion": null
+    },
+    {
+      "id": "cornflakes",
+      "name": "Cornflakes",
+      "aliases": [],
+      "category": "grains",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2708453,
+      "usdaDescription": "Cereal, corn flakes, plain",
+      "portion": null
+    },
+    {
+      "id": "bread-white",
+      "name": "Bread, white",
+      "aliases": ["pav"],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 174924,
+      "usdaDescription": "Bread, white, commercially prepared (includes soft bread crumbs)",
+      "portion": "1 slice",
+      "portionGrams": 25
+    },
+    {
+      "id": "bread-whole-wheat",
+      "name": "Bread, whole wheat",
+      "aliases": ["brown bread"],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 172688,
+      "usdaDescription": "Bread, whole-wheat, commercially prepared",
+      "portion": "1 slice"
+    },
+    {
+      "id": "pasta-cooked",
+      "name": "Pasta, cooked",
+      "aliases": [],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 169737,
+      "usdaDescription": "Pasta, cooked, enriched, without added salt",
+      "portion": null
+    },
+    {
+      "id": "puffed-rice",
+      "name": "Puffed rice",
+      "aliases": ["murmura"],
+      "category": "grains",
+      "dataset": "SR Legacy",
+      "fdcId": 173912,
+      "usdaDescription": "Cereals ready-to-eat, rice, puffed, fortified",
+      "portion": null
+    },
+    {
+      "id": "chickpeas-boiled",
+      "name": "Chickpeas, boiled",
+      "aliases": ["chole", "kabuli chana"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 173757,
+      "usdaDescription": "Chickpeas (garbanzo beans, bengal gram), mature seeds, cooked, boiled, without salt",
+      "portion": null
+    },
+    {
+      "id": "chickpeas-dry",
+      "name": "Chickpeas, dry",
+      "aliases": ["chole", "kabuli chana"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 173756,
+      "usdaDescription": "Chickpeas (garbanzo beans, bengal gram), mature seeds, raw",
+      "portion": null
+    },
+    {
+      "id": "kidney-beans-boiled",
+      "name": "Kidney beans, boiled",
+      "aliases": ["rajma"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 173740,
+      "usdaDescription": "Beans, kidney, all types, mature seeds, cooked, boiled, without salt",
+      "portion": null
+    },
+    {
+      "id": "kidney-beans-dry",
+      "name": "Kidney beans, dry",
+      "aliases": ["rajma"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 175193,
+      "usdaDescription": "Beans, kidney, all types, mature seeds, raw",
+      "portion": null
+    },
+    {
+      "id": "lentils-boiled",
+      "name": "Lentils, boiled",
+      "aliases": ["masoor dal"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 172421,
+      "usdaDescription": "Lentils, mature seeds, cooked, boiled, without salt",
+      "portion": null
+    },
+    {
+      "id": "lentils-dry",
+      "name": "Lentils, dry",
+      "aliases": ["masoor dal"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 172420,
+      "usdaDescription": "Lentils, raw",
+      "portion": null
+    },
+    {
+      "id": "moong-boiled",
+      "name": "Moong, boiled",
+      "aliases": ["mung beans", "green gram"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 174257,
+      "usdaDescription": "Mung beans, mature seeds, cooked, boiled, without salt",
+      "portion": null
+    },
+    {
+      "id": "moong-dry",
+      "name": "Moong, dry",
+      "aliases": ["mung beans", "green gram"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 174256,
+      "usdaDescription": "Mung beans, mature seeds, raw",
+      "portion": null
+    },
+    {
+      "id": "urad-boiled",
+      "name": "Urad, boiled",
+      "aliases": ["black gram"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 172427,
+      "usdaDescription": "Mungo beans, mature seeds, cooked, boiled, without salt",
+      "portion": null
+    },
+    {
+      "id": "urad-dry",
+      "name": "Urad, dry",
+      "aliases": ["black gram"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 174259,
+      "usdaDescription": "Mungo beans, mature seeds, raw",
+      "portion": null
+    },
+    {
+      "id": "toor-dal-boiled",
+      "name": "Toor dal, boiled",
+      "aliases": ["arhar", "pigeon peas"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 172437,
+      "usdaDescription": "Pigeon peas (red gram), mature seeds, cooked, boiled, without salt",
+      "portion": null
+    },
+    {
+      "id": "toor-dal-dry",
+      "name": "Toor dal, dry",
+      "aliases": ["arhar", "pigeon peas"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 172436,
+      "usdaDescription": "Pigeon peas (red gram), mature seeds, raw",
+      "portion": null
+    },
+    {
+      "id": "lobia-boiled",
+      "name": "Lobia, boiled",
+      "aliases": ["black-eyed peas", "cowpeas"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 173759,
+      "usdaDescription": "Cowpeas, common (blackeyes, crowder, southern), mature seeds, cooked, boiled, without salt",
+      "portion": null
+    },
+    {
+      "id": "soybeans-boiled",
+      "name": "Soybeans, boiled",
+      "aliases": ["soya"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 174271,
+      "usdaDescription": "Soybeans, mature cooked, boiled, without salt",
+      "portion": null
+    },
+    {
+      "id": "soya-chunks",
+      "name": "Soya chunks",
+      "aliases": ["soy chunks", "nutrela"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 174275,
+      "usdaDescription": "Soy flour, defatted",
+      "portion": null
+    },
+    {
+      "id": "tofu",
+      "name": "Tofu",
+      "aliases": [],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 172475,
+      "usdaDescription": "Tofu, raw, firm, prepared with calcium sulfate",
+      "portion": null
+    },
+    {
+      "id": "sprouts-moong",
+      "name": "Sprouts, moong",
+      "aliases": ["ankurit moong"],
+      "category": "pulses",
+      "dataset": "SR Legacy",
+      "fdcId": 169957,
+      "usdaDescription": "Mung beans, mature seeds, sprouted, raw",
+      "portion": null
+    },
+    {
+      "id": "milk-full-cream",
+      "name": "Milk, full cream",
+      "aliases": ["doodh", "whole milk"],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 171265,
+      "usdaDescription": "Milk, whole, 3.25% milkfat, with added vitamin D",
+      "portion": "1 cup"
+    },
+    {
+      "id": "milk-toned",
+      "name": "Milk, toned",
+      "aliases": ["doodh", "2% milk"],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 171267,
+      "usdaDescription": "Milk, reduced fat, fluid, 2% milkfat, with added vitamin A and vitamin D",
+      "portion": "1 cup"
+    },
+    {
+      "id": "milk-skimmed",
+      "name": "Milk, skimmed",
+      "aliases": ["doodh"],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 171269,
+      "usdaDescription": "Milk, nonfat, fluid, with added vitamin A and vitamin D (fat free or skim)",
+      "portion": "1 cup"
+    },
+    {
+      "id": "curd",
+      "name": "Curd",
+      "aliases": ["dahi", "yogurt"],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 171284,
+      "usdaDescription": "Yogurt, plain, whole milk",
+      "portion": null
+    },
+    {
+      "id": "curd-low-fat",
+      "name": "Curd, low fat",
+      "aliases": ["dahi", "yogurt"],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 170886,
+      "usdaDescription": "Yogurt, plain, low fat",
+      "portion": null
+    },
+    {
+      "id": "greek-yogurt-low-fat",
+      "name": "Greek yogurt, low fat",
+      "aliases": ["hung curd"],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 170903,
+      "usdaDescription": "Yogurt, Greek, plain, lowfat",
+      "portion": null
+    },
+    {
+      "id": "greek-yogurt",
+      "name": "Greek yogurt",
+      "aliases": ["hung curd"],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 171304,
+      "usdaDescription": "Yogurt, Greek, plain, whole milk",
+      "portion": null
+    },
+    {
+      "id": "paneer",
+      "name": "Paneer",
+      "aliases": ["cottage cheese"],
+      "category": "dairy",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2705740,
+      "usdaDescription": "Cheese, paneer",
+      "portion": null
+    },
+    {
+      "id": "cheese-cheddar",
+      "name": "Cheese, cheddar",
+      "aliases": ["cheese"],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 170899,
+      "usdaDescription": "Cheese, cheddar, sharp, sliced",
+      "portion": null
+    },
+    {
+      "id": "cheese-slice",
+      "name": "Cheese slice",
+      "aliases": ["processed cheese"],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 170853,
+      "usdaDescription": "Cheese, pasteurized process, American, fortified with vitamin D",
+      "portion": "1 slice",
+      "portionGrams": 21
+    },
+    {
+      "id": "butter",
+      "name": "Butter",
+      "aliases": ["makhan"],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 173410,
+      "usdaDescription": "Butter, salted",
+      "portion": "1 tbsp"
+    },
+    {
+      "id": "ghee",
+      "name": "Ghee",
+      "aliases": ["clarified butter"],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 173412,
+      "usdaDescription": "Butter oil, anhydrous",
+      "portion": "1 tbsp"
+    },
+    {
+      "id": "buttermilk",
+      "name": "Buttermilk",
+      "aliases": ["chaas", "chhachh"],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 170874,
+      "usdaDescription": "Milk, buttermilk, fluid, cultured, lowfat",
+      "portion": "1 cup"
+    },
+    {
+      "id": "cream",
+      "name": "Cream",
+      "aliases": ["malai"],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 170859,
+      "usdaDescription": "Cream, fluid, heavy whipping",
+      "portion": "1 tbsp"
+    },
+    {
+      "id": "cottage-cheese-low-fat",
+      "name": "Cottage cheese, low fat",
+      "aliases": [],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 172182,
+      "usdaDescription": "Cheese, cottage, lowfat, 2% milkfat",
+      "portion": null
+    },
+    {
+      "id": "whey-protein",
+      "name": "Whey protein",
+      "aliases": ["protein powder"],
+      "category": "dairy",
+      "dataset": "SR Legacy",
+      "fdcId": 173180,
+      "usdaDescription": "Beverages, Protein powder whey based",
+      "portion": null
+    },
+    {
+      "id": "egg-whole",
+      "name": "Egg, whole",
+      "aliases": ["anda"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 171287,
+      "usdaDescription": "Egg, whole, raw, fresh",
+      "portion": "1 large"
+    },
+    {
+      "id": "egg-boiled",
+      "name": "Egg, boiled",
+      "aliases": ["anda", "ubla anda"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 173424,
+      "usdaDescription": "Egg, whole, cooked, hard-boiled",
+      "portion": "1 large"
+    },
+    {
+      "id": "egg-white",
+      "name": "Egg white",
+      "aliases": ["anda safedi"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 172183,
+      "usdaDescription": "Egg, white, raw, fresh",
+      "portion": "1 large"
+    },
+    {
+      "id": "egg-yolk",
+      "name": "Egg yolk",
+      "aliases": ["anda zardi"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 172184,
+      "usdaDescription": "Egg, yolk, raw, fresh",
+      "portion": "1 large"
+    },
+    {
+      "id": "omelette",
+      "name": "Omelette",
+      "aliases": ["anda"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 172185,
+      "usdaDescription": "Egg, whole, cooked, omelet",
+      "portion": null
+    },
+    {
+      "id": "chicken-breast-cooked",
+      "name": "Chicken breast, cooked",
+      "aliases": ["murgh"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 171477,
+      "usdaDescription": "Chicken, broilers or fryers, breast, meat only, cooked, roasted",
+      "portion": null
+    },
+    {
+      "id": "chicken-breast-raw",
+      "name": "Chicken breast, raw",
+      "aliases": ["murgh"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 171077,
+      "usdaDescription": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw",
+      "portion": null
+    },
+    {
+      "id": "chicken-thigh-cooked",
+      "name": "Chicken thigh, cooked",
+      "aliases": ["murgh"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 172388,
+      "usdaDescription": "Chicken, broilers or fryers, thigh, meat only, cooked, roasted",
+      "portion": null
+    },
+    {
+      "id": "chicken-whole-cooked",
+      "name": "Chicken, whole, cooked",
+      "aliases": ["murgh"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 171054,
+      "usdaDescription": "Chicken, broilers or fryers, meat only, cooked, roasted",
+      "portion": null
+    },
+    {
+      "id": "mutton-cooked",
+      "name": "Mutton, cooked",
+      "aliases": ["goat", "bakra"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 175304,
+      "usdaDescription": "Game meat, goat, cooked, roasted",
+      "portion": null
+    },
+    {
+      "id": "lamb-leg-cooked",
+      "name": "Lamb leg, cooked",
+      "aliases": ["mutton"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 172487,
+      "usdaDescription": "Lamb, leg, shank half, separable lean only, trimmed to 1/4\" fat, choice, cooked, roasted",
+      "portion": null
+    },
+    {
+      "id": "tilapia-cooked",
+      "name": "Tilapia, cooked",
+      "aliases": ["machli", "fish"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 175177,
+      "usdaDescription": "Fish, tilapia, cooked, dry heat",
+      "portion": null
+    },
+    {
+      "id": "salmon-cooked",
+      "name": "Salmon, cooked",
+      "aliases": ["machli"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 175168,
+      "usdaDescription": "Fish, salmon, Atlantic, farmed, cooked, dry heat",
+      "portion": null
+    },
+    {
+      "id": "tuna-canned-in-water",
+      "name": "Tuna, canned in water",
+      "aliases": ["machli"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 173709,
+      "usdaDescription": "Fish, tuna, light, canned in water, drained solids (Includes foods for USDA's Food Distribution Program)",
+      "portion": null
+    },
+    {
+      "id": "prawns-cooked",
+      "name": "Prawns, cooked",
+      "aliases": ["jhinga", "shrimp"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 175180,
+      "usdaDescription": "Crustaceans, shrimp, cooked",
+      "portion": null
+    },
+    {
+      "id": "mackerel-cooked",
+      "name": "Mackerel, cooked",
+      "aliases": ["bangda"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 175120,
+      "usdaDescription": "Fish, mackerel, Atlantic, cooked, dry heat",
+      "portion": null
+    },
+    {
+      "id": "sardines-canned",
+      "name": "Sardines, canned",
+      "aliases": ["machli"],
+      "category": "protein",
+      "dataset": "SR Legacy",
+      "fdcId": 175139,
+      "usdaDescription": "Fish, sardine, Atlantic, canned in oil, drained solids with bone",
+      "portion": null
+    },
+    {
+      "id": "almonds",
+      "name": "Almonds",
+      "aliases": ["badam"],
+      "category": "nuts",
+      "dataset": "SR Legacy",
+      "fdcId": 170567,
+      "usdaDescription": "Nuts, almonds",
+      "portion": null
+    },
+    {
+      "id": "cashews",
+      "name": "Cashews",
+      "aliases": ["kaju"],
+      "category": "nuts",
+      "dataset": "SR Legacy",
+      "fdcId": 170162,
+      "usdaDescription": "Nuts, cashew nuts, raw",
+      "portion": null
+    },
+    {
+      "id": "walnuts",
+      "name": "Walnuts",
+      "aliases": ["akhrot"],
+      "category": "nuts",
+      "dataset": "SR Legacy",
+      "fdcId": 170187,
+      "usdaDescription": "Nuts, walnuts, english",
+      "portion": null
+    },
+    {
+      "id": "pistachios",
+      "name": "Pistachios",
+      "aliases": ["pista"],
+      "category": "nuts",
+      "dataset": "SR Legacy",
+      "fdcId": 170184,
+      "usdaDescription": "Nuts, pistachio nuts, raw",
+      "portion": null
+    },
+    {
+      "id": "peanuts",
+      "name": "Peanuts",
+      "aliases": ["moongphali", "groundnut"],
+      "category": "nuts",
+      "dataset": "SR Legacy",
+      "fdcId": 172430,
+      "usdaDescription": "Peanuts, all types, raw",
+      "portion": null
+    },
+    {
+      "id": "peanuts-roasted",
+      "name": "Peanuts, roasted",
+      "aliases": ["moongphali", "groundnut"],
+      "category": "nuts",
+      "dataset": "SR Legacy",
+      "fdcId": 173806,
+      "usdaDescription": "Peanuts, all types, dry-roasted, without salt",
+      "portion": null
+    },
+    {
+      "id": "peanut-butter",
+      "name": "Peanut butter",
+      "aliases": [],
+      "category": "nuts",
+      "dataset": "SR Legacy",
+      "fdcId": 172470,
+      "usdaDescription": "Peanut butter, smooth style, without salt",
+      "portion": "2 tbsp"
+    },
+    {
+      "id": "raisins",
+      "name": "Raisins",
+      "aliases": ["kishmish"],
+      "category": "nuts",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2709212,
+      "usdaDescription": "Raisins",
+      "portion": null
+    },
+    {
+      "id": "flaxseed",
+      "name": "Flaxseed",
+      "aliases": ["alsi"],
+      "category": "nuts",
+      "dataset": "SR Legacy",
+      "fdcId": 169414,
+      "usdaDescription": "Seeds, flaxseed",
+      "portion": "1 tbsp, ground"
+    },
+    {
+      "id": "chia-seeds",
+      "name": "Chia seeds",
+      "aliases": [],
+      "category": "nuts",
+      "dataset": "SR Legacy",
+      "fdcId": 170554,
+      "usdaDescription": "Seeds, chia seeds, dried",
+      "portion": null
+    },
+    {
+      "id": "sunflower-seeds",
+      "name": "Sunflower seeds",
+      "aliases": [],
+      "category": "nuts",
+      "dataset": "SR Legacy",
+      "fdcId": 170562,
+      "usdaDescription": "Seeds, sunflower seed kernels, dried",
+      "portion": null
+    },
+    {
+      "id": "sesame-seeds",
+      "name": "Sesame seeds",
+      "aliases": ["til"],
+      "category": "nuts",
+      "dataset": "SR Legacy",
+      "fdcId": 170150,
+      "usdaDescription": "Seeds, sesame seeds, whole, dried",
+      "portion": "1 tbsp"
+    },
+    {
+      "id": "pumpkin-seeds",
+      "name": "Pumpkin seeds",
+      "aliases": ["magaz"],
+      "category": "nuts",
+      "dataset": "SR Legacy",
+      "fdcId": 170556,
+      "usdaDescription": "Seeds, pumpkin and squash seed kernels, dried",
+      "portion": null
+    },
+    {
+      "id": "coconut-desiccated",
+      "name": "Coconut, desiccated",
+      "aliases": ["nariyal"],
+      "category": "nuts",
+      "dataset": "SR Legacy",
+      "fdcId": 170170,
+      "usdaDescription": "Nuts, coconut meat, dried (desiccated), not sweetened",
+      "portion": null
+    },
+    {
+      "id": "makhana",
+      "name": "Makhana",
+      "aliases": ["fox nuts", "lotus seeds"],
+      "category": "nuts",
+      "dataset": "SR Legacy",
+      "fdcId": 170149,
+      "usdaDescription": "Seeds, lotus seeds, dried",
+      "portion": null
+    },
+    {
+      "id": "mustard-oil",
+      "name": "Mustard oil",
+      "aliases": ["sarson tel"],
+      "category": "oils",
+      "dataset": "SR Legacy",
+      "fdcId": 172337,
+      "usdaDescription": "Oil, mustard",
+      "portion": "1 tbsp"
+    },
+    {
+      "id": "sunflower-oil",
+      "name": "Sunflower oil",
+      "aliases": ["tel"],
+      "category": "oils",
+      "dataset": "SR Legacy",
+      "fdcId": 171017,
+      "usdaDescription": "Oil, sunflower, linoleic (less than 60%)",
+      "portion": "1 tbsp"
+    },
+    {
+      "id": "groundnut-oil",
+      "name": "Groundnut oil",
+      "aliases": ["moongphali tel", "peanut oil"],
+      "category": "oils",
+      "dataset": "SR Legacy",
+      "fdcId": 171410,
+      "usdaDescription": "Oil, peanut, salad or cooking",
+      "portion": "1 tbsp"
+    },
+    {
+      "id": "olive-oil",
+      "name": "Olive oil",
+      "aliases": ["tel"],
+      "category": "oils",
+      "dataset": "SR Legacy",
+      "fdcId": 171413,
+      "usdaDescription": "Oil, olive, salad or cooking",
+      "portion": "1 tablespoon"
+    },
+    {
+      "id": "coconut-oil",
+      "name": "Coconut oil",
+      "aliases": ["nariyal tel"],
+      "category": "oils",
+      "dataset": "SR Legacy",
+      "fdcId": 171412,
+      "usdaDescription": "Oil, coconut",
+      "portion": "1 tbsp"
+    },
+    {
+      "id": "soybean-oil",
+      "name": "Soybean oil",
+      "aliases": ["tel"],
+      "category": "oils",
+      "dataset": "SR Legacy",
+      "fdcId": 171411,
+      "usdaDescription": "Oil, soybean, salad or cooking",
+      "portion": "1 tbsp"
+    },
+    {
+      "id": "turmeric",
+      "name": "Turmeric",
+      "aliases": ["haldi"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 172231,
+      "usdaDescription": "Spices, turmeric, ground",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "cumin-seeds",
+      "name": "Cumin seeds",
+      "aliases": ["jeera"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 170923,
+      "usdaDescription": "Spices, cumin seed",
+      "portion": "1 tsp, whole"
+    },
+    {
+      "id": "coriander-powder",
+      "name": "Coriander powder",
+      "aliases": ["dhania powder"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 170922,
+      "usdaDescription": "Spices, coriander seed",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "red-chili-powder",
+      "name": "Red chili powder",
+      "aliases": ["lal mirch"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 171319,
+      "usdaDescription": "Spices, chili powder",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "black-pepper",
+      "name": "Black pepper",
+      "aliases": ["kali mirch"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 170931,
+      "usdaDescription": "Spices, pepper, black",
+      "portion": "1 tsp, ground"
+    },
+    {
+      "id": "cardamom",
+      "name": "Cardamom",
+      "aliases": ["elaichi"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 170919,
+      "usdaDescription": "Spices, cardamom",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "cinnamon",
+      "name": "Cinnamon",
+      "aliases": ["dalchini"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 171320,
+      "usdaDescription": "Spices, cinnamon, ground",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "cloves",
+      "name": "Cloves",
+      "aliases": ["laung"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 171321,
+      "usdaDescription": "Spices, cloves, ground",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "fenugreek-seeds",
+      "name": "Fenugreek seeds",
+      "aliases": ["methi dana"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 171324,
+      "usdaDescription": "Spices, fenugreek seed",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "mustard-seeds",
+      "name": "Mustard seeds",
+      "aliases": ["rai", "sarson"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 170929,
+      "usdaDescription": "Spices, mustard seed, ground",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "fennel-seeds",
+      "name": "Fennel seeds",
+      "aliases": ["saunf"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 171323,
+      "usdaDescription": "Spices, fennel seed",
+      "portion": "1 tsp, whole"
+    },
+    {
+      "id": "ginger-powder",
+      "name": "Ginger powder",
+      "aliases": ["saunth"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 170926,
+      "usdaDescription": "Spices, ginger, ground",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "garlic-powder",
+      "name": "Garlic powder",
+      "aliases": ["lahsun powder"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 171325,
+      "usdaDescription": "Spices, garlic powder",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "bay-leaf",
+      "name": "Bay leaf",
+      "aliases": ["tej patta"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 170917,
+      "usdaDescription": "Spices, bay leaf",
+      "portion": "1 tsp, crumbled"
+    },
+    {
+      "id": "nutmeg",
+      "name": "Nutmeg",
+      "aliases": ["jaiphal"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 171326,
+      "usdaDescription": "Spices, nutmeg, ground",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "saffron",
+      "name": "Saffron",
+      "aliases": ["kesar"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 170934,
+      "usdaDescription": "Spices, saffron",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "curry-powder",
+      "name": "Curry powder",
+      "aliases": ["masala"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 170924,
+      "usdaDescription": "Spices, curry powder",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "paprika",
+      "name": "Paprika",
+      "aliases": ["kashmiri mirch"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 171329,
+      "usdaDescription": "Spices, paprika",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "salt",
+      "name": "Salt",
+      "aliases": ["namak"],
+      "category": "spices",
+      "dataset": "SR Legacy",
+      "fdcId": 173468,
+      "usdaDescription": "Salt, table",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "sugar",
+      "name": "Sugar",
+      "aliases": ["cheeni", "shakkar"],
+      "category": "other",
+      "dataset": "SR Legacy",
+      "fdcId": 169655,
+      "usdaDescription": "Sugars, granulated",
+      "portion": "1 tsp"
+    },
+    {
+      "id": "brown-sugar",
+      "name": "Brown sugar",
+      "aliases": ["shakkar"],
+      "category": "other",
+      "dataset": "SR Legacy",
+      "fdcId": 168833,
+      "usdaDescription": "Sugars, brown",
+      "portion": "1 tsp packed"
+    },
+    {
+      "id": "honey",
+      "name": "Honey",
+      "aliases": ["shahad"],
+      "category": "other",
+      "dataset": "SR Legacy",
+      "fdcId": 169640,
+      "usdaDescription": "Honey",
+      "portion": "1 tbsp"
+    },
+    {
+      "id": "tea-with-milk",
+      "name": "Tea with milk",
+      "aliases": ["chai"],
+      "category": "other",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2710506,
+      "usdaDescription": "Tea, hot, with milk",
+      "portion": null
+    },
+    {
+      "id": "dark-chocolate",
+      "name": "Dark chocolate",
+      "aliases": [],
+      "category": "other",
+      "dataset": "SR Legacy",
+      "fdcId": 170273,
+      "usdaDescription": "Chocolate, dark, 70-85% cacao solids",
+      "portion": null
+    },
+    {
+      "id": "cocoa-powder",
+      "name": "Cocoa powder",
+      "aliases": [],
+      "category": "other",
+      "dataset": "SR Legacy",
+      "fdcId": 169593,
+      "usdaDescription": "Cocoa, dry powder, unsweetened",
+      "portion": "1 tbsp"
+    },
+    {
+      "id": "tomato-ketchup",
+      "name": "Tomato ketchup",
+      "aliases": ["sauce"],
+      "category": "other",
+      "dataset": "SR Legacy",
+      "fdcId": 168556,
+      "usdaDescription": "Catsup",
+      "portion": "1 tbsp"
+    },
+    {
+      "id": "dal",
+      "name": "Dal",
+      "aliases": ["daal", "dhal"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2707427,
+      "usdaDescription": "Dal",
+      "portion": "1 cup"
+    },
+    {
+      "id": "lentil-curry",
+      "name": "Lentil curry",
+      "aliases": ["dal"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2707431,
+      "usdaDescription": "Lentil curry",
+      "portion": "1 cup"
+    },
+    {
+      "id": "roti",
+      "name": "Roti",
+      "aliases": ["chapati", "phulka"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2707713,
+      "usdaDescription": "Bread, chappatti or roti",
+      "portion": "1 medium"
+    },
+    {
+      "id": "paratha",
+      "name": "Paratha",
+      "aliases": [],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2707715,
+      "usdaDescription": "Bread, paratha",
+      "portion": "1 paratha"
+    },
+    {
+      "id": "naan",
+      "name": "Naan",
+      "aliases": [],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2707613,
+      "usdaDescription": "Bread, naan",
+      "portion": "1 piece"
+    },
+    {
+      "id": "puri",
+      "name": "Puri",
+      "aliases": ["poori"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2707714,
+      "usdaDescription": "Bread, puri",
+      "portion": "1 puri"
+    },
+    {
+      "id": "idli",
+      "name": "Idli",
+      "aliases": ["idly"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2708346,
+      "usdaDescription": "Idli",
+      "portion": "1 item"
+    },
+    {
+      "id": "dosa",
+      "name": "Dosa",
+      "aliases": ["dosai"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2708347,
+      "usdaDescription": "Dosa, plain",
+      "portion": "1 medium"
+    },
+    {
+      "id": "masala-dosa",
+      "name": "Masala dosa",
+      "aliases": ["dosa"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2709129,
+      "usdaDescription": "Dosa, with filling",
+      "portion": "1 medium"
+    },
+    {
+      "id": "sambar",
+      "name": "Sambar",
+      "aliases": ["sambhar"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2707430,
+      "usdaDescription": "Sambar, vegetable stew",
+      "portion": "1 cup"
+    },
+    {
+      "id": "upma",
+      "name": "Upma",
+      "aliases": ["uppittu"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2709128,
+      "usdaDescription": "Upma",
+      "portion": "1 cup"
+    },
+    {
+      "id": "samosa",
+      "name": "Samosa",
+      "aliases": [],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2708730,
+      "usdaDescription": "Samosa",
+      "portion": "1 regular"
+    },
+    {
+      "id": "pakora",
+      "name": "Pakora",
+      "aliases": ["bhajji", "pakoda"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2710066,
+      "usdaDescription": "Pakora",
+      "portion": "1 pakora"
+    },
+    {
+      "id": "palak-paneer",
+      "name": "Palak paneer",
+      "aliases": ["saag paneer"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2709631,
+      "usdaDescription": "Palak Paneer",
+      "portion": "1 cup"
+    },
+    {
+      "id": "chicken-curry",
+      "name": "Chicken curry",
+      "aliases": ["murgh curry"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2706437,
+      "usdaDescription": "Chicken curry",
+      "portion": "1 cup"
+    },
+    {
+      "id": "fish-curry",
+      "name": "Fish curry",
+      "aliases": ["machli curry"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2706460,
+      "usdaDescription": "Fish curry",
+      "portion": "1 cup"
+    },
+    {
+      "id": "vegetable-curry",
+      "name": "Vegetable curry",
+      "aliases": ["sabzi"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2710067,
+      "usdaDescription": "Vegetable curry",
+      "portion": "1 cup"
+    },
+    {
+      "id": "chicken-biryani",
+      "name": "Chicken biryani",
+      "aliases": ["biryani"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2706538,
+      "usdaDescription": "Biryani with chicken",
+      "portion": "1 cup"
+    },
+    {
+      "id": "veg-biryani",
+      "name": "Veg biryani",
+      "aliases": ["biryani", "pulao"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2708985,
+      "usdaDescription": "Biryani with vegetables",
+      "portion": "1 cup"
+    },
+    {
+      "id": "ladoo",
+      "name": "Ladoo",
+      "aliases": ["laddu"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2710351,
+      "usdaDescription": "Ladoo, round ball",
+      "portion": "1 piece"
+    },
+    {
+      "id": "rice-pudding",
+      "name": "Rice pudding",
+      "aliases": ["kheer"],
+      "category": "dishes",
+      "dataset": "SR Legacy",
+      "fdcId": 168063,
+      "usdaDescription": "Restaurant, Latino, arroz con leche (rice pudding)",
+      "portion": null
+    },
+    {
+      "id": "curry-sauce",
+      "name": "Curry sauce",
+      "aliases": ["gravy"],
+      "category": "dishes",
+      "dataset": "FNDDS 2021-2023",
+      "fdcId": 2710178,
+      "usdaDescription": "Curry sauce",
+      "portion": "1 tablespoon"
+    }
+  ]
+}

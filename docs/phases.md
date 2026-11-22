@@ -569,7 +569,7 @@ timing it).
 
 ## Phase 10 — Built-in Indian and gym foods
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** common Indian home foods and gym staples are there to pick, without typing their
 numbers.
@@ -600,6 +600,13 @@ numbers.
 
 **Open question:** whether NIN permits reuse of IFCT 2017 values. Until answered, use
 USDA values only.
+
+**Plan** (approved 2026-11-22): USDA FoodData Central only (decision 0027). PR 1: the
+curated list, its build script, and tests. PR 2: the picker shows built-in matches and
+copies a picked one into your foods, with a nullable `catalog_id` column on foods (a
+migration), version 0.5.0. The energy check is "not above 4/4/9 by more than 10%, nor below
+45% of it", not "within 10%": USDA's food-specific factors put fruit and vegetables below
+the general formula.
 
 **Implementation notes:** none yet.
 

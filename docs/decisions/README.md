@@ -46,3 +46,4 @@ change a decision, write a new record that supersedes the old one.
 | [0024](0024-public-repository-for-github-pages.md) | Public repository for GitHub Pages | Accepted |
 | [0025](0025-carbs-and-fat-nullable.md) | Carbs and fat as nullable columns | Accepted |
 | [0026](0026-ranking-foods-by-recent-use.md) | Ranking foods by recent use | Accepted |
+| [0027](0027-built-in-foods-from-usda.md) | Built-in foods from USDA FoodData Central | Accepted |

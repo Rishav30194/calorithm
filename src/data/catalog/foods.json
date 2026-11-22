@@ -1,0 +1,3083 @@
+{
+  "source": {
+    "name": "USDA FoodData Central",
+    "url": "https://fdc.nal.usda.gov/",
+    "license": "CC0 1.0 (public domain)",
+    "citation": "U.S. Department of Agriculture, Agricultural Research Service. FoodData Central. fdc.nal.usda.gov.",
+    "datasets": ["SR Legacy (2018-04)", "FNDDS 2021-2023 (2024-10-31)"]
+  },
+  "foods": [
+    {
+      "id": "onion",
+      "name": "Onion",
+      "aliases": ["pyaz", "kanda"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 40,
+      "proteinG": 1.1,
+      "carbsG": 9.3,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170000
+      }
+    },
+    {
+      "id": "potato",
+      "name": "Potato",
+      "aliases": ["aloo", "batata"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 77,
+      "proteinG": 2.1,
+      "carbsG": 17.5,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170026
+      }
+    },
+    {
+      "id": "potato-boiled",
+      "name": "Potato, boiled",
+      "aliases": ["aloo"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 87,
+      "proteinG": 1.9,
+      "carbsG": 20.1,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170438
+      }
+    },
+    {
+      "id": "tomato",
+      "name": "Tomato",
+      "aliases": ["tamatar"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 18,
+      "proteinG": 0.9,
+      "carbsG": 3.9,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170457
+      }
+    },
+    {
+      "id": "green-chili",
+      "name": "Green chili",
+      "aliases": ["hari mirch"],
+      "category": "vegetables",
+      "servingSize": 1,
+      "servingUnit": "pepper (45 g)",
+      "kcal": 18,
+      "proteinG": 0.9,
+      "carbsG": 4.3,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170497
+      }
+    },
+    {
+      "id": "garlic",
+      "name": "Garlic",
+      "aliases": ["lahsun"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 149,
+      "proteinG": 6.4,
+      "carbsG": 33.1,
+      "fatG": 0.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169230
+      }
+    },
+    {
+      "id": "ginger",
+      "name": "Ginger",
+      "aliases": ["adrak"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 80,
+      "proteinG": 1.8,
+      "carbsG": 17.8,
+      "fatG": 0.8,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169231
+      }
+    },
+    {
+      "id": "cauliflower",
+      "name": "Cauliflower",
+      "aliases": ["gobi", "phool gobi"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 25,
+      "proteinG": 1.9,
+      "carbsG": 5,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169986
+      }
+    },
+    {
+      "id": "cabbage",
+      "name": "Cabbage",
+      "aliases": ["patta gobi", "band gobi"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 25,
+      "proteinG": 1.3,
+      "carbsG": 5.8,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169975
+      }
+    },
+    {
+      "id": "spinach",
+      "name": "Spinach",
+      "aliases": ["palak"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 23,
+      "proteinG": 2.9,
+      "carbsG": 3.6,
+      "fatG": 0.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168462
+      }
+    },
+    {
+      "id": "carrot",
+      "name": "Carrot",
+      "aliases": ["gajar"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 41,
+      "proteinG": 0.9,
+      "carbsG": 9.6,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170393
+      }
+    },
+    {
+      "id": "cucumber",
+      "name": "Cucumber",
+      "aliases": ["kheera", "kakdi"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 15,
+      "proteinG": 0.7,
+      "carbsG": 3.6,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168409
+      }
+    },
+    {
+      "id": "brinjal",
+      "name": "Brinjal",
+      "aliases": ["baingan", "eggplant"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 25,
+      "proteinG": 1,
+      "carbsG": 5.9,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169228
+      }
+    },
+    {
+      "id": "okra",
+      "name": "Okra",
+      "aliases": ["bhindi", "lady finger"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 33,
+      "proteinG": 1.9,
+      "carbsG": 7.5,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169260
+      }
+    },
+    {
+      "id": "green-peas",
+      "name": "Green peas",
+      "aliases": ["matar"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 81,
+      "proteinG": 5.4,
+      "carbsG": 14.5,
+      "fatG": 0.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170419
+      }
+    },
+    {
+      "id": "french-beans",
+      "name": "French beans",
+      "aliases": ["green beans"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 31,
+      "proteinG": 1.8,
+      "carbsG": 7,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169961
+      }
+    },
+    {
+      "id": "capsicum-green",
+      "name": "Capsicum, green",
+      "aliases": ["shimla mirch", "bell pepper"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 20,
+      "proteinG": 0.9,
+      "carbsG": 4.6,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170427
+      }
+    },
+    {
+      "id": "capsicum-red",
+      "name": "Capsicum, red",
+      "aliases": ["bell pepper"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 26,
+      "proteinG": 1,
+      "carbsG": 6,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170108
+      }
+    },
+    {
+      "id": "bitter-gourd",
+      "name": "Bitter gourd",
+      "aliases": ["karela"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 17,
+      "proteinG": 1,
+      "carbsG": 3.7,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168393
+      }
+    },
+    {
+      "id": "bottle-gourd",
+      "name": "Bottle gourd",
+      "aliases": ["lauki", "doodhi"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 14,
+      "proteinG": 0.6,
+      "carbsG": 3.4,
+      "fatG": 0,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169232
+      }
+    },
+    {
+      "id": "ridge-gourd",
+      "name": "Ridge gourd",
+      "aliases": ["turai", "tori"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 20,
+      "proteinG": 1.2,
+      "carbsG": 4.4,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168414
+      }
+    },
+    {
+      "id": "pumpkin",
+      "name": "Pumpkin",
+      "aliases": ["kaddu", "kaddoo"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 26,
+      "proteinG": 1,
+      "carbsG": 6.5,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168448
+      }
+    },
+    {
+      "id": "radish",
+      "name": "Radish",
+      "aliases": ["mooli"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 16,
+      "proteinG": 0.7,
+      "carbsG": 3.4,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169276
+      }
+    },
+    {
+      "id": "beetroot",
+      "name": "Beetroot",
+      "aliases": ["chukandar"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 43,
+      "proteinG": 1.6,
+      "carbsG": 9.6,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169145
+      }
+    },
+    {
+      "id": "sweet-potato",
+      "name": "Sweet potato",
+      "aliases": ["shakarkandi"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 86,
+      "proteinG": 1.6,
+      "carbsG": 20.1,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168482
+      }
+    },
+    {
+      "id": "mushroom",
+      "name": "Mushroom",
+      "aliases": ["khumb"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 22,
+      "proteinG": 3.1,
+      "carbsG": 3.3,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169251
+      }
+    },
+    {
+      "id": "coriander-leaves",
+      "name": "Coriander leaves",
+      "aliases": ["dhania", "cilantro"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 23,
+      "proteinG": 2.1,
+      "carbsG": 3.7,
+      "fatG": 0.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169997
+      }
+    },
+    {
+      "id": "mint-leaves",
+      "name": "Mint leaves",
+      "aliases": ["pudina"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 44,
+      "proteinG": 3.3,
+      "carbsG": 8.4,
+      "fatG": 0.7,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173475
+      }
+    },
+    {
+      "id": "lemon",
+      "name": "Lemon",
+      "aliases": ["nimbu"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 29,
+      "proteinG": 1.1,
+      "carbsG": 9.3,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 167746
+      }
+    },
+    {
+      "id": "sweet-corn",
+      "name": "Sweet corn",
+      "aliases": ["bhutta", "makka"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 86,
+      "proteinG": 3.3,
+      "carbsG": 18.7,
+      "fatG": 1.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169998
+      }
+    },
+    {
+      "id": "broccoli",
+      "name": "Broccoli",
+      "aliases": [],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 34,
+      "proteinG": 2.8,
+      "carbsG": 6.6,
+      "fatG": 0.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170379
+      }
+    },
+    {
+      "id": "drumstick",
+      "name": "Drumstick",
+      "aliases": ["sahjan", "moringa"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 37,
+      "proteinG": 2.1,
+      "carbsG": 8.5,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170483
+      }
+    },
+    {
+      "id": "lettuce",
+      "name": "Lettuce",
+      "aliases": [],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 14,
+      "proteinG": 0.9,
+      "carbsG": 3,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169248
+      }
+    },
+    {
+      "id": "spring-onion",
+      "name": "Spring onion",
+      "aliases": ["hara pyaz", "scallion"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 32,
+      "proteinG": 1.8,
+      "carbsG": 7.3,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170005
+      }
+    },
+    {
+      "id": "mixed-vegetables-frozen",
+      "name": "Mixed vegetables, frozen",
+      "aliases": ["mix veg"],
+      "category": "vegetables",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 72,
+      "proteinG": 3.3,
+      "carbsG": 13.5,
+      "fatG": 0.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170471
+      }
+    },
+    {
+      "id": "banana",
+      "name": "Banana",
+      "aliases": ["kela"],
+      "category": "fruits",
+      "servingSize": 1,
+      "servingUnit": "medium (118 g)",
+      "kcal": 105,
+      "proteinG": 1.3,
+      "carbsG": 27,
+      "fatG": 0.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173944
+      }
+    },
+    {
+      "id": "apple",
+      "name": "Apple",
+      "aliases": ["seb"],
+      "category": "fruits",
+      "servingSize": 1,
+      "servingUnit": "medium (182 g)",
+      "kcal": 95,
+      "proteinG": 0.5,
+      "carbsG": 25.1,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171688
+      }
+    },
+    {
+      "id": "mango",
+      "name": "Mango",
+      "aliases": ["aam"],
+      "category": "fruits",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 60,
+      "proteinG": 0.8,
+      "carbsG": 15,
+      "fatG": 0.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169910
+      }
+    },
+    {
+      "id": "papaya",
+      "name": "Papaya",
+      "aliases": ["papita"],
+      "category": "fruits",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 43,
+      "proteinG": 0.5,
+      "carbsG": 10.8,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169926
+      }
+    },
+    {
+      "id": "orange",
+      "name": "Orange",
+      "aliases": ["santra", "narangi"],
+      "category": "fruits",
+      "servingSize": 1,
+      "servingUnit": "fruit (131 g)",
+      "kcal": 62,
+      "proteinG": 1.2,
+      "carbsG": 15.4,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169097
+      }
+    },
+    {
+      "id": "guava",
+      "name": "Guava",
+      "aliases": ["amrood"],
+      "category": "fruits",
+      "servingSize": 1,
+      "servingUnit": "fruit (55 g)",
+      "kcal": 37,
+      "proteinG": 1.4,
+      "carbsG": 7.9,
+      "fatG": 0.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173044
+      }
+    },
+    {
+      "id": "pomegranate",
+      "name": "Pomegranate",
+      "aliases": ["anar"],
+      "category": "fruits",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 83,
+      "proteinG": 1.7,
+      "carbsG": 18.7,
+      "fatG": 1.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169134
+      }
+    },
+    {
+      "id": "grapes",
+      "name": "Grapes",
+      "aliases": ["angoor"],
+      "category": "fruits",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 69,
+      "proteinG": 0.7,
+      "carbsG": 18.1,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 174683
+      }
+    },
+    {
+      "id": "watermelon",
+      "name": "Watermelon",
+      "aliases": ["tarbooz"],
+      "category": "fruits",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 30,
+      "proteinG": 0.6,
+      "carbsG": 7.6,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 167765
+      }
+    },
+    {
+      "id": "muskmelon",
+      "name": "Muskmelon",
+      "aliases": ["kharbooja", "cantaloupe"],
+      "category": "fruits",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 34,
+      "proteinG": 0.8,
+      "carbsG": 8.2,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169092
+      }
+    },
+    {
+      "id": "pineapple",
+      "name": "Pineapple",
+      "aliases": ["ananas"],
+      "category": "fruits",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 50,
+      "proteinG": 0.5,
+      "carbsG": 13.1,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169124
+      }
+    },
+    {
+      "id": "chikoo",
+      "name": "Chikoo",
+      "aliases": ["sapodilla"],
+      "category": "fruits",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 83,
+      "proteinG": 0.4,
+      "carbsG": 20,
+      "fatG": 1.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 167759
+      }
+    },
+    {
+      "id": "pear",
+      "name": "Pear",
+      "aliases": ["nashpati"],
+      "category": "fruits",
+      "servingSize": 1,
+      "servingUnit": "medium (178 g)",
+      "kcal": 101,
+      "proteinG": 0.6,
+      "carbsG": 27.1,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169118
+      }
+    },
+    {
+      "id": "kiwi",
+      "name": "Kiwi",
+      "aliases": [],
+      "category": "fruits",
+      "servingSize": 1,
+      "servingUnit": "fruit (69 g)",
+      "kcal": 42,
+      "proteinG": 0.8,
+      "carbsG": 10.1,
+      "fatG": 0.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168153
+      }
+    },
+    {
+      "id": "strawberry",
+      "name": "Strawberry",
+      "aliases": [],
+      "category": "fruits",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 32,
+      "proteinG": 0.7,
+      "carbsG": 7.7,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 167762
+      }
+    },
+    {
+      "id": "dates",
+      "name": "Dates",
+      "aliases": ["khajur"],
+      "category": "fruits",
+      "servingSize": 1,
+      "servingUnit": "date, pitted (24 g)",
+      "kcal": 66,
+      "proteinG": 0.4,
+      "carbsG": 18,
+      "fatG": 0,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168191
+      }
+    },
+    {
+      "id": "coconut-fresh",
+      "name": "Coconut, fresh",
+      "aliases": ["nariyal"],
+      "category": "fruits",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 354,
+      "proteinG": 3.3,
+      "carbsG": 15.2,
+      "fatG": 33.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170169
+      }
+    },
+    {
+      "id": "jackfruit",
+      "name": "Jackfruit",
+      "aliases": ["kathal"],
+      "category": "fruits",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 95,
+      "proteinG": 1.7,
+      "carbsG": 23.3,
+      "fatG": 0.6,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 174687
+      }
+    },
+    {
+      "id": "litchi",
+      "name": "Litchi",
+      "aliases": ["lychee"],
+      "category": "fruits",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 66,
+      "proteinG": 0.8,
+      "carbsG": 16.5,
+      "fatG": 0.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169086
+      }
+    },
+    {
+      "id": "custard-apple",
+      "name": "Custard apple",
+      "aliases": ["sitaphal", "sugar apple"],
+      "category": "fruits",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 94,
+      "proteinG": 2.1,
+      "carbsG": 23.6,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168175
+      }
+    },
+    {
+      "id": "blueberries",
+      "name": "Blueberries",
+      "aliases": [],
+      "category": "fruits",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 57,
+      "proteinG": 0.7,
+      "carbsG": 14.5,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171711
+      }
+    },
+    {
+      "id": "plum",
+      "name": "Plum",
+      "aliases": ["aloo bukhara"],
+      "category": "fruits",
+      "servingSize": 1,
+      "servingUnit": "fruit (66 g)",
+      "kcal": 30,
+      "proteinG": 0.5,
+      "carbsG": 7.5,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169949
+      }
+    },
+    {
+      "id": "rice-white-cooked",
+      "name": "Rice, white, cooked",
+      "aliases": ["chawal", "bhaat"],
+      "category": "grains",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 130,
+      "proteinG": 2.7,
+      "carbsG": 28.2,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168878
+      }
+    },
+    {
+      "id": "rice-white-raw",
+      "name": "Rice, white, raw",
+      "aliases": ["chawal"],
+      "category": "grains",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 365,
+      "proteinG": 7.1,
+      "carbsG": 80,
+      "fatG": 0.7,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168877
+      }
+    },
+    {
+      "id": "rice-brown-cooked",
+      "name": "Rice, brown, cooked",
+      "aliases": ["chawal"],
+      "category": "grains",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 123,
+      "proteinG": 2.7,
+      "carbsG": 25.6,
+      "fatG": 1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169704
+      }
+    },
+    {
+      "id": "whole-wheat-flour",
+      "name": "Whole wheat flour",
+      "aliases": ["atta", "gehu"],
+      "category": "grains",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 332,
+      "proteinG": 9.6,
+      "carbsG": 74.5,
+      "fatG": 2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168944
+      }
+    },
+    {
+      "id": "maida",
+      "name": "Maida",
+      "aliases": ["all-purpose flour", "refined flour"],
+      "category": "grains",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 364,
+      "proteinG": 10.3,
+      "carbsG": 76.3,
+      "fatG": 1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168894
+      }
+    },
+    {
+      "id": "sooji",
+      "name": "Sooji",
+      "aliases": ["rava", "semolina"],
+      "category": "grains",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 360,
+      "proteinG": 12.7,
+      "carbsG": 72.8,
+      "fatG": 1.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169715
+      }
+    },
+    {
+      "id": "besan",
+      "name": "Besan",
+      "aliases": ["gram flour", "chickpea flour"],
+      "category": "grains",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 387,
+      "proteinG": 22.4,
+      "carbsG": 57.8,
+      "fatG": 6.7,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 174288
+      }
+    },
+    {
+      "id": "oats",
+      "name": "Oats",
+      "aliases": ["jai"],
+      "category": "grains",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 389,
+      "proteinG": 16.9,
+      "carbsG": 66.3,
+      "fatG": 6.9,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169705
+      }
+    },
+    {
+      "id": "ragi",
+      "name": "Ragi",
+      "aliases": ["finger millet", "nachni"],
+      "category": "grains",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 378,
+      "proteinG": 11,
+      "carbsG": 72.9,
+      "fatG": 4.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169702
+      }
+    },
+    {
+      "id": "jowar",
+      "name": "Jowar",
+      "aliases": ["sorghum"],
+      "category": "grains",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 329,
+      "proteinG": 10.6,
+      "carbsG": 72.1,
+      "fatG": 3.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169716
+      }
+    },
+    {
+      "id": "quinoa-cooked",
+      "name": "Quinoa, cooked",
+      "aliases": [],
+      "category": "grains",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 120,
+      "proteinG": 4.4,
+      "carbsG": 21.3,
+      "fatG": 1.9,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168917
+      }
+    },
+    {
+      "id": "cornflakes",
+      "name": "Cornflakes",
+      "aliases": [],
+      "category": "grains",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 365,
+      "proteinG": 6.4,
+      "carbsG": 79.5,
+      "fatG": 1.6,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2708453
+      }
+    },
+    {
+      "id": "bread-white",
+      "name": "Bread, white",
+      "aliases": ["pav"],
+      "category": "grains",
+      "servingSize": 1,
+      "servingUnit": "slice (25 g)",
+      "kcal": 67,
+      "proteinG": 2.2,
+      "carbsG": 12.4,
+      "fatG": 0.8,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 174924
+      }
+    },
+    {
+      "id": "bread-whole-wheat",
+      "name": "Bread, whole wheat",
+      "aliases": ["brown bread"],
+      "category": "grains",
+      "servingSize": 1,
+      "servingUnit": "slice (32 g)",
+      "kcal": 81,
+      "proteinG": 4,
+      "carbsG": 13.7,
+      "fatG": 1.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172688
+      }
+    },
+    {
+      "id": "pasta-cooked",
+      "name": "Pasta, cooked",
+      "aliases": [],
+      "category": "grains",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 158,
+      "proteinG": 5.8,
+      "carbsG": 30.9,
+      "fatG": 0.9,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169737
+      }
+    },
+    {
+      "id": "puffed-rice",
+      "name": "Puffed rice",
+      "aliases": ["murmura"],
+      "category": "grains",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 402,
+      "proteinG": 6.3,
+      "carbsG": 89.8,
+      "fatG": 0.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173912
+      }
+    },
+    {
+      "id": "chickpeas-boiled",
+      "name": "Chickpeas, boiled",
+      "aliases": ["chole", "kabuli chana"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 164,
+      "proteinG": 8.9,
+      "carbsG": 27.4,
+      "fatG": 2.6,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173757
+      }
+    },
+    {
+      "id": "chickpeas-dry",
+      "name": "Chickpeas, dry",
+      "aliases": ["chole", "kabuli chana"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 378,
+      "proteinG": 20.5,
+      "carbsG": 63,
+      "fatG": 6,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173756
+      }
+    },
+    {
+      "id": "kidney-beans-boiled",
+      "name": "Kidney beans, boiled",
+      "aliases": ["rajma"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 127,
+      "proteinG": 8.7,
+      "carbsG": 22.8,
+      "fatG": 0.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173740
+      }
+    },
+    {
+      "id": "kidney-beans-dry",
+      "name": "Kidney beans, dry",
+      "aliases": ["rajma"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 333,
+      "proteinG": 23.6,
+      "carbsG": 60,
+      "fatG": 0.8,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 175193
+      }
+    },
+    {
+      "id": "lentils-boiled",
+      "name": "Lentils, boiled",
+      "aliases": ["masoor dal"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 116,
+      "proteinG": 9,
+      "carbsG": 20.1,
+      "fatG": 0.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172421
+      }
+    },
+    {
+      "id": "lentils-dry",
+      "name": "Lentils, dry",
+      "aliases": ["masoor dal"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 352,
+      "proteinG": 24.6,
+      "carbsG": 63.4,
+      "fatG": 1.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172420
+      }
+    },
+    {
+      "id": "moong-boiled",
+      "name": "Moong, boiled",
+      "aliases": ["mung beans", "green gram"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 105,
+      "proteinG": 7,
+      "carbsG": 19.2,
+      "fatG": 0.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 174257
+      }
+    },
+    {
+      "id": "moong-dry",
+      "name": "Moong, dry",
+      "aliases": ["mung beans", "green gram"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 347,
+      "proteinG": 23.9,
+      "carbsG": 62.6,
+      "fatG": 1.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 174256
+      }
+    },
+    {
+      "id": "urad-boiled",
+      "name": "Urad, boiled",
+      "aliases": ["black gram"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 105,
+      "proteinG": 7.5,
+      "carbsG": 18.3,
+      "fatG": 0.6,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172427
+      }
+    },
+    {
+      "id": "urad-dry",
+      "name": "Urad, dry",
+      "aliases": ["black gram"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 341,
+      "proteinG": 25.2,
+      "carbsG": 59,
+      "fatG": 1.6,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 174259
+      }
+    },
+    {
+      "id": "toor-dal-boiled",
+      "name": "Toor dal, boiled",
+      "aliases": ["arhar", "pigeon peas"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 121,
+      "proteinG": 6.8,
+      "carbsG": 23.3,
+      "fatG": 0.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172437
+      }
+    },
+    {
+      "id": "toor-dal-dry",
+      "name": "Toor dal, dry",
+      "aliases": ["arhar", "pigeon peas"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 343,
+      "proteinG": 21.7,
+      "carbsG": 62.8,
+      "fatG": 1.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172436
+      }
+    },
+    {
+      "id": "lobia-boiled",
+      "name": "Lobia, boiled",
+      "aliases": ["black-eyed peas", "cowpeas"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 116,
+      "proteinG": 7.7,
+      "carbsG": 20.8,
+      "fatG": 0.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173759
+      }
+    },
+    {
+      "id": "soybeans-boiled",
+      "name": "Soybeans, boiled",
+      "aliases": ["soya"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 172,
+      "proteinG": 18.2,
+      "carbsG": 8.4,
+      "fatG": 9,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 174271
+      }
+    },
+    {
+      "id": "soya-chunks",
+      "name": "Soya chunks",
+      "aliases": ["soy chunks", "nutrela"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 327,
+      "proteinG": 51.5,
+      "carbsG": 33.9,
+      "fatG": 1.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 174275
+      }
+    },
+    {
+      "id": "tofu",
+      "name": "Tofu",
+      "aliases": [],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 144,
+      "proteinG": 17.3,
+      "carbsG": 2.8,
+      "fatG": 8.7,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172475
+      }
+    },
+    {
+      "id": "sprouts-moong",
+      "name": "Sprouts, moong",
+      "aliases": ["ankurit moong"],
+      "category": "pulses",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 30,
+      "proteinG": 3,
+      "carbsG": 5.9,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169957
+      }
+    },
+    {
+      "id": "milk-full-cream",
+      "name": "Milk, full cream",
+      "aliases": ["doodh", "whole milk"],
+      "category": "dairy",
+      "servingSize": 1,
+      "servingUnit": "cup (244 g)",
+      "kcal": 149,
+      "proteinG": 7.7,
+      "carbsG": 11.7,
+      "fatG": 7.9,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171265
+      }
+    },
+    {
+      "id": "milk-toned",
+      "name": "Milk, toned",
+      "aliases": ["doodh", "2% milk"],
+      "category": "dairy",
+      "servingSize": 1,
+      "servingUnit": "cup (244 g)",
+      "kcal": 122,
+      "proteinG": 8.1,
+      "carbsG": 11.7,
+      "fatG": 4.8,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171267
+      }
+    },
+    {
+      "id": "milk-skimmed",
+      "name": "Milk, skimmed",
+      "aliases": ["doodh"],
+      "category": "dairy",
+      "servingSize": 1,
+      "servingUnit": "cup (245 g)",
+      "kcal": 83,
+      "proteinG": 8.3,
+      "carbsG": 12.2,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171269
+      }
+    },
+    {
+      "id": "curd",
+      "name": "Curd",
+      "aliases": ["dahi", "yogurt"],
+      "category": "dairy",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 61,
+      "proteinG": 3.5,
+      "carbsG": 4.7,
+      "fatG": 3.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171284
+      }
+    },
+    {
+      "id": "curd-low-fat",
+      "name": "Curd, low fat",
+      "aliases": ["dahi", "yogurt"],
+      "category": "dairy",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 63,
+      "proteinG": 5.3,
+      "carbsG": 7,
+      "fatG": 1.6,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170886
+      }
+    },
+    {
+      "id": "greek-yogurt-low-fat",
+      "name": "Greek yogurt, low fat",
+      "aliases": ["hung curd"],
+      "category": "dairy",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 73,
+      "proteinG": 10,
+      "carbsG": 3.9,
+      "fatG": 1.9,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170903
+      }
+    },
+    {
+      "id": "greek-yogurt",
+      "name": "Greek yogurt",
+      "aliases": ["hung curd"],
+      "category": "dairy",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 97,
+      "proteinG": 9,
+      "carbsG": 4,
+      "fatG": 5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171304
+      }
+    },
+    {
+      "id": "paneer",
+      "name": "Paneer",
+      "aliases": ["cottage cheese"],
+      "category": "dairy",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 299,
+      "proteinG": 15.9,
+      "carbsG": 22.5,
+      "fatG": 15.5,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2705740
+      }
+    },
+    {
+      "id": "cheese-cheddar",
+      "name": "Cheese, cheddar",
+      "aliases": ["cheese"],
+      "category": "dairy",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 410,
+      "proteinG": 24.3,
+      "carbsG": 2.1,
+      "fatG": 33.8,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170899
+      }
+    },
+    {
+      "id": "cheese-slice",
+      "name": "Cheese slice",
+      "aliases": ["processed cheese"],
+      "category": "dairy",
+      "servingSize": 1,
+      "servingUnit": "slice (21 g)",
+      "kcal": 77,
+      "proteinG": 3.8,
+      "carbsG": 1,
+      "fatG": 6.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170853
+      }
+    },
+    {
+      "id": "butter",
+      "name": "Butter",
+      "aliases": ["makhan"],
+      "category": "dairy",
+      "servingSize": 1,
+      "servingUnit": "tbsp (14.2 g)",
+      "kcal": 102,
+      "proteinG": 0.1,
+      "carbsG": 0,
+      "fatG": 11.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173410
+      }
+    },
+    {
+      "id": "ghee",
+      "name": "Ghee",
+      "aliases": ["clarified butter"],
+      "category": "dairy",
+      "servingSize": 1,
+      "servingUnit": "tbsp (12.8 g)",
+      "kcal": 112,
+      "proteinG": 0,
+      "carbsG": 0,
+      "fatG": 12.7,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173412
+      }
+    },
+    {
+      "id": "buttermilk",
+      "name": "Buttermilk",
+      "aliases": ["chaas", "chhachh"],
+      "category": "dairy",
+      "servingSize": 1,
+      "servingUnit": "cup (245 g)",
+      "kcal": 98,
+      "proteinG": 8.1,
+      "carbsG": 11.7,
+      "fatG": 2.6,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170874
+      }
+    },
+    {
+      "id": "cream",
+      "name": "Cream",
+      "aliases": ["malai"],
+      "category": "dairy",
+      "servingSize": 1,
+      "servingUnit": "tbsp (15 g)",
+      "kcal": 51,
+      "proteinG": 0.4,
+      "carbsG": 0.4,
+      "fatG": 5.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170859
+      }
+    },
+    {
+      "id": "cottage-cheese-low-fat",
+      "name": "Cottage cheese, low fat",
+      "aliases": [],
+      "category": "dairy",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 81,
+      "proteinG": 10.5,
+      "carbsG": 4.8,
+      "fatG": 2.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172182
+      }
+    },
+    {
+      "id": "whey-protein",
+      "name": "Whey protein",
+      "aliases": ["protein powder"],
+      "category": "dairy",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 352,
+      "proteinG": 78.1,
+      "carbsG": 6.3,
+      "fatG": 1.6,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173180
+      }
+    },
+    {
+      "id": "egg-whole",
+      "name": "Egg, whole",
+      "aliases": ["anda"],
+      "category": "protein",
+      "servingSize": 1,
+      "servingUnit": "large (50 g)",
+      "kcal": 72,
+      "proteinG": 6.3,
+      "carbsG": 0.4,
+      "fatG": 4.8,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171287
+      }
+    },
+    {
+      "id": "egg-boiled",
+      "name": "Egg, boiled",
+      "aliases": ["anda", "ubla anda"],
+      "category": "protein",
+      "servingSize": 1,
+      "servingUnit": "large (50 g)",
+      "kcal": 78,
+      "proteinG": 6.3,
+      "carbsG": 0.6,
+      "fatG": 5.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173424
+      }
+    },
+    {
+      "id": "egg-white",
+      "name": "Egg white",
+      "aliases": ["anda safedi"],
+      "category": "protein",
+      "servingSize": 1,
+      "servingUnit": "large (33 g)",
+      "kcal": 17,
+      "proteinG": 3.6,
+      "carbsG": 0.2,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172183
+      }
+    },
+    {
+      "id": "egg-yolk",
+      "name": "Egg yolk",
+      "aliases": ["anda zardi"],
+      "category": "protein",
+      "servingSize": 1,
+      "servingUnit": "large (17 g)",
+      "kcal": 55,
+      "proteinG": 2.7,
+      "carbsG": 0.6,
+      "fatG": 4.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172184
+      }
+    },
+    {
+      "id": "omelette",
+      "name": "Omelette",
+      "aliases": ["anda"],
+      "category": "protein",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 154,
+      "proteinG": 10.6,
+      "carbsG": 0.6,
+      "fatG": 11.7,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172185
+      }
+    },
+    {
+      "id": "chicken-breast-cooked",
+      "name": "Chicken breast, cooked",
+      "aliases": ["murgh"],
+      "category": "protein",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 165,
+      "proteinG": 31,
+      "carbsG": 0,
+      "fatG": 3.6,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171477
+      }
+    },
+    {
+      "id": "chicken-breast-raw",
+      "name": "Chicken breast, raw",
+      "aliases": ["murgh"],
+      "category": "protein",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 120,
+      "proteinG": 22.5,
+      "carbsG": 0,
+      "fatG": 2.6,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171077
+      }
+    },
+    {
+      "id": "chicken-thigh-cooked",
+      "name": "Chicken thigh, cooked",
+      "aliases": ["murgh"],
+      "category": "protein",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 179,
+      "proteinG": 24.8,
+      "carbsG": 0,
+      "fatG": 8.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172388
+      }
+    },
+    {
+      "id": "chicken-whole-cooked",
+      "name": "Chicken, whole, cooked",
+      "aliases": ["murgh"],
+      "category": "protein",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 190,
+      "proteinG": 28.9,
+      "carbsG": 0,
+      "fatG": 7.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171054
+      }
+    },
+    {
+      "id": "mutton-cooked",
+      "name": "Mutton, cooked",
+      "aliases": ["goat", "bakra"],
+      "category": "protein",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 143,
+      "proteinG": 27.1,
+      "carbsG": 0,
+      "fatG": 3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 175304
+      }
+    },
+    {
+      "id": "lamb-leg-cooked",
+      "name": "Lamb leg, cooked",
+      "aliases": ["mutton"],
+      "category": "protein",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 180,
+      "proteinG": 28.2,
+      "carbsG": 0,
+      "fatG": 6.7,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172487
+      }
+    },
+    {
+      "id": "tilapia-cooked",
+      "name": "Tilapia, cooked",
+      "aliases": ["machli", "fish"],
+      "category": "protein",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 128,
+      "proteinG": 26.2,
+      "carbsG": 0,
+      "fatG": 2.7,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 175177
+      }
+    },
+    {
+      "id": "salmon-cooked",
+      "name": "Salmon, cooked",
+      "aliases": ["machli"],
+      "category": "protein",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 206,
+      "proteinG": 22.1,
+      "carbsG": 0,
+      "fatG": 12.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 175168
+      }
+    },
+    {
+      "id": "tuna-canned-in-water",
+      "name": "Tuna, canned in water",
+      "aliases": ["machli"],
+      "category": "protein",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 86,
+      "proteinG": 19.4,
+      "carbsG": 0,
+      "fatG": 1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173709
+      }
+    },
+    {
+      "id": "prawns-cooked",
+      "name": "Prawns, cooked",
+      "aliases": ["jhinga", "shrimp"],
+      "category": "protein",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 99,
+      "proteinG": 24,
+      "carbsG": 0.2,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 175180
+      }
+    },
+    {
+      "id": "mackerel-cooked",
+      "name": "Mackerel, cooked",
+      "aliases": ["bangda"],
+      "category": "protein",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 262,
+      "proteinG": 23.9,
+      "carbsG": 0,
+      "fatG": 17.8,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 175120
+      }
+    },
+    {
+      "id": "sardines-canned",
+      "name": "Sardines, canned",
+      "aliases": ["machli"],
+      "category": "protein",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 208,
+      "proteinG": 24.6,
+      "carbsG": 0,
+      "fatG": 11.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 175139
+      }
+    },
+    {
+      "id": "almonds",
+      "name": "Almonds",
+      "aliases": ["badam"],
+      "category": "nuts",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 579,
+      "proteinG": 21.2,
+      "carbsG": 21.6,
+      "fatG": 49.9,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170567
+      }
+    },
+    {
+      "id": "cashews",
+      "name": "Cashews",
+      "aliases": ["kaju"],
+      "category": "nuts",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 553,
+      "proteinG": 18.2,
+      "carbsG": 30.2,
+      "fatG": 43.9,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170162
+      }
+    },
+    {
+      "id": "walnuts",
+      "name": "Walnuts",
+      "aliases": ["akhrot"],
+      "category": "nuts",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 654,
+      "proteinG": 15.2,
+      "carbsG": 13.7,
+      "fatG": 65.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170187
+      }
+    },
+    {
+      "id": "pistachios",
+      "name": "Pistachios",
+      "aliases": ["pista"],
+      "category": "nuts",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 560,
+      "proteinG": 20.2,
+      "carbsG": 27.2,
+      "fatG": 45.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170184
+      }
+    },
+    {
+      "id": "peanuts",
+      "name": "Peanuts",
+      "aliases": ["moongphali", "groundnut"],
+      "category": "nuts",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 567,
+      "proteinG": 25.8,
+      "carbsG": 16.1,
+      "fatG": 49.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172430
+      }
+    },
+    {
+      "id": "peanuts-roasted",
+      "name": "Peanuts, roasted",
+      "aliases": ["moongphali", "groundnut"],
+      "category": "nuts",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 587,
+      "proteinG": 24.4,
+      "carbsG": 21.3,
+      "fatG": 49.7,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173806
+      }
+    },
+    {
+      "id": "peanut-butter",
+      "name": "Peanut butter",
+      "aliases": [],
+      "category": "nuts",
+      "servingSize": 2,
+      "servingUnit": "tbsp (32 g)",
+      "kcal": 191,
+      "proteinG": 7.1,
+      "carbsG": 7.1,
+      "fatG": 16.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172470
+      }
+    },
+    {
+      "id": "raisins",
+      "name": "Raisins",
+      "aliases": ["kishmish"],
+      "category": "nuts",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 299,
+      "proteinG": 3.3,
+      "carbsG": 79.3,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2709212
+      }
+    },
+    {
+      "id": "flaxseed",
+      "name": "Flaxseed",
+      "aliases": ["alsi"],
+      "category": "nuts",
+      "servingSize": 1,
+      "servingUnit": "tbsp, ground (7 g)",
+      "kcal": 37,
+      "proteinG": 1.3,
+      "carbsG": 2,
+      "fatG": 3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169414
+      }
+    },
+    {
+      "id": "chia-seeds",
+      "name": "Chia seeds",
+      "aliases": [],
+      "category": "nuts",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 486,
+      "proteinG": 16.5,
+      "carbsG": 42.1,
+      "fatG": 30.7,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170554
+      }
+    },
+    {
+      "id": "sunflower-seeds",
+      "name": "Sunflower seeds",
+      "aliases": [],
+      "category": "nuts",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 584,
+      "proteinG": 20.8,
+      "carbsG": 20,
+      "fatG": 51.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170562
+      }
+    },
+    {
+      "id": "sesame-seeds",
+      "name": "Sesame seeds",
+      "aliases": ["til"],
+      "category": "nuts",
+      "servingSize": 1,
+      "servingUnit": "tbsp (9 g)",
+      "kcal": 52,
+      "proteinG": 1.6,
+      "carbsG": 2.1,
+      "fatG": 4.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170150
+      }
+    },
+    {
+      "id": "pumpkin-seeds",
+      "name": "Pumpkin seeds",
+      "aliases": ["magaz"],
+      "category": "nuts",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 559,
+      "proteinG": 30.2,
+      "carbsG": 10.7,
+      "fatG": 49.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170556
+      }
+    },
+    {
+      "id": "coconut-desiccated",
+      "name": "Coconut, desiccated",
+      "aliases": ["nariyal"],
+      "category": "nuts",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 660,
+      "proteinG": 6.9,
+      "carbsG": 23.7,
+      "fatG": 64.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170170
+      }
+    },
+    {
+      "id": "makhana",
+      "name": "Makhana",
+      "aliases": ["fox nuts", "lotus seeds"],
+      "category": "nuts",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 332,
+      "proteinG": 15.4,
+      "carbsG": 64.5,
+      "fatG": 2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170149
+      }
+    },
+    {
+      "id": "mustard-oil",
+      "name": "Mustard oil",
+      "aliases": ["sarson tel"],
+      "category": "oils",
+      "servingSize": 1,
+      "servingUnit": "tbsp (14 g)",
+      "kcal": 124,
+      "proteinG": 0,
+      "carbsG": 0,
+      "fatG": 14,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172337
+      }
+    },
+    {
+      "id": "sunflower-oil",
+      "name": "Sunflower oil",
+      "aliases": ["tel"],
+      "category": "oils",
+      "servingSize": 1,
+      "servingUnit": "tbsp (13.6 g)",
+      "kcal": 120,
+      "proteinG": 0,
+      "carbsG": 0,
+      "fatG": 13.6,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171017
+      }
+    },
+    {
+      "id": "groundnut-oil",
+      "name": "Groundnut oil",
+      "aliases": ["moongphali tel", "peanut oil"],
+      "category": "oils",
+      "servingSize": 1,
+      "servingUnit": "tbsp (13.5 g)",
+      "kcal": 119,
+      "proteinG": 0,
+      "carbsG": 0,
+      "fatG": 13.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171410
+      }
+    },
+    {
+      "id": "olive-oil",
+      "name": "Olive oil",
+      "aliases": ["tel"],
+      "category": "oils",
+      "servingSize": 1,
+      "servingUnit": "tablespoon (13.5 g)",
+      "kcal": 119,
+      "proteinG": 0,
+      "carbsG": 0,
+      "fatG": 13.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171413
+      }
+    },
+    {
+      "id": "coconut-oil",
+      "name": "Coconut oil",
+      "aliases": ["nariyal tel"],
+      "category": "oils",
+      "servingSize": 1,
+      "servingUnit": "tbsp (13.6 g)",
+      "kcal": 121,
+      "proteinG": 0,
+      "carbsG": 0,
+      "fatG": 13.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171412
+      }
+    },
+    {
+      "id": "soybean-oil",
+      "name": "Soybean oil",
+      "aliases": ["tel"],
+      "category": "oils",
+      "servingSize": 1,
+      "servingUnit": "tbsp (13.6 g)",
+      "kcal": 120,
+      "proteinG": 0,
+      "carbsG": 0,
+      "fatG": 13.6,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171411
+      }
+    },
+    {
+      "id": "turmeric",
+      "name": "Turmeric",
+      "aliases": ["haldi"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (3 g)",
+      "kcal": 9,
+      "proteinG": 0.3,
+      "carbsG": 2,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 172231
+      }
+    },
+    {
+      "id": "cumin-seeds",
+      "name": "Cumin seeds",
+      "aliases": ["jeera"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp, whole (2.1 g)",
+      "kcal": 8,
+      "proteinG": 0.4,
+      "carbsG": 0.9,
+      "fatG": 0.5,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170923
+      }
+    },
+    {
+      "id": "coriander-powder",
+      "name": "Coriander powder",
+      "aliases": ["dhania powder"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (1.8 g)",
+      "kcal": 5,
+      "proteinG": 0.2,
+      "carbsG": 1,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170922
+      }
+    },
+    {
+      "id": "red-chili-powder",
+      "name": "Red chili powder",
+      "aliases": ["lal mirch"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (2.7 g)",
+      "kcal": 8,
+      "proteinG": 0.4,
+      "carbsG": 1.3,
+      "fatG": 0.4,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171319
+      }
+    },
+    {
+      "id": "black-pepper",
+      "name": "Black pepper",
+      "aliases": ["kali mirch"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp, ground (2.3 g)",
+      "kcal": 6,
+      "proteinG": 0.2,
+      "carbsG": 1.5,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170931
+      }
+    },
+    {
+      "id": "cardamom",
+      "name": "Cardamom",
+      "aliases": ["elaichi"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (2 g)",
+      "kcal": 6,
+      "proteinG": 0.2,
+      "carbsG": 1.4,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170919
+      }
+    },
+    {
+      "id": "cinnamon",
+      "name": "Cinnamon",
+      "aliases": ["dalchini"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (2.6 g)",
+      "kcal": 6,
+      "proteinG": 0.1,
+      "carbsG": 2.1,
+      "fatG": 0,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171320
+      }
+    },
+    {
+      "id": "cloves",
+      "name": "Cloves",
+      "aliases": ["laung"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (2.1 g)",
+      "kcal": 6,
+      "proteinG": 0.1,
+      "carbsG": 1.4,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171321
+      }
+    },
+    {
+      "id": "fenugreek-seeds",
+      "name": "Fenugreek seeds",
+      "aliases": ["methi dana"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (3.7 g)",
+      "kcal": 12,
+      "proteinG": 0.9,
+      "carbsG": 2.2,
+      "fatG": 0.2,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171324
+      }
+    },
+    {
+      "id": "mustard-seeds",
+      "name": "Mustard seeds",
+      "aliases": ["rai", "sarson"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (2 g)",
+      "kcal": 10,
+      "proteinG": 0.5,
+      "carbsG": 0.6,
+      "fatG": 0.7,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170929
+      }
+    },
+    {
+      "id": "fennel-seeds",
+      "name": "Fennel seeds",
+      "aliases": ["saunf"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp, whole (2 g)",
+      "kcal": 7,
+      "proteinG": 0.3,
+      "carbsG": 1,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171323
+      }
+    },
+    {
+      "id": "ginger-powder",
+      "name": "Ginger powder",
+      "aliases": ["saunth"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (1.8 g)",
+      "kcal": 6,
+      "proteinG": 0.2,
+      "carbsG": 1.3,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170926
+      }
+    },
+    {
+      "id": "garlic-powder",
+      "name": "Garlic powder",
+      "aliases": ["lahsun powder"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (3.1 g)",
+      "kcal": 10,
+      "proteinG": 0.5,
+      "carbsG": 2.3,
+      "fatG": 0,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171325
+      }
+    },
+    {
+      "id": "bay-leaf",
+      "name": "Bay leaf",
+      "aliases": ["tej patta"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (0.6 g)",
+      "kcal": 2,
+      "proteinG": 0,
+      "carbsG": 0.4,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170917
+      }
+    },
+    {
+      "id": "nutmeg",
+      "name": "Nutmeg",
+      "aliases": ["jaiphal"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (2.2 g)",
+      "kcal": 12,
+      "proteinG": 0.1,
+      "carbsG": 1.1,
+      "fatG": 0.8,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171326
+      }
+    },
+    {
+      "id": "saffron",
+      "name": "Saffron",
+      "aliases": ["kesar"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (0.7 g)",
+      "kcal": 2,
+      "proteinG": 0.1,
+      "carbsG": 0.5,
+      "fatG": 0,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170934
+      }
+    },
+    {
+      "id": "curry-powder",
+      "name": "Curry powder",
+      "aliases": ["masala"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (2 g)",
+      "kcal": 7,
+      "proteinG": 0.3,
+      "carbsG": 1.1,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170924
+      }
+    },
+    {
+      "id": "paprika",
+      "name": "Paprika",
+      "aliases": ["kashmiri mirch"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (2.3 g)",
+      "kcal": 6,
+      "proteinG": 0.3,
+      "carbsG": 1.2,
+      "fatG": 0.3,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 171329
+      }
+    },
+    {
+      "id": "salt",
+      "name": "Salt",
+      "aliases": ["namak"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (6 g)",
+      "kcal": 0,
+      "proteinG": 0,
+      "carbsG": 0,
+      "fatG": 0,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 173468
+      }
+    },
+    {
+      "id": "sugar",
+      "name": "Sugar",
+      "aliases": ["cheeni", "shakkar"],
+      "category": "other",
+      "servingSize": 1,
+      "servingUnit": "tsp (4.2 g)",
+      "kcal": 16,
+      "proteinG": 0,
+      "carbsG": 4.2,
+      "fatG": 0,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169655
+      }
+    },
+    {
+      "id": "brown-sugar",
+      "name": "Brown sugar",
+      "aliases": ["shakkar"],
+      "category": "other",
+      "servingSize": 1,
+      "servingUnit": "tsp packed (4.6 g)",
+      "kcal": 17,
+      "proteinG": 0,
+      "carbsG": 4.5,
+      "fatG": 0,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168833
+      }
+    },
+    {
+      "id": "honey",
+      "name": "Honey",
+      "aliases": ["shahad"],
+      "category": "other",
+      "servingSize": 1,
+      "servingUnit": "tbsp (21 g)",
+      "kcal": 64,
+      "proteinG": 0.1,
+      "carbsG": 17.3,
+      "fatG": 0,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169640
+      }
+    },
+    {
+      "id": "tea-with-milk",
+      "name": "Tea with milk",
+      "aliases": ["chai"],
+      "category": "other",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 51,
+      "proteinG": 1.6,
+      "carbsG": 9,
+      "fatG": 1.1,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2710506
+      }
+    },
+    {
+      "id": "dark-chocolate",
+      "name": "Dark chocolate",
+      "aliases": [],
+      "category": "other",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 598,
+      "proteinG": 7.8,
+      "carbsG": 45.9,
+      "fatG": 42.6,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 170273
+      }
+    },
+    {
+      "id": "cocoa-powder",
+      "name": "Cocoa powder",
+      "aliases": [],
+      "category": "other",
+      "servingSize": 1,
+      "servingUnit": "tbsp (5.4 g)",
+      "kcal": 12,
+      "proteinG": 1.1,
+      "carbsG": 3.1,
+      "fatG": 0.7,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 169593
+      }
+    },
+    {
+      "id": "tomato-ketchup",
+      "name": "Tomato ketchup",
+      "aliases": ["sauce"],
+      "category": "other",
+      "servingSize": 1,
+      "servingUnit": "tbsp (17 g)",
+      "kcal": 17,
+      "proteinG": 0.2,
+      "carbsG": 4.7,
+      "fatG": 0,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168556
+      }
+    },
+    {
+      "id": "dal",
+      "name": "Dal",
+      "aliases": ["daal", "dhal"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "cup (240 g)",
+      "kcal": 348,
+      "proteinG": 20.6,
+      "carbsG": 46,
+      "fatG": 10.3,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2707427
+      }
+    },
+    {
+      "id": "lentil-curry",
+      "name": "Lentil curry",
+      "aliases": ["dal"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "cup (240 g)",
+      "kcal": 266,
+      "proteinG": 8.8,
+      "carbsG": 29.6,
+      "fatG": 13.6,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2707431
+      }
+    },
+    {
+      "id": "roti",
+      "name": "Roti",
+      "aliases": ["chapati", "phulka"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "medium (40 g)",
+      "kcal": 120,
+      "proteinG": 3.1,
+      "carbsG": 18.5,
+      "fatG": 3.7,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2707713
+      }
+    },
+    {
+      "id": "paratha",
+      "name": "Paratha",
+      "aliases": [],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "paratha (70 g)",
+      "kcal": 228,
+      "proteinG": 4.5,
+      "carbsG": 31.7,
+      "fatG": 9.2,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2707715
+      }
+    },
+    {
+      "id": "naan",
+      "name": "Naan",
+      "aliases": [],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "piece (44 g)",
+      "kcal": 137,
+      "proteinG": 4.9,
+      "carbsG": 22.1,
+      "fatG": 3.2,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2707613
+      }
+    },
+    {
+      "id": "puri",
+      "name": "Puri",
+      "aliases": ["poori"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "puri (36 g)",
+      "kcal": 147,
+      "proteinG": 2.5,
+      "carbsG": 14.1,
+      "fatG": 9,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2707714
+      }
+    },
+    {
+      "id": "idli",
+      "name": "Idli",
+      "aliases": ["idly"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "item (38 g)",
+      "kcal": 49,
+      "proteinG": 2.4,
+      "carbsG": 9.5,
+      "fatG": 0.1,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2708346
+      }
+    },
+    {
+      "id": "dosa",
+      "name": "Dosa",
+      "aliases": ["dosai"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "medium (80 g)",
+      "kcal": 168,
+      "proteinG": 4.6,
+      "carbsG": 29.6,
+      "fatG": 3.2,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2708347
+      }
+    },
+    {
+      "id": "masala-dosa",
+      "name": "Masala dosa",
+      "aliases": ["dosa"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "medium (267 g)",
+      "kcal": 491,
+      "proteinG": 14.6,
+      "carbsG": 82.2,
+      "fatG": 11.4,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2709129
+      }
+    },
+    {
+      "id": "sambar",
+      "name": "Sambar",
+      "aliases": ["sambhar"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "cup (248 g)",
+      "kcal": 213,
+      "proteinG": 10.7,
+      "carbsG": 29.2,
+      "fatG": 6.7,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2707430
+      }
+    },
+    {
+      "id": "upma",
+      "name": "Upma",
+      "aliases": ["uppittu"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "cup (170 g)",
+      "kcal": 148,
+      "proteinG": 3.4,
+      "carbsG": 23.5,
+      "fatG": 4.5,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2709128
+      }
+    },
+    {
+      "id": "samosa",
+      "name": "Samosa",
+      "aliases": [],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "regular (100 g)",
+      "kcal": 310,
+      "proteinG": 5.1,
+      "carbsG": 33.2,
+      "fatG": 17.5,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2708730
+      }
+    },
+    {
+      "id": "pakora",
+      "name": "Pakora",
+      "aliases": ["bhajji", "pakoda"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "pakora (12 g)",
+      "kcal": 15,
+      "proteinG": 0.6,
+      "carbsG": 1.9,
+      "fatG": 0.6,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2710066
+      }
+    },
+    {
+      "id": "palak-paneer",
+      "name": "Palak paneer",
+      "aliases": ["saag paneer"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "cup (200 g)",
+      "kcal": 202,
+      "proteinG": 10.8,
+      "carbsG": 8.6,
+      "fatG": 14,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2709631
+      }
+    },
+    {
+      "id": "chicken-curry",
+      "name": "Chicken curry",
+      "aliases": ["murgh curry"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "cup (240 g)",
+      "kcal": 257,
+      "proteinG": 15.6,
+      "carbsG": 15.7,
+      "fatG": 15.6,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2706437
+      }
+    },
+    {
+      "id": "fish-curry",
+      "name": "Fish curry",
+      "aliases": ["machli curry"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "cup (240 g)",
+      "kcal": 223,
+      "proteinG": 11.9,
+      "carbsG": 16,
+      "fatG": 13,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2706460
+      }
+    },
+    {
+      "id": "vegetable-curry",
+      "name": "Vegetable curry",
+      "aliases": ["sabzi"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "cup (240 g)",
+      "kcal": 206,
+      "proteinG": 3.8,
+      "carbsG": 21.1,
+      "fatG": 12.6,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2710067
+      }
+    },
+    {
+      "id": "chicken-biryani",
+      "name": "Chicken biryani",
+      "aliases": ["biryani"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "cup (196 g)",
+      "kcal": 204,
+      "proteinG": 14,
+      "carbsG": 26.6,
+      "fatG": 4.7,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2706538
+      }
+    },
+    {
+      "id": "veg-biryani",
+      "name": "Veg biryani",
+      "aliases": ["biryani", "pulao"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "cup (172 g)",
+      "kcal": 187,
+      "proteinG": 3.3,
+      "carbsG": 30.8,
+      "fatG": 5.5,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2708985
+      }
+    },
+    {
+      "id": "ladoo",
+      "name": "Ladoo",
+      "aliases": ["laddu"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "piece (60 g)",
+      "kcal": 247,
+      "proteinG": 4.2,
+      "carbsG": 28,
+      "fatG": 13.4,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2710351
+      }
+    },
+    {
+      "id": "rice-pudding",
+      "name": "Rice pudding",
+      "aliases": ["kheer"],
+      "category": "dishes",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "kcal": 146,
+      "proteinG": 3.2,
+      "carbsG": 24.9,
+      "fatG": 3.7,
+      "source": {
+        "dataset": "SR Legacy",
+        "fdcId": 168063
+      }
+    },
+    {
+      "id": "curry-sauce",
+      "name": "Curry sauce",
+      "aliases": ["gravy"],
+      "category": "dishes",
+      "servingSize": 1,
+      "servingUnit": "tablespoon (16 g)",
+      "kcal": 15,
+      "proteinG": 0.2,
+      "carbsG": 0.8,
+      "fatG": 1.3,
+      "source": {
+        "dataset": "FNDDS 2021-2023",
+        "fdcId": 2710178
+      }
+    }
+  ]
+}
