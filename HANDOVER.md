@@ -6,21 +6,17 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. **Phase 13 (nutrition label) is in progress**, ahead of phase 12, which waits for the
-   user's MacroFactor subscription. Phase 11 is done (the user confirmed scanning on the
-   iPhone, 2026-11-22). Both PRs are built on `feature/nutrition-label`, to merge together
-   as one PR when the user asks: 0.8.0 (the label parser and **Paste label text**) and
-   0.9.0 (**Photo of label**, read on the device with `tesseract.js` 7.0.0, approved
-   2026-11-22). The branch also carries the phase 11 close-out commit. No migration.
-   `check:full` passes and `/code-review` ran on both halves, with every finding fixed.
-   After the deploy: check on the live site that GitHub Pages serves the reader's scripts
-   gzipped (about 4.4 MB on first use), then the user tries real labels on the iPhone,
-   including Indian packs, and phase 13 can close.
+1. **Phase 13 (nutrition label) is deployed as 0.9.0** (#43, with 0.8.0 and the phase 11
+   close-out), ahead of phase 12, which waits for the user's MacroFactor subscription. Live
+   check 2026-11-22: GitHub Pages serves the photo reader gzipped, so the first photo
+   downloads about 4.5 MB (core 1.48 MB, worker 0.03 MB, English data 2.95 MB). Left: the
+   user tries real labels on the iPhone (paste and photo, Indian packs, an angled photo,
+   and a second photo offline); then tick the iPhone criterion and mark phase 13 done.
    Where things stand: phases 1 to 11 are done. The app is live at
-   `https://rishav30194.github.io/calorithm/` as 0.7.0 (tag `v0.7.0`), with barcode
-   scanning, built-in foods, recent and frequent foods, and carbs and fat. The hosted
+   `https://rishav30194.github.io/calorithm/` as 0.9.0 (tag `v0.9.0`), with nutrition
+   labels, barcode scanning, built-in foods, recent and frequent foods, and carbs and fat. The hosted
    project has migrations through `20261122040000`, and `min_app_version` is 0.3.0. The
-   user's phone runs 0.7.0.
+   user's phone ran 0.7.0 before this deploy.
    The user wants macros only (kcal, protein, carbs, fat), no AI logging, no bulk food
    database, and Indian foods with no beef or pork.
    How releases go: bump the version for each user-facing release (`docs/development.md`,
