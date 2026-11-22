@@ -12,6 +12,7 @@ import { Modal } from '../Modal'
 import { macroText } from '../macros'
 import { TextField } from '../TextField'
 import { BarcodePanel } from './BarcodePanel'
+import { LabelPanel } from './LabelPanel'
 
 type Props = {
   meal: Meal
@@ -87,7 +88,7 @@ export const LogPicker = ({
   onClose,
 }: Props) => {
   const text = strings.log.picker
-  const [barcode, setBarcode] = useState<'scan' | 'enter' | null>(null)
+  const [panel, setPanel] = useState<'scan' | 'enter' | 'label' | null>(null)
   const [query, setQuery] = useState('')
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -183,14 +184,22 @@ export const LogPicker = ({
         </button>
       }
     >
-      {barcode !== null ? (
+      {panel === 'label' ? (
+        <LabelPanel
+          barcode={null}
+          locale={locale}
+          onLogNew={onLogNew}
+          onBack={() => setPanel(null)}
+          onDone={onClose}
+        />
+      ) : panel !== null ? (
         <BarcodePanel
-          start={barcode}
+          start={panel}
           locale={locale}
           onLookup={onLookup}
           onLogSaved={onLogScanned}
           onLogNew={onLogNew}
-          onBack={() => setBarcode(null)}
+          onBack={() => setPanel(null)}
           onDone={onClose}
         />
       ) : (
@@ -203,17 +212,24 @@ export const LogPicker = ({
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => setBarcode('scan')}
+              onClick={() => setPanel('scan')}
               className="min-h-11 rounded-lg border border-border px-3 font-medium"
             >
               {text.scan}
             </button>
             <button
               type="button"
-              onClick={() => setBarcode('enter')}
+              onClick={() => setPanel('enter')}
               className="min-h-11 rounded-lg border border-border px-3 font-medium"
             >
               {text.enter}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPanel('label')}
+              className="col-span-2 min-h-11 rounded-lg border border-border px-3 font-medium"
+            >
+              {text.label}
             </button>
           </div>
           {loading ? (

@@ -80,6 +80,7 @@ export const strings = {
       failed: 'Couldn’t log that. Try again.',
       scan: 'Scan barcode',
       enter: 'Enter barcode',
+      label: 'Read nutrition label',
     },
     barcode: {
       back: 'Back to search',
@@ -102,7 +103,29 @@ export const strings = {
         'Couldn’t reach Open Food Facts. Check your connection, or enter the food from its label.',
       saveAndLog: 'Save and log',
       lookupFailed: 'Couldn’t look that up. Try again.',
+      readLabel: 'Read the label',
+      backToForm: 'Back to the form',
       tryAgain: 'Try again',
+    },
+    label: {
+      back: 'Back to search',
+      text: 'Label text',
+      textHint:
+        'On iPhone, open the label in Camera or Photos, press and hold its text, select all of it, and copy it. Then paste it here.',
+      read: 'Read label',
+      nothingRead:
+        'No nutrition values found in that text. Check it’s the nutrition label, or enter the food by hand.',
+      enterByHand: 'Enter by hand',
+      check:
+        'Read from the label. Name the food and check each value against the label, then save.',
+      partial: 'Some values couldn’t be read. They’re left empty for you to type.',
+      photo: 'Photo of label',
+      photoHint:
+        'Take or choose a sharp photo of the nutrition table, straight on. It’s read on your phone; the first time downloads about 4.5 MB.',
+      reading: (percent: string) => `Reading the photo… ${percent}`,
+      photoFailed:
+        'Couldn’t read the photo. Try a sharper photo taken straight on, or paste the text instead.',
+      or: 'Or paste the label’s text',
     },
     entry: {
       servings: 'Servings',

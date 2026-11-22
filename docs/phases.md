@@ -625,7 +625,7 @@ the general formula.
 
 ## Phase 11 — Barcode scanning
 
-**Status:** In progress (PRs 1 and 2 built; the iPhone check is left)
+**Status:** Done (2026-11-22)
 
 **Goal:** scan a packaged food's barcode to add it.
 
@@ -644,8 +644,8 @@ the general formula.
   sending barcodes to Open Food Facts.
 
 **Acceptance criteria:**
-- [ ] Scanning a known product on the iPhone fills in its name and four numbers.
-- [ ] A second scan of a saved product works offline.
+- [x] Scanning a known product on the iPhone fills in its name and four numbers.
+- [x] A second scan of a saved product works offline.
 - [x] An unknown barcode, a denied camera, and no network each show a clear message and a
   way to enter the food by hand.
 - [x] The scanner loads on demand and leaves first-load JavaScript within budget.
@@ -707,8 +707,9 @@ the general formula.
   (`src/data/openFoodFacts/fixtures`). `e2e/camera.spec.ts` feeds Chromium's fake camera a
   generated EAN-13 video, so the real decoder runs; it needs the full Chromium build
   (`channel: 'chromium'`), because Playwright's headless shell has no camera capture.
-- The second-scan-offline criterion is covered for a typed code in the browser tests; the
-  camera path offline, and scanning a real pack, wait for the iPhone check.
+- The second-scan-offline criterion is covered for a typed code in the browser tests. On
+  2026-11-22 the user checked 0.7.0 on the iPhone: scanning real packs filled the form, a
+  saved pack scanned offline, and a denied camera offered typing the code.
 
 ## Phase 12 — Review against MacroFactor
 
@@ -733,3 +734,83 @@ the general formula.
 - [ ] The approved improvements are written up as phases here.
 
 **Implementation notes:** none yet.
+
+## Phase 13 — Nutrition label
+
+**Status:** In progress (PRs 1 and 2 built; the iPhone check is left)
+
+**Goal:** fill the food form from a pack's nutrition facts label, when there's no barcode or
+Open Food Facts doesn't know it.
+
+Phase 12 waits for the user's MacroFactor subscription, so this phase runs first.
+
+**Scope:**
+- A pure parser in `src/domain/` reads label text into a serving (per 100 g, per 100 ml, or
+  the label's serving) and kcal, protein, carbs, and fat. It handles the US "Nutrition
+  Facts" panel, EU and UK "Nutrition information" tables, and Indian FSSAI "Nutritional
+  information" tables; converts kJ to kcal; takes total carbohydrate and total fat, never
+  their sub-lines (sugars, saturated); and prefers the per-100 column when there are two.
+  A value it can't read is left empty, never guessed.
+- Two ways in, both opening the food form filled in, for you to check and save:
+  - **Paste label text:** the iPhone's Live Text copies a label's text from the camera or a
+    photo. No download, and works offline.
+  - **Photo of label:** on-device text recognition (`tesseract.js` 7.0.0, Apache-2.0),
+    loaded only on first use and self-hosted. Photos never leave the phone. Approved by the
+    user on 2026-11-22; its download size is measured in PR 2.
+- Entry points: **Read nutrition label** in the picker, and **Read the label** on the
+  barcode flow's not-found and unreachable form, which keeps the barcode.
+- No AI and no server: the user wants none, and a static app can't hide an API key.
+
+**Acceptance criteria:**
+- [x] Parser tests cover the three label formats with synthetic text, including kJ only,
+  two columns, and noisy text recognition output, plus property tests.
+- [x] Pasted label text fills the form, and a value the parser can't read stays empty.
+- [ ] A photo of a real label on the iPhone fills the four numbers, or leaves unread ones
+  empty for the user to type.
+- [x] Text recognition loads on demand and leaves first-load JavaScript within budget.
+- [x] End-to-end tests cover paste, and a photo built from a generated label image.
+
+**Plan:**
+- PR 1 (0.8.0): the parser, test first; **Read nutrition label** with **Paste label text**
+  in the picker and on the barcode form; decision 0030 (parsing rules and leaving values
+  empty rather than guessing).
+- PR 2 (0.9.0): **Photo of label** with `tesseract.js`, self-hosted, cached after first
+  use; browser tests with a generated label image; the user checks real labels on the
+  iPhone.
+
+**Implementation notes:**
+- PR 1 (0.8.0): `parseNutritionLabel` (`src/domain/label.ts`, decision 0030) reads a row
+  only when the nutrient's name comes before its first number, starting at the table (a
+  "Nutrition information" title or the per-100 header), so a claim such as "High protein
+  20g" above it is skipped. It takes the column the header's "per 100 g" names among its
+  "per …" columns (not a "Serving size 100 g" line), joins a name with values that text
+  recognition put on the next lines, reads kcal beside kJ and falls back to kJ ÷ 4.184,
+  fixes a letter O beside digits (not in "1oz"), and treats a comma as a decimal mark except
+  in energy values such as 1,569 or 1.569. It leaves empty a "<" amount, a row missing the
+  chosen column, and values no food can have (over 100 g, or 900 kcal, per 100 g).
+- **Read nutrition label** in the picker opens `LabelPanel`: paste, **Read label**, then
+  `FoodForm` filled for naming and checking, with a message naming any values left empty.
+  **Read the label** on the barcode flow's not-found and unreachable form keeps the barcode
+  and anything already typed, and values read from the label replace only what they cover.
+  `TextField` takes `rows` for a text area.
+- PR 2 (0.9.0): **Photo of label** in `LabelPanel` takes a photo or a picture from the
+  library (`accept="image/*"`), and `labelReader.ts` reads it on the device with
+  `tesseract.js` 7.0.0 (LSTM only, the SIMD core) and `@tesseract.js-data/eng` 1.0.0
+  ("best int" English). The photo is scaled to at most 2000 pixels first. The recognized
+  text goes into the text box, so a misread can be corrected and read again.
+- Everything loads on first use from the app: the worker (111 kB), the SIMD core (3.9 MB,
+  1.46 MB gzipped), and the English data (2.95 MB, already gzipped), about 4.4 MB to
+  download if GitHub Pages compresses scripts (unverified). They stay out of the precache
+  and a `CacheFirst` rule (`label-reader`) keeps them after first use. First-load
+  JavaScript is 187.2 kB.
+- tesseract.js 7.0.0 starts the engine with a passed-in language's data as its name, so
+  language data can't be handed over directly. A plugin in `vite.config.ts` (approved by the
+  user) copies it to `tessdata/eng-1.0.0/eng.traineddata.gz` in the build and serves it in
+  `npm run dev`; the path carries the package version so the cache refreshes on a change.
+- A browser without WebAssembly SIMD can't start the core; the panel then says the photo
+  couldn't be read and offers pasting.
+- `tesseract.js-core` 7.0.0 is pinned as a direct dependency, because the app loads its
+  core file by path and it must match the worker. Closing the panel aborts a read in
+  progress and stops the worker; the text box and photo button wait while a photo is read.
+- The browser test draws a label on a canvas and runs real recognition on it in both
+  projects, and checks no request leaves the machine.

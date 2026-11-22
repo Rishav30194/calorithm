@@ -7,11 +7,12 @@ import { formatAmount } from '@/domain/format'
 import { strings } from '@/strings'
 
 import { emptyFoodValues, FoodForm } from '../food/FoodForm'
-import { editableNumber } from '../food/forms'
+import { editableNumber, type FoodFormValues } from '../food/forms'
 import { macroText } from '../macros'
 import { OpenFoodFactsCredit } from '../OpenFoodFactsCredit'
 import { TextField } from '../TextField'
 import { BarcodeCamera, type CameraProblem } from './BarcodeCamera'
+import { LabelPanel } from './LabelPanel'
 
 type Props = {
   start: 'scan' | 'enter'
@@ -32,6 +33,8 @@ type Step =
   | { kind: 'looking' }
   | { kind: 'saved'; foods: FoodView[] }
   | { kind: 'form'; barcode: string; product: ProductDraft | null; message: FormMessage }
+  // Reading the label of a pack Open Food Facts couldn't give, keeping its barcode.
+  | { kind: 'label'; barcode: string; message: FormMessage }
 
 const problemText = (problem: CameraProblem): string => {
   const text = strings.log.barcode
@@ -82,6 +85,8 @@ export const BarcodePanel = ({
   const [busy, setBusy] = useState(false)
   // Only the latest lookup counts, and none after the panel closes.
   const latest = useRef(0)
+  // What was typed in the form, kept while the label panel replaces it.
+  const draft = useRef<FoodFormValues | null>(null)
   useEffect(
     () => () => {
       latest.current += 1
@@ -91,6 +96,7 @@ export const BarcodePanel = ({
 
   const lookUp = async (value: string) => {
     const request = ++latest.current
+    draft.current = null
     setFailed(null)
     setStep({ kind: 'looking' })
     const result = await onLookup(value).catch(() => null)
@@ -161,13 +167,15 @@ export const BarcodePanel = ({
 
   return (
     <div className="flex flex-col gap-3">
-      <button
-        type="button"
-        onClick={back}
-        className="inline-flex min-h-11 items-center self-start text-accent"
-      >
-        {text.back}
-      </button>
+      {step.kind !== 'label' && (
+        <button
+          type="button"
+          onClick={back}
+          className="inline-flex min-h-11 items-center self-start text-accent"
+        >
+          {text.back}
+        </button>
+      )}
       {failed && (
         <p role="alert" className="text-danger">
           {failed === 'lookup' ? text.lookupFailed : strings.log.picker.failed}
@@ -236,6 +244,17 @@ export const BarcodePanel = ({
       {step.kind === 'form' && (
         <>
           <p role="status">{text[step.message]}</p>
+          {step.product === null && (
+            <button
+              type="button"
+              onClick={() =>
+                setStep({ kind: 'label', barcode: step.barcode, message: step.message })
+              }
+              className="min-h-11 self-start rounded-lg border border-border px-3 font-medium"
+            >
+              {text.readLabel}
+            </button>
+          )}
           {step.message === 'unreachable' && (
             <button
               type="button"
@@ -246,7 +265,10 @@ export const BarcodePanel = ({
             </button>
           )}
           <FoodForm
-            initial={formValues(step.barcode, step.product, locale)}
+            initial={draft.current ?? formValues(step.barcode, step.product, locale)}
+            onValuesChange={(values) => {
+              draft.current = values
+            }}
             savedBarcode={null}
             note={step.product && <OpenFoodFactsCredit />}
             submitLabel={text.saveAndLog}
@@ -255,6 +277,19 @@ export const BarcodePanel = ({
             }
           />
         </>
+      )}
+      {step.kind === 'label' && (
+        <LabelPanel
+          barcode={step.barcode}
+          {...(draft.current ? { draft: draft.current } : {})}
+          locale={locale}
+          onLogNew={onLogNew}
+          backLabel={text.backToForm}
+          onBack={() =>
+            setStep({ kind: 'form', barcode: step.barcode, product: null, message: step.message })
+          }
+          onDone={onDone}
+        />
       )}
     </div>
   )
