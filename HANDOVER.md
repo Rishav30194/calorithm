@@ -6,15 +6,15 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 7 (production): the app is live at `https://rishav30194.github.io/calorithm/`
-   against the hosted project, with all 15 migrations, sign-ups off (checked
-   `disable_signup: true`), and the secrets set. Keep-awake and export are checked; see
-   `docs/phases.md` for each criterion. Left for the user on the iPhone: install and open
-   offline, confirm the **Laptop sync check** food arrived from the laptop, and see the
-   **Update available** banner once version 0.2.0 deploys. Then mark the phase done.
+1. Every phase in `docs/phases.md` is done; phase 7 finished 2026-11-21. The app is live
+   at `https://rishav30194.github.io/calorithm/` as version 0.2.0 (tag `v0.2.0`) against
+   the hosted project. Further work comes from the items below and the growth checklists in
+   `PLAN.md`; plan each one first. Bump the version for each release
+   (`docs/development.md`, "Versions and tags"), and apply hosted migrations before merging
+   the PR that needs them.
    The hosted test account (the user knows which) holds the user's phone entries; never
-   delete it or its data without the user's approval. If not yet done, the user
-   deletes the Keychain item: `security delete-generic-password -s calorithm-supabase-db`.
+   delete it or its data without the user's approval. If not yet done, the user deletes the
+   Keychain item: `security delete-generic-password -s calorithm-supabase-db`.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
