@@ -132,14 +132,16 @@ export const logFood = (
   })
 }
 
-// Logs one serving of a built-in item (decision 0027), copying it into your foods first unless
-// a copy is already there, so a repeated tap never makes a second copy.
+// Logs a built-in item (decision 0027), one serving unless the amount step chose others,
+// copying it into your foods first unless a copy is already there, so a repeated tap never
+// makes a second copy.
 export const logCatalogFood = (
   db: LocalDb,
   clock: Clock,
   userId: string,
   target: Target,
   item: CatalogFood,
+  servings = 1,
 ): Promise<LogEntryRow> =>
   db.transaction('rw', db.rows('foods'), db.rows('log_entries'), db.outbox, async () => {
     const existing = (await db.rows('foods').where('catalog_id').equals(item.id).toArray()).flatMap(
@@ -165,7 +167,7 @@ export const logCatalogFood = (
         fatG: item.fatG,
         catalogId: item.id,
       }))
-    return logFood(db, clock, userId, { ...target, food, servings: 1 })
+    return logFood(db, clock, userId, { ...target, food, servings })
   })
 
 export const logRecipe = async (

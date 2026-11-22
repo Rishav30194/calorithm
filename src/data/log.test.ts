@@ -781,3 +781,30 @@ describe('the serving an entry was logged with (phase 14)', () => {
     expect(copy).toMatchObject({ serving_size: 100, serving_unit: 'g', servings: 1.5 })
   })
 })
+
+describe('logCatalogFood servings (phase 14)', () => {
+  it('logs the servings chosen in the amount step', async () => {
+    const onion = {
+      id: 'onion',
+      name: 'Onion',
+      aliases: ['pyaz'],
+      category: 'vegetables',
+      servingSize: 100,
+      servingUnit: 'g',
+      kcal: 40,
+      proteinG: 1.1,
+      carbsG: 9.3,
+      fatG: 0.1,
+      source: { dataset: 'SR Legacy', fdcId: 170000 },
+    }
+    const entry = await logCatalogFood(
+      db,
+      time.clock,
+      userId,
+      { date: '2026-11-22', meal: 'lunch' },
+      onion,
+      0.5,
+    )
+    expect(entry).toMatchObject({ servings: 0.5, kcal: 20, serving_size: 100, serving_unit: 'g' })
+  })
+})

@@ -6,11 +6,19 @@ import type { CatalogCopy, FoodInput, FoodView, RecipeView } from '@/data/foods'
 import type { QuickPicks } from '@/data/log'
 import type { CatalogState } from '@/data/logHooks'
 import { formatAmount } from '@/domain/format'
-import { type Meal, type QuickPick, type Source, sourceKey } from '@/domain/nutrition'
+import {
+  type Meal,
+  type Nutrients,
+  type QuickPick,
+  type Source,
+  sourceKey,
+} from '@/domain/nutrition'
+import { isMeasuredByWeight, type Portion, weightPerServing } from '@/domain/portion'
 import { strings } from '@/strings'
 import { Modal } from '../Modal'
 import { macroText } from '../macros'
 import { TextField } from '../TextField'
+import { AmountFields } from './AmountFields'
 import { BarcodePanel } from './BarcodePanel'
 import { LabelPanel } from './LabelPanel'
 
@@ -23,7 +31,7 @@ type Props = {
   builtIn: CatalogState | undefined
   locale: string
   onPick: (source: Source, servings: number) => Promise<boolean>
-  onPickBuiltIn: (item: CatalogFood) => Promise<boolean>
+  onPickBuiltIn: (item: CatalogFood, servings: number) => Promise<boolean>
   onSearch: () => void
   onRetryBuiltIn: () => void
   onLookup: (code: string) => Promise<BarcodeLookup>
@@ -38,7 +46,19 @@ type Row = {
   pick: { source: Source; servings: number } | { builtIn: CatalogFood }
   name: string
   detail: string
+  // A food measured by weight opens the amount step instead of logging at once (phase 14).
+  weighed: Weighed | null
 }
+
+type Weighed = { portion: Portion; perServing: Nutrients }
+
+const weighedOf = (servingSize: number, servingUnit: string, perServing: Nutrients) => {
+  if (!isMeasuredByWeight(servingUnit)) return null
+  const portion = weightPerServing(servingSize, servingUnit)
+  return portion ? { portion, perServing } : null
+}
+
+const servingsOf = (row: Row): number => ('builtIn' in row.pick ? 1 : row.pick.servings)
 
 const PickList = ({
   title,
@@ -70,7 +90,8 @@ const PickList = ({
   )
 
 // Opened from a meal's Add button: one more tap on any row logs it, so a saved food takes two
-// taps from the log screen.
+// taps from the log screen. A food measured by weight takes a third, to set the amount
+// (decision 0031).
 export const LogPicker = ({
   meal,
   picks,
@@ -92,6 +113,16 @@ export const LogPicker = ({
   const [query, setQuery] = useState('')
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
+  // The weighed food whose amount is being set, and the servings typed for it.
+  const [amountFor, setAmountFor] = useState<(Row & { weighed: Weighed }) | null>(null)
+  const [servings, setServings] = useState<number | null>(null)
+  const [amountError, setAmountError] = useState<string | undefined>(undefined)
+
+  const foodById = new Map((foods ?? []).map((food) => [food.id, food]))
+  const weighedFood = (source: Source): Weighed | null => {
+    const food = source.kind === 'food' ? foodById.get(source.id) : undefined
+    return food ? weighedOf(food.servingSize, food.servingUnit, food) : null
+  }
 
   const servingsText = (servings: number) =>
     strings.log.servings(formatAmount(servings, locale), servings === 1)
@@ -102,6 +133,7 @@ export const LogPicker = ({
       pick: { source: pick.source, servings: pick.servings },
       name: pick.name,
       detail: servingsText(pick.servings),
+      weighed: weighedFood(pick.source),
     }))
 
   const scoreOf = (source: Source) => picks?.scores.get(sourceKey(source)) ?? 0
@@ -118,6 +150,7 @@ export const LogPicker = ({
           strings.foods.serving(formatAmount(food.servingSize, locale), food.servingUnit),
           macroText(food, locale),
         ),
+        weighed: weighedOf(food.servingSize, food.servingUnit, food),
       })),
     ...(recipes ?? [])
       .filter((recipe) => !recipe.archived)
@@ -127,6 +160,7 @@ export const LogPicker = ({
         pick: { source: { kind: 'recipe' as const, id: recipe.id }, servings: 1 },
         name: recipe.name,
         detail: text.recipeDetail(macroText(recipe.perServing, locale)),
+        weighed: null,
       })),
   ]
     .filter((row) => row.name.toLocaleLowerCase().includes(needle))
@@ -150,6 +184,7 @@ export const LogPicker = ({
           strings.foods.serving(formatAmount(item.servingSize, locale), item.servingUnit),
           macroText(item, locale),
         ),
+        weighed: weighedOf(item.servingSize, item.servingUnit, item),
       }))
     : []
 
@@ -158,17 +193,37 @@ export const LogPicker = ({
     if (value.trim() !== '') onSearch()
   }
 
-  const pick = async (row: Row) => {
+  const log = async (row: Row, amount: number) => {
     if (busy) return
     setBusy(true)
     setFailed(false)
     const ok = await ('builtIn' in row.pick
-      ? onPickBuiltIn(row.pick.builtIn)
-      : onPick(row.pick.source, row.pick.servings)
+      ? onPickBuiltIn(row.pick.builtIn, amount)
+      : onPick(row.pick.source, amount)
     ).catch(() => false)
     setBusy(false)
     if (ok) onClose()
     else setFailed(true)
+  }
+
+  const pick = (row: Row) => {
+    if (!row.weighed) {
+      void log(row, servingsOf(row))
+      return
+    }
+    setAmountFor({ ...row, weighed: row.weighed })
+    setServings(servingsOf(row))
+    setAmountError(undefined)
+    setFailed(false)
+  }
+
+  const logAmount = () => {
+    if (!amountFor) return
+    if (servings === null) {
+      setAmountError(strings.log.amount.error)
+      return
+    }
+    void log(amountFor, servings)
   }
 
   const loading = foods === undefined || recipes === undefined
@@ -184,7 +239,42 @@ export const LogPicker = ({
         </button>
       }
     >
-      {panel === 'label' ? (
+      {amountFor ? (
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={() => setAmountFor(null)}
+            className="inline-flex min-h-11 items-center self-start text-accent"
+          >
+            {strings.log.label.back}
+          </button>
+          <h3 className="font-semibold">{amountFor.name}</h3>
+          {failed && (
+            <p role="alert" className="text-danger">
+              {text.failed}
+            </p>
+          )}
+          <AmountFields
+            portion={amountFor.weighed.portion}
+            perServing={amountFor.weighed.perServing}
+            initialServings={servingsOf(amountFor)}
+            locale={locale}
+            error={amountError}
+            onChange={(value) => {
+              setServings(value)
+              if (value !== null) setAmountError(undefined)
+            }}
+          />
+          <button
+            type="button"
+            disabled={busy}
+            onClick={logAmount}
+            className="min-h-11 rounded-lg bg-accent px-4 font-semibold text-accent-text disabled:opacity-60"
+          >
+            {strings.log.amount.log}
+          </button>
+        </div>
+      ) : panel === 'label' ? (
         <LabelPanel
           barcode={null}
           locale={locale}

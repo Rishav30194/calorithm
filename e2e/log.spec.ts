@@ -21,7 +21,8 @@ const addFood = async (page: Page, name: string, kcal: string) => {
   await page.goto('./#/log/foods/new')
   await page.getByLabel('Name').fill(name)
   await page.getByLabel('Serving size').fill('40')
-  await page.getByLabel('Serving unit').fill('g')
+  // A piece with a weight, so one tap logs it; weighed foods have their own test.
+  await page.getByLabel('Serving unit').fill('bowl (40 g)')
   await page.getByLabel('kcal per serving').fill(kcal)
   await page.getByLabel('Protein per serving (g)').fill('5')
   await page.getByLabel('Carbs per serving (g)').fill('27')
@@ -61,6 +62,43 @@ test('a saved food is logged in two taps from the log screen (phase 3 criterion)
   await expect(
     meal(page, 'Breakfast').getByRole('button', { name: new RegExp(oats) }),
   ).toContainText('1 serving · 150 kcal · 5 g protein')
+})
+
+// Phase 14: 70 g of a 100 g food is 0.7 servings, set when picked and again when edited.
+test('a weighed food is logged and edited by its weight', async ({ page }) => {
+  const chicken = unique('Chicken breast')
+  await signIn(page)
+  await page.goto('./#/log/foods/new')
+  await page.getByLabel('Name').fill(chicken)
+  await page.getByLabel('Serving size').fill('100')
+  await page.getByLabel('Serving unit').fill('g')
+  await page.getByLabel('kcal per serving').fill('165')
+  await page.getByLabel('Protein per serving (g)').fill('31')
+  await page.getByLabel('Carbs per serving (g)').fill('0')
+  await page.getByLabel('Fat per serving (g)').fill('3.6')
+  await page.getByRole('button', { name: 'Save' }).click()
+  await expect(page.getByRole('heading', { name: 'Foods', level: 2 })).toBeVisible()
+  await openDay(page, randomDay())
+
+  await page.getByRole('button', { name: 'Add to Lunch' }).click()
+  const picker = page.getByRole('dialog', { name: 'Add to Lunch' })
+  await picker.getByLabel('Search foods and recipes').fill(chicken)
+  await picker.getByRole('button', { name: new RegExp(chicken) }).click()
+  await picker.getByLabel('Amount (g)').fill('70')
+  await expect(picker.getByLabel('Servings')).toHaveValue('0.7')
+  await expect(picker.getByRole('status')).toContainText('116 kcal · 21.7 g protein')
+  await picker.getByRole('button', { name: 'Log' }).click()
+  await expect(picker).toHaveCount(0)
+  await expect(meal(page, 'Lunch')).toContainText('0.7 servings · 116 kcal')
+
+  await meal(page, 'Lunch')
+    .getByRole('button', { name: new RegExp(chicken) })
+    .click()
+  const entry = page.getByRole('dialog', { name: chicken })
+  await expect(entry.getByLabel('Amount (g)')).toHaveValue('70')
+  await entry.getByLabel('Amount (g)').fill('150')
+  await entry.getByRole('button', { name: 'Save' }).click()
+  await expect(meal(page, 'Lunch')).toContainText('1.5 servings · 248 kcal')
 })
 
 test('yesterday’s food is re-logged in one tap, and editing the food leaves the past alone (phase 3 criterion)', async ({

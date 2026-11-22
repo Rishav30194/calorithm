@@ -127,6 +127,15 @@ export const strings = {
         'Couldn’t read the photo. Try a sharper photo taken straight on, or paste the text instead.',
       or: 'Or paste the label’s text',
     },
+    amount: {
+      servings: 'Servings',
+      amount: (unit: string) => `Amount (${unit})`,
+      // One serving's weight, beside the servings field.
+      perServing: (amount: string) => `1 serving is ${amount}`,
+      preview: (nutrients: string) => `That’s ${nutrients}`,
+      error: 'Enter servings from 0.01 to 1000, or an amount that comes to that.',
+      log: 'Log',
+    },
     entry: {
       servings: 'Servings',
       save: 'Save',

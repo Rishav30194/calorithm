@@ -840,10 +840,10 @@ wherever you pick a food.
   the user before adding any.
 
 **Acceptance criteria:**
-- [ ] Logging 70 g of a 100 g food stores 0.7 servings and 70% of each value.
-- [ ] The entry dialog converts between grams and servings both ways, previews the four
+- [x] Logging 70 g of a 100 g food stores 0.7 servings and 70% of each value.
+- [x] The entry dialog converts between grams and servings both ways, previews the four
   values before saving, and shows no grams for foods without a weight.
-- [ ] A weighed food asks for its amount when picked; a count food still logs in one tap.
+- [x] A weighed food asks for its amount when picked; a count food still logs in one tap.
 - [ ] Onion, tomato, and the spices can be added to a recipe without saving them first.
 - [ ] Garam masala and chaat masala are in the list, marked as estimates; any single spice
   added has a recorded source the user approved.
@@ -859,4 +859,16 @@ wherever you pick a food.
 - PR 3 (0.12.0): garam masala and chaat masala estimates; single spices after the user
   approves their source.
 
-**Implementation notes:** none yet.
+**Implementation notes:**
+- PR 1 (0.10.0, migration `20261122050000_log_entries_serving`): `src/domain/portion.ts`
+  gives a serving's weight from a g, ml, kg, or l unit or a bracketed weight ("tsp (3 g)"),
+  and converts amounts to servings (two decimals) and back (one decimal). Log entries copy
+  the food's `serving_size` and `serving_unit` (nullable, set together, schema version 3,
+  in `addedColumns`); recipes and older entries have none. `LoggedEntry` exposes `portion`
+  and `perServing`. Dexie version 9 sets them null on stored entries and clears the
+  `log_entries` pull cursor, since older versions dropped the columns from pulled rows.
+- `AmountFields` keeps **Amount (g)** and **Servings** in step and previews the four values;
+  the entry dialog and the picker's amount step use it. Recent picks of a weighed food
+  open the step with the servings last logged. `logCatalogFood` takes servings.
+- The phase 3 browser tests now use a "bowl (40 g)" unit, a piece with a weight, so they
+  still log in one tap.

@@ -295,6 +295,15 @@ the result in `checkins` when you save it. Decision 0021 holds the rules.
 - The precache includes the barcode scanner's WebAssembly decoder (947 kB), so a saved pack
   scans offline.
 
+## Logging by weight
+
+Phase 14, decision 0031. `src/domain/portion.ts` works out a serving's weight from its unit
+and converts between an amount and servings. Each log entry copies the food's serving when
+logged (`serving_size`, `serving_unit`), so its grams stay right after the food changes.
+`src/ui/log/AmountFields.tsx` keeps grams and servings in step with a live preview; the
+picker opens it for foods measured by weight, and the entry dialog for any entry with a
+weight.
+
 ## Barcode scanning
 
 Phase 11, decisions 0028 and 0029.
