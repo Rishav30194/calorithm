@@ -658,6 +658,24 @@ the general formula.
 - How well Open Food Facts covers Indian brands is unknown; check it with real packages at
   the phase's start.
 
+**Proposed plan** (2026-11-22, awaiting the user's approval of the two points marked):
+- Library: `barcode-detector` 3.2.3 (MIT, 2026-10-19; 3.2.4 was under 7 days old), a
+  polyfill of the browser's `BarcodeDetector` on `zxing-wasm`. Its reader WebAssembly is
+  about 947 kB uncompressed, loaded only when the scanner opens, and self-hosted instead of
+  fetched from its default CDN; confirm the setting in the installed version's types.
+  **Needs approval** as a new dependency.
+- Lookup: Open Food Facts (ODbL), sending only the barcode; attribution "© Open Food Facts
+  contributors" wherever its data shows. If a contact is needed, the project's GitHub
+  address, never the user's email. **Needs approval.** Browsers can't set User-Agent, so
+  check Open Food Facts' guidance for browser apps.
+- PR 1 (0.6.0, one migration): nullable `barcode` on foods (schema version 4, in
+  `addedColumns`, Dexie index), an optional **Barcode** field on the food form, and lookup
+  of your own foods by barcode, test first.
+- PR 2 (0.7.0): **Scan barcode** and **Enter barcode** in the picker; your foods first, then
+  Open Food Facts filling the food form; messages for unknown codes, no network, and a
+  denied camera; browser tests with a recorded Open Food Facts response; decision 0028.
+  Real scanning is checked on the user's iPhone.
+
 **Implementation notes:** none yet.
 
 ## Phase 12 — Review against MacroFactor
