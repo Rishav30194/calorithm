@@ -212,6 +212,7 @@ Each phase's scope, acceptance criteria, status, and implementation notes are in
 | [docs/testing.md](docs/testing.md) | The required test cases for each layer |
 | [docs/security.md](docs/security.md) | Threats, controls, and data handling |
 | [docs/development.md](docs/development.md) | Commands, branches, PRs, and releases |
+| [docs/production.md](docs/production.md) | Hosted setup, deployment, and the live checks |
 | [docs/ai-workflow.md](docs/ai-workflow.md) | How AI-assisted work is planned, checked, and reviewed |
 
 ## Before step 7

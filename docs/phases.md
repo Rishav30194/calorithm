@@ -418,7 +418,7 @@ Check-in rules: decision 0021.
 
 ## Phase 7 — Production
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** the app runs on your phone against the hosted database.
 
@@ -429,7 +429,7 @@ Check-in rules: decision 0021.
   its Auth settings (decision 0023 relies on it), and deletes a throwaway account to check
   that `delete_account()` works there as it does locally.
 - Deploy workflow to GitHub Pages.
-- Weekly keep-awake workflow.
+- Keep-awake workflow, twice a week so one failed run still leaves a request inside the week.
 
 **Acceptance criteria:**
 - [ ] The live app installs on the phone and opens offline.
@@ -437,5 +437,9 @@ Check-in rules: decision 0021.
 - [ ] A new deployment shows the update prompt on the phone.
 - [ ] The keep-awake workflow has run successfully once.
 - [ ] Export from the live app downloads a valid file.
+
+**Plan** (approved 2026-11-21): one PR with the deploy and keep-awake workflows and
+`docs/production.md`, then the user's setup and the checks in that document. The repository
+is made public, because GitHub Pages on the Free plan serves only public repositories.
 
 **Implementation notes:** none yet.

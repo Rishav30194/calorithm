@@ -70,7 +70,8 @@ Never edit a migration that's on `main`. Fix it with a new one.
 
 ## Releases
 
-- Every merge to `main` deploys to GitHub Pages (from phase 7).
+- Every merge to `main` deploys to GitHub Pages once CI passes on it. The hosted setup is in
+  `docs/production.md`.
 - The user applies hosted migrations before merging a PR that needs them, and only migrations
   that work with the app version already deployed. See `docs/architecture.md`, "Schema
   versions".
