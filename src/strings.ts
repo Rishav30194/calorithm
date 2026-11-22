@@ -146,8 +146,8 @@ export const strings = {
       servingUnit: 'Enter a unit of up to 20 characters, such as g.',
       kcal: 'Enter whole kcal from 0 to 10000, without separators.',
       proteinG: 'Enter protein from 0 to 1000 g, with up to two decimals.',
-      carbsG: 'Enter carbs from 0 to 1000 g, with up to two decimals.',
-      fatG: 'Enter fat from 0 to 1000 g, with up to two decimals.',
+      carbsG: 'Enter carbs from 0 to 1000 g.',
+      fatG: 'Enter fat from 0 to 1000 g.',
     },
   },
 
@@ -162,7 +162,8 @@ export const strings = {
     noMatch: 'No recipes match your search.',
     makes: (servings: string) => `Makes ${servings}`,
     perServing: (nutrients: string) => `${nutrients} a serving`,
-    missingCarbsOrFat: 'Some ingredients have no carbs or fat set, so those totals are partial.',
+    missingCarbsOrFat:
+      'Some ingredients have no carbs or fat set, so this recipe’s carbs and fat aren’t set either.',
     detail: (makes: string, perServing: string) => `${makes} · ${perServing}`,
     editor: {
       newTitle: 'New recipe',

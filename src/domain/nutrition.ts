@@ -89,8 +89,22 @@ export const missingCarbsOrFat = (items: readonly Pick<Nutrients, 'carbsG' | 'fa
 
 export type Ingredient = { perServing: Nutrients; servings: number }
 
-const exactRecipeTotals = (ingredients: readonly Ingredient[]): Nutrients =>
-  exactSum(ingredients.map(({ perServing, servings }) => exactScale(perServing, servings)))
+// Unlike a day's total, a recipe is logged as one entry, so a partial sum of its carbs or fat
+// would look complete. Any ingredient with them not set leaves the recipe's not set; no
+// ingredients at all gives 0 g, like its kcal.
+const allOrNothing = (values: readonly (number | null)[]): number | null =>
+  values.some((value) => value === null)
+    ? null
+    : values.reduce<number>((sum, value) => sum + (value ?? 0), 0)
+
+const exactRecipeTotals = (ingredients: readonly Ingredient[]): Nutrients => {
+  const scaled = ingredients.map(({ perServing, servings }) => exactScale(perServing, servings))
+  return {
+    ...exactSum(scaled),
+    carbsG: allOrNothing(scaled.map((item) => item.carbsG)),
+    fatG: allOrNothing(scaled.map((item) => item.fatG)),
+  }
+}
 
 export const recipeTotals = (ingredients: readonly Ingredient[]): Nutrients =>
   rounded(exactRecipeTotals(ingredients))

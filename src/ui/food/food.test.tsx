@@ -292,7 +292,6 @@ describe('RecipeEditor', () => {
       archived: false,
       totals: { kcal: 0, proteinG: 0, carbsG: null, fatG: null },
       perServing: { kcal: 0, proteinG: 0, carbsG: null, fatG: null },
-      missingCarbsOrFat: true,
       items: [
         {
           foodId: 'f1',

@@ -1,6 +1,5 @@
 import {
   type Ingredient,
-  missingCarbsOrFat,
   type Nutrients,
   recipePerServing,
   recipeTotals,
@@ -259,8 +258,6 @@ export type RecipeView = {
   archived: boolean
   totals: Nutrients
   perServing: Nutrients
-  // Some ingredient has carbs or fat not set, so those totals are partial.
-  missingCarbsOrFat: boolean
 }
 
 export type RecipeDetail = RecipeView & { items: RecipeItemView[] }
@@ -326,7 +323,6 @@ const recipeView = async (
     archived: recipe.archived_at !== null,
     totals: recipeTotals(items),
     perServing: scaleNutrients(recipePerServing(items, recipe.servings), 1),
-    missingCarbsOrFat: missingCarbsOrFat(items.map((item) => item.perServing)),
     items,
   }
 }

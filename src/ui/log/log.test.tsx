@@ -43,7 +43,6 @@ const chili: RecipeView = {
   archived: false,
   totals: { kcal: 2000, proteinG: 120, carbsG: null, fatG: null },
   perServing: { kcal: 500, proteinG: 30, carbsG: null, fatG: null },
-  missingCarbsOrFat: true,
 }
 const picks: QuickPicks = {
   today: [],

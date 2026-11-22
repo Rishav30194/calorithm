@@ -48,6 +48,9 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 
 ## Watch out for
 
+- A logged total past the database's range (for example 200 servings of an 80 g-carbs food:
+  16000 g, over 10000) saves locally, then fails on sync as a refused change. This was
+  already so for kcal and protein; the log picker could refuse such servings instead.
 - CI is paused (2026-11-21, the user's request, to speed up feature work): `ci.yml` runs only
   by hand, and `deploy.yml` deploys every push to `main`. `npm run check:full` before each
   PR is the only gate, so never skip it. Turn CI back on when the app moves to maintenance:

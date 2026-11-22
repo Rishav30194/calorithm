@@ -249,6 +249,21 @@ describe('carbs and fat (decision 0025)', () => {
     })
   })
 
+  // A recipe is one entry, so partial carbs would look complete on the log (review of PR 2).
+  it('gives a recipe carbs or fat not set when any ingredient has them not set', () => {
+    const ingredients = [
+      { perServing: oats, servings: 2 },
+      { perServing: unset, servings: 1 },
+    ]
+    expect(recipeTotals(ingredients)).toEqual({ kcal: 400, proteinG: 20, carbsG: null, fatG: null })
+    expect(recipePerServing(ingredients, 2)).toMatchObject({ carbsG: null, fatG: null })
+    expect(recipeEntryNutrients(ingredients, 2, 1)).toMatchObject({ carbsG: null, fatG: null })
+  })
+
+  it('gives a recipe with no ingredients 0 g, like its kcal', () => {
+    expect(recipeTotals([])).toEqual({ kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 })
+  })
+
   it('splits carbs and fat by meal', () => {
     const totals = totalsByMeal([
       { meal: 'breakfast', ...oats },

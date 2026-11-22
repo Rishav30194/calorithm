@@ -235,7 +235,10 @@ describe('carbs and fat (decision 0025)', () => {
     expect(foodsSpec.parse({ ...food, carbs_g: 1.25 })).toBeNull()
     expect(foodsSpec.parse({ ...food, fat_g: -1 })).toBeNull()
     expect(foodsSpec.parse({ ...food, fat_g: 1000.1 })).toBeNull()
-    expect(logEntriesSpec.parse({ ...logEntry, carbs_g: 10000.1 })).toBeNull()
+    expect(logEntriesSpec.parse({ ...logEntry, carbs_g: 1.25 })).toBeNull()
+    expect(logEntriesSpec.parse({ ...logEntry, fat_g: -0.1 })).toBeNull()
+    // Like protein, a large logged total is left for the database to refuse.
+    expect(logEntriesSpec.parse({ ...logEntry, carbs_g: 16000 })).not.toBeNull()
   })
 })
 

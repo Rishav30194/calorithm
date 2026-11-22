@@ -256,7 +256,6 @@ describe('reading foods and recipes for the screens', () => {
         archived: false,
         totals: { kcal: 450, proteinG: 15, carbsG: 60, fatG: 9 },
         perServing: { kcal: 113, proteinG: 3.8, carbsG: 15, fatG: 2.3 },
-        missingCarbsOrFat: false,
       }),
     ])
   })

@@ -81,7 +81,7 @@ export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArc
       : null
   }
 
-  const nutrientText = (nutrients: Nutrients, empty = false) => macroText(nutrients, locale, empty)
+  const nutrientText = (nutrients: Nutrients) => macroText(nutrients, locale)
   const describeFood = (food: FoodView) =>
     strings.foods.detail(
       strings.foods.serving(formatAmount(food.servingSize, locale), food.servingUnit),
@@ -195,11 +195,9 @@ export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArc
 
         <dl className="grid grid-cols-2 gap-2 rounded-lg bg-surface p-3">
           <dt className="text-muted">{text.totals}</dt>
-          <dd>{nutrientText(totals, ingredients.length === 0)}</dd>
+          <dd>{nutrientText(totals)}</dd>
           <dt className="text-muted">{text.perServing}</dt>
-          <dd>
-            {perServing ? nutrientText(perServing, ingredients.length === 0) : text.noPerServing}
-          </dd>
+          <dd>{perServing ? nutrientText(perServing) : text.noPerServing}</dd>
         </dl>
         {missingCarbsOrFat(ingredients.map((ingredient) => ingredient.perServing)) && (
           <p className="text-sm text-muted">{strings.recipes.missingCarbsOrFat}</p>

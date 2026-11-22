@@ -533,4 +533,31 @@ describe('carbs and fat (decision 0025)', () => {
 
     expect(entry).toMatchObject({ carbs_g: 30, fat_g: 4.5 })
   })
+
+  it('logs a recipe as not set when one ingredient has carbs or fat not set', async () => {
+    const oats = await addOats()
+    const old = await createFood(db, time.clock, userId, {
+      name: 'Old toast',
+      servingSize: 1,
+      servingUnit: 'slice',
+      kcal: 80,
+      proteinG: 3,
+      carbsG: 15,
+      fatG: 1,
+    })
+    // As a food saved before carbs and fat existed is stored.
+    await db.table('foods').update(old.id, { carbs_g: null, fat_g: null })
+    const recipe = await createRecipe(db, time.clock, userId, {
+      name: 'Breakfast plate',
+      servings: 1,
+      items: [
+        { foodId: oats.id, servings: 1 },
+        { foodId: old.id, servings: 2 },
+      ],
+    })
+
+    const entry = await logRecipe(db, time.clock, userId, { ...at, recipe, servings: 1 })
+
+    expect(entry).toMatchObject({ kcal: 310, carbs_g: null, fat_g: null })
+  })
 })
