@@ -103,7 +103,8 @@ export const schemaVersions: readonly SchemaVersion[] = [
   {
     // The built-in item a food was copied from (decision 0027): none for stored foods.
     version: 7,
-    stores: {},
+    // Indexed, so a built-in pick finds its copy without reading every food.
+    stores: { foods: 'id, catalog_id' },
     upgrade: async (tx) => {
       await tx
         .table('foods')

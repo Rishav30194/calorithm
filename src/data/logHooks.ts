@@ -107,13 +107,17 @@ export const useLogActions = (): LogActions => {
 
 export type CatalogState = CatalogFood[] | 'loading' | 'failed'
 
-// The built-in food list, loaded once it's wanted (the first search), then kept.
-export const useCatalog = (wanted: boolean): CatalogState | undefined => {
+// The built-in food list, loaded once it's wanted (the first search), then kept. After a
+// failure, retry() loads it again. Whether a browser retries a failed dynamic import without
+// a reload is unverified.
+export const useCatalog = (
+  wanted: boolean,
+): { state: CatalogState | undefined; retry: () => void } => {
   const [state, setState] = useState<CatalogState | undefined>(undefined)
   useEffect(() => {
     if (!wanted || state !== undefined) return
     setState('loading')
     loadCatalog().then(setState, () => setState('failed'))
   }, [wanted, state])
-  return state
+  return { state, retry: () => setState(undefined) }
 }

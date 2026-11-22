@@ -22,6 +22,7 @@ type Props = {
   onPick: (source: Source, servings: number) => Promise<boolean>
   onPickBuiltIn: (item: CatalogFood) => Promise<boolean>
   onSearch: () => void
+  onRetryBuiltIn: () => void
   onClose: () => void
 }
 
@@ -74,6 +75,7 @@ export const LogPicker = ({
   onPick,
   onPickBuiltIn,
   onSearch,
+  onRetryBuiltIn,
   onClose,
 }: Props) => {
   const text = strings.log.picker
@@ -193,7 +195,18 @@ export const LogPicker = ({
           {needle !== '' && (
             <section aria-label={text.builtIn} className="flex flex-col gap-1">
               {builtIn === 'loading' && <p className="text-muted">{text.builtInLoading}</p>}
-              {builtIn === 'failed' && <p className="text-muted">{text.builtInFailed}</p>}
+              {builtIn === 'failed' && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-muted">{text.builtInFailed}</p>
+                  <button
+                    type="button"
+                    onClick={onRetryBuiltIn}
+                    className="min-h-11 rounded-lg border border-border px-3 font-medium"
+                  >
+                    {text.builtInRetry}
+                  </button>
+                </div>
+              )}
               <PickList title={text.builtIn} rows={builtInRows} onPick={pick} />
               {builtInRows.length > 0 && <p className="text-xs text-muted">{text.builtInSource}</p>}
             </section>
@@ -201,7 +214,8 @@ export const LogPicker = ({
           {needle !== '' &&
             saved.length === 0 &&
             builtInRows.length === 0 &&
-            builtIn !== 'loading' && <p className="text-muted">{text.noMatch}</p>}
+            // Only once the list has loaded: not while loading, nor beside its error.
+            Array.isArray(builtIn) && <p className="text-muted">{text.noMatch}</p>}
         </>
       )}
     </Modal>

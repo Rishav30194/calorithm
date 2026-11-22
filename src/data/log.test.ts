@@ -644,4 +644,17 @@ describe('logCatalogFood (decision 0027)', () => {
     expect(await listFoods(db)).toHaveLength(1)
     expect(second.food_id).toBe(first.food_id)
   })
+
+  // The picker offers the item again once its copy is archived; picking it brings the copy
+  // back rather than logging a food you can no longer see.
+  it('restores an archived copy when the item is picked again', async () => {
+    const first = await logCatalogFood(db, time.clock, userId, at, turmeric)
+    if (!first.food_id) throw new Error('no food logged')
+    await setFoodArchived(db, time.clock, first.food_id, true)
+
+    const second = await logCatalogFood(db, time.clock, userId, at, turmeric)
+
+    expect(second.food_id).toBe(first.food_id)
+    expect(await listFoods(db)).toEqual([expect.objectContaining({ archived: false })])
+  })
 })

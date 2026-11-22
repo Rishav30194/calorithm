@@ -71,7 +71,8 @@ export const strings = {
         'No foods or recipes yet. Search the built-in foods, or add your own from Foods and Recipes on the log screen.',
       builtIn: 'Built-in foods',
       builtInLoading: 'Loading built-in foods…',
-      builtInFailed: 'Built-in foods couldn’t load. Try again when you’re online.',
+      builtInFailed: 'Built-in foods couldn’t load.',
+      builtInRetry: 'Try again',
       builtInSource:
         'Built-in values from USDA FoodData Central. Picking one adds it to your foods.',
       noMatch: 'Nothing matches your search.',

@@ -83,6 +83,7 @@ describe('LogPicker', () => {
         locale="en-US"
         onPickBuiltIn={vi.fn()}
         onSearch={vi.fn()}
+        onRetryBuiltIn={vi.fn()}
         onPick={onPick}
         onClose={onClose}
       />,
@@ -116,7 +117,11 @@ describe('LogPicker', () => {
       source: { dataset: 'SR Legacy', fdcId: 172231 },
     }
     const renderWith = (foods: FoodView[], builtIn: CatalogState | undefined) => {
-      const handlers = { onPickBuiltIn: vi.fn(async () => true), onSearch: vi.fn() }
+      const handlers = {
+        onPickBuiltIn: vi.fn(async () => true),
+        onSearch: vi.fn(),
+        onRetryBuiltIn: vi.fn(),
+      }
       render(
         <LogPicker
           meal="lunch"
@@ -151,6 +156,16 @@ describe('LogPicker', () => {
       const section = screen.getByRole('region', { name: text.picker.builtIn })
       expect(within(section).queryAllByRole('button')).toHaveLength(0)
       expect(screen.getAllByRole('button', { name: /Turmeric/ })).toHaveLength(1)
+    })
+
+    it('offers a retry when the list fails to load, without saying nothing matches', async () => {
+      const { onRetryBuiltIn } = renderWith([], 'failed')
+      await userEvent.type(screen.getByLabelText(text.picker.search), 'dahi')
+
+      expect(screen.getByText(text.picker.builtInFailed)).toBeInTheDocument()
+      expect(screen.queryByText(text.picker.noMatch)).not.toBeInTheDocument()
+      await userEvent.click(screen.getByRole('button', { name: text.picker.builtInRetry }))
+      expect(onRetryBuiltIn).toHaveBeenCalled()
     })
 
     it('lets someone with no foods yet search the built-in list', async () => {
@@ -201,6 +216,7 @@ describe('LogPicker', () => {
         locale="en-US"
         onPickBuiltIn={vi.fn()}
         onSearch={vi.fn()}
+        onRetryBuiltIn={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -231,6 +247,7 @@ describe('LogPicker', () => {
         locale="en-US"
         onPickBuiltIn={vi.fn()}
         onSearch={vi.fn()}
+        onRetryBuiltIn={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -247,6 +264,7 @@ describe('LogPicker', () => {
         locale="en-US"
         onPickBuiltIn={vi.fn()}
         onSearch={vi.fn()}
+        onRetryBuiltIn={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,

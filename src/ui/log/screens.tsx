@@ -47,7 +47,8 @@ const Picker = ({
       picks={picks}
       foods={foods}
       recipes={recipes}
-      builtIn={builtIn}
+      builtIn={builtIn.state}
+      onRetryBuiltIn={builtIn.retry}
       locale={locale}
       onPick={(source, servings) => actions.log({ date, meal }, source, servings)}
       onPickBuiltIn={(item) => actions.logCatalog({ date, meal }, item)}
