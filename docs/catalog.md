@@ -1,8 +1,8 @@
 # Built-in foods
 
 The built-in food list: 192 common Indian groceries, dishes, spices, and gym foods, with
-kcal, protein, carbs, and fat per serving. Picking one copies it into your foods. Decision
-0027 explains the source.
+kcal, protein, carbs, and fat per serving. From phase 10's PR 2, the log picker offers them,
+and picking one copies it into your foods. Decision 0027 explains the source.
 
 ## Source
 
@@ -25,7 +25,8 @@ Agricultural Research Service. FoodData Central. fdc.nal.usda.gov.
 | Dishes | 22: dal, roti, paratha, naan, puri, idli, dosa, masala dosa, sambar, upma, samosa, pakora, palak paneer, chicken and fish curry, biryani, and ladoo |
 | Other | 7: sugar, brown sugar, honey, tea with milk, dark chocolate, cocoa, and ketchup |
 
-No beef or pork. Search works by English and common Hindi names: "aloo", "dahi", "jeera".
+No beef or pork. Each food lists common Hindi names ("aloo", "dahi", "jeera") for the
+picker's search in PR 2.
 
 ## Known gaps and approximations
 
@@ -43,7 +44,8 @@ No beef or pork. Search works by English and common Hindi names: "aloo", "dahi",
    [FoodData Central's download page](https://fdc.nal.usda.gov/download-datasets), and unzip
    both.
 2. Edit `scripts/catalog/items.json`. Each item pins a USDA food by `fdcId` and its exact
-   `usdaDescription`.
+   `usdaDescription`, and a `portion` label prefix or null for 100 g. When USDA lists one
+   label at several weights, `portionGrams` picks one; the script refuses an ambiguous match.
 3. Run `node scripts/build-catalog.mjs SR_LEGACY_DIR FNDDS_DIR`. It refuses to write if a
    description no longer matches.
 4. Run `npx biome format --write scripts/catalog src/data/catalog`.

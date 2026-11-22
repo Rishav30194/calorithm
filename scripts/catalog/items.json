@@ -698,7 +698,8 @@
       "dataset": "SR Legacy",
       "fdcId": 174924,
       "usdaDescription": "Bread, white, commercially prepared (includes soft bread crumbs)",
-      "portion": "1 slice"
+      "portion": "1 slice",
+      "portionGrams": 25
     },
     {
       "id": "bread-whole-wheat",
@@ -998,7 +999,8 @@
       "dataset": "SR Legacy",
       "fdcId": 170853,
       "usdaDescription": "Cheese, pasteurized process, American, fortified with vitamin D",
-      "portion": "1 slice"
+      "portion": "1 slice",
+      "portionGrams": 21
     },
     {
       "id": "butter",

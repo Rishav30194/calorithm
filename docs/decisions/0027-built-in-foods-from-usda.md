@@ -34,4 +34,5 @@ servings where it has one, and 100 g otherwise.
   user's foods, where it can be corrected.
 - USDA uses food-specific energy factors, so kcal for fruit and vegetables is below
   4 × protein + 4 × carbs + 9 × fat; the catalog test allows for that.
-- Revisit if INDB's authors grant permission, which would add idli-to-khichdi coverage.
+- Revisit if INDB's authors grant permission, which would add foods USDA lacks, such as poha,
+  khichdi, and dhokla.

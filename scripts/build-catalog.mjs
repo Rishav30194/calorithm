@@ -71,7 +71,8 @@ const load = (dir) => {
   const nutrients = new Map()
   for (const r of read(dir, 'food_nutrient.csv')) {
     const key = wanted.get(r.nutrient_id)
-    if (!key) continue
+    // A blank amount is missing, not zero; the item then fails the completeness check.
+    if (!key || r.amount.trim() === '' || !Number.isFinite(Number(r.amount))) continue
     const values = nutrients.get(r.fdc_id) ?? {}
     values[key] = Number(r.amount)
     nutrients.set(r.fdc_id, values)
@@ -115,20 +116,44 @@ const foods = items.flatMap((item) => {
   let servingUnit = 'g'
   let grams = 100
   if (item.portion) {
-    const portion = (data.portions.get(id) ?? []).find((p) =>
-      p.label.toLowerCase().startsWith(item.portion.toLowerCase()),
+    // "1 cup" also starts "1 cup, chopped": every match must weigh the same, or it's ambiguous.
+    // portionGrams picks one weight when USDA lists several for the same label.
+    const matches = (data.portions.get(id) ?? []).filter(
+      (p) =>
+        p.label.toLowerCase().startsWith(item.portion.toLowerCase()) &&
+        (item.portionGrams === undefined || p.grams === item.portionGrams),
     )
+    const [portion] = matches
     if (!portion) {
       problems.push(`${item.id}: no USDA portion starting "${item.portion}"`)
       return []
     }
+    if (matches.some((p) => p.grams !== portion.grams)) {
+      const labels = matches.map((p) => `${p.label} = ${p.grams} g`).join('; ')
+      problems.push(
+        `${item.id}: "${item.portion}" matches portions of different weights: ${labels}`,
+      )
+      return []
+    }
+    // "2 tbsp" is a serving of 2 tbsp; "1 medium" of 1 medium. Fractions aren't read.
+    const parts = item.portion.match(/^(\d+(?:\.\d+)?) (.+)$/)
+    if (!parts?.[1] || !parts[2]) {
+      problems.push(`${item.id}: portion "${item.portion}" must start with a decimal amount`)
+      return []
+    }
     grams = portion.grams
-    // "2 tbsp" is a serving of 2 tbsp; "1 medium" of 1 medium.
-    const [, amount = '1', named = item.portion] =
-      item.portion.match(/^(\d+(?:\.\d+)?) (.+)$/) ?? []
-    const withGrams = `${named} (${round(grams, 1)} g)`
-    servingSize = Number(amount)
-    servingUnit = withGrams.length <= 20 ? withGrams : named.slice(0, 20)
+    const named = parts[2]
+    const weight = `(${round(grams, 1)} g)`
+    // The unit column holds 20 characters: shorten "tsp, crumbled" to "tsp" before the grams.
+    const label = [`${named} ${weight}`, `${named.split(',')[0]} ${weight}`].find(
+      (text) => text.length <= 20,
+    )
+    if (!label) {
+      problems.push(`${item.id}: no serving unit of 20 characters or fewer for "${named}"`)
+      return []
+    }
+    servingSize = Number(parts[1])
+    servingUnit = label
   }
   const scale = grams / 100
   return [

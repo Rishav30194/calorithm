@@ -19,12 +19,17 @@ describe('the built-in food list (decision 0027)', () => {
 
   it.each(foods)('$name fits a food the app can save', (food) => {
     // The same limits as the food form and the foods table.
+    expect(food.name.trim()).toBe(food.name)
     expect(food.name.length).toBeGreaterThan(0)
     expect(food.name.length).toBeLessThanOrEqual(100)
+    expect(food.servingUnit.trim()).toBe(food.servingUnit)
     expect(food.servingUnit.length).toBeGreaterThan(0)
     expect(food.servingUnit.length).toBeLessThanOrEqual(20)
     expect(food.servingSize).toBeGreaterThan(0)
+    expect(food.servingSize).toBeLessThanOrEqual(10000)
+    expect(Math.round(food.servingSize * 100)).toBeCloseTo(food.servingSize * 100, 6)
     expect(Number.isInteger(food.kcal)).toBe(true)
+    expect(food.kcal).toBeGreaterThanOrEqual(0)
     for (const grams of [food.proteinG, food.carbsG, food.fatG]) {
       expect(grams).toBeGreaterThanOrEqual(0)
       expect(grams).toBeLessThanOrEqual(1000)
