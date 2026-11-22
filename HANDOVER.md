@@ -40,10 +40,6 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 
 ## Watch out for
 
-- `vite.config.ts` still says the **Update available** prompt "arrives (phase 6)". It's a
-  comment in build config, which needs the user's approval to change; fix it with the next
-  approved config change.
-
 - `e2e/account.spec.ts` deletes `delete.me@calorithm.test`; `e2e/database.ts` puts it back
   first with `docker exec supabase_db_calorithm psql`. The container name comes from
   `project_id` in `supabase/config.toml`.
@@ -51,9 +47,8 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 181.2 kB of the 200 kB budget (phase 5 PR 4); the log and food screens load as
-  their own chunks. Phase 3 will likely need to load
-  screens on demand.
+- First-load JavaScript is 183.8 kB of the 200 kB budget (CI on `main`, 2026-11-21); the
+  log, food, and backup screens load on demand. A new screen of any size should too.
 - The browser tests run a production build, so React's development double-run isn't covered.
   After changing `DataProvider`, also check `npm run dev` for console errors. Another project's service worker
   at `localhost:4173/` can take over the page; use incognito or unregister it in DevTools.

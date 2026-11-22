@@ -215,12 +215,6 @@ Each phase's scope, acceptance criteria, status, and implementation notes are in
 | [docs/production.md](docs/production.md) | Hosted setup, deployment, and the live checks |
 | [docs/ai-workflow.md](docs/ai-workflow.md) | How AI-assisted work is planned, checked, and reviewed |
 
-## Before step 7
-
-- Create the Supabase project in the Supabase dashboard. You do this step yourself.
-- Set the project URL and publishable key as GitHub Actions secrets. You set these values yourself;
-  they never go in the repository.
-
 ## Growth checklists
 
 These aren't built now. Each one can be added without changing the data model.
