@@ -66,6 +66,8 @@ const entry = (overrides: Partial<LoggedEntry> = {}): LoggedEntry => ({
   proteinG: 10,
   carbsG: 54,
   fatG: 5,
+  portion: null,
+  perServing: { kcal: 150, proteinG: 5, carbsG: 27, fatG: 2.5 },
   ...overrides,
 })
 

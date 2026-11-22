@@ -123,6 +123,8 @@ const logEntry: LogEntryRow = {
   carbs_g_per_serving: 27,
   fat_g_per_serving: 2.5,
   logged_at: '2026-11-20T08:00:00.000Z',
+  serving_size: null,
+  serving_unit: null,
 }
 
 const weight: WeightRow = {
@@ -233,9 +235,10 @@ describe('carbs and fat (decision 0025)', () => {
       3: ['catalog_id'],
       4: ['barcode'],
     })
-    expect(logEntriesSpec.schemaVersion).toBe(2)
+    expect(logEntriesSpec.schemaVersion).toBe(3)
     expect(logEntriesSpec.addedColumns).toEqual({
       2: ['carbs_g', 'fat_g', 'carbs_g_per_serving', 'fat_g_per_serving'],
+      3: ['serving_size', 'serving_unit'],
     })
   })
 
@@ -273,6 +276,29 @@ describe('barcode (phase 11)', () => {
     for (const barcode of ['', '036000291452', '62910415002a3', '123456789']) {
       expect(foodsSpec.parse({ ...food, barcode })).toBeNull()
     }
+  })
+})
+
+describe('log entry serving (phase 14)', () => {
+  it('reads an entry without the columns as having no serving', () => {
+    const { serving_size: _size, serving_unit: _unit, ...before } = logEntry
+    expect(logEntriesSpec.parse(before)).toEqual({
+      ...before,
+      serving_size: null,
+      serving_unit: null,
+    })
+  })
+
+  it('accepts a serving, and refuses what the database refuses', () => {
+    const served = { ...logEntry, serving_size: 100, serving_unit: 'g' }
+    expect(logEntriesSpec.parse(served)).toMatchObject({ serving_size: 100, serving_unit: 'g' })
+    expect(logEntriesSpec.parse({ ...served, serving_unit: null })).toBeNull()
+    expect(logEntriesSpec.parse({ ...served, serving_size: null })).toBeNull()
+    expect(logEntriesSpec.parse({ ...served, serving_size: 0 })).toBeNull()
+    expect(logEntriesSpec.parse({ ...served, serving_size: 10000.01 })).toBeNull()
+    expect(logEntriesSpec.parse({ ...served, serving_size: 1.005 })).toBeNull()
+    expect(logEntriesSpec.parse({ ...served, serving_unit: ' ' })).toBeNull()
+    expect(logEntriesSpec.parse({ ...served, serving_unit: 'x'.repeat(21) })).toBeNull()
   })
 })
 

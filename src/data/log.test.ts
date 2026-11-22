@@ -20,7 +20,7 @@ import {
   setDayComplete,
 } from './log'
 import { closeAll, manualClock, openDb, userId } from './sync/testing/fixtures'
-import { daysSpec, logEntriesSpec } from './tables'
+import { daysSpec, type LogEntryRow, logEntriesSpec } from './tables'
 
 let db: LocalDb
 let time: ReturnType<typeof manualClock>
@@ -144,6 +144,8 @@ describe('entriesOn', () => {
         proteinG: 5,
         carbsG: 20,
         fatG: 3,
+        portion: { amount: 40, unit: 'g' },
+        perServing: { kcal: 150, proteinG: 5, carbsG: 20, fatG: 3 },
       },
     ])
   })
@@ -705,5 +707,77 @@ describe('logging from a barcode scan', () => {
       reason: 'not_found',
     })
     expect(await entriesOn(db, at.date)).toEqual([])
+  })
+})
+
+describe('the serving an entry was logged with (phase 14)', () => {
+  const at = { date: '2026-11-22', meal: 'lunch' } as const
+  const chicken = {
+    name: 'Chicken breast',
+    servingSize: 100,
+    servingUnit: 'g',
+    kcal: 165,
+    proteinG: 31,
+    carbsG: 0,
+    fatG: 3.6,
+  }
+
+  it('copies the food’s serving, so the entry knows its weight', async () => {
+    const food = await createFood(db, time.clock, userId, chicken)
+    const row = await logFood(db, time.clock, userId, { ...at, food, servings: 0.7 })
+
+    expect(row).toMatchObject({ serving_size: 100, serving_unit: 'g', servings: 0.7, kcal: 116 })
+    const [entry] = await entriesOn(db, at.date)
+    expect(entry).toMatchObject({
+      portion: { amount: 100, unit: 'g' },
+      perServing: { kcal: 165, proteinG: 31, carbsG: 0, fatG: 3.6 },
+    })
+  })
+
+  it('keeps the logged serving after the food changes', async () => {
+    const food = await createFood(db, time.clock, userId, chicken)
+    await logFood(db, time.clock, userId, { ...at, food, servings: 1 })
+    await updateFood(db, time.clock, food.id, { ...chicken, servingSize: 150 })
+
+    const [entry] = await entriesOn(db, at.date)
+    expect(entry?.portion).toEqual({ amount: 100, unit: 'g' })
+  })
+
+  it('has no weight for a recipe, a piece, or an entry logged before this', async () => {
+    const roti = await createFood(db, time.clock, userId, {
+      ...chicken,
+      name: 'Roti',
+      servingSize: 1,
+      servingUnit: 'roti',
+    })
+    await logFood(db, time.clock, userId, { ...at, food: roti, servings: 2 })
+    const recipe = await createRecipe(db, time.clock, userId, {
+      name: 'Curry',
+      servings: 4,
+      items: [{ foodId: roti.id, servings: 1 }],
+    })
+    await logSource(db, time.clock, userId, {
+      ...at,
+      source: { kind: 'recipe', id: recipe.id },
+      servings: 1,
+    })
+    const old = await logFood(db, time.clock, userId, { ...at, food: roti, servings: 1 })
+    const unserved: LogEntryRow = { ...old, serving_size: null, serving_unit: null }
+    await db.rows('log_entries').put(unserved)
+
+    const rows = (await db.rows('log_entries').toArray()).map((raw) => logEntriesSpec.parse(raw))
+    expect(rows.map((row) => row?.serving_size ?? null).sort()).toEqual([1, null, null])
+    expect((await entriesOn(db, at.date)).map((entry) => entry.portion)).toEqual([null, null, null])
+  })
+
+  it('carries the serving over when a meal is copied', async () => {
+    const food = await createFood(db, time.clock, userId, chicken)
+    await logFood(db, time.clock, userId, { ...at, food, servings: 1.5 })
+
+    const [copy] = await copyMealTo(db, time.clock, userId, {
+      from: at,
+      to: { date: '2026-11-23', meal: 'dinner' },
+    })
+    expect(copy).toMatchObject({ serving_size: 100, serving_unit: 'g', servings: 1.5 })
   })
 })

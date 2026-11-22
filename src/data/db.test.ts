@@ -189,6 +189,8 @@ describe('LocalDb', () => {
       fat_g: null,
       carbs_g_per_serving: null,
       fat_g_per_serving: null,
+      serving_size: null,
+      serving_unit: null,
     })
     expect(await after.table('weights').get('w1')).toEqual({ id: 'w1', date: '2026-11-20' })
   })
@@ -244,6 +246,32 @@ describe('LocalDb', () => {
         (food: { id: string }) => food.id,
       ),
     ).toEqual(['f2'])
+  })
+
+  it('gives existing log entries no serving, and pulls them again, when upgraded to version 9', async () => {
+    const [v1, v2, v3, v4, v5, v6, v7, v8] = schemaVersions
+    if (!v1 || !v2 || !v3 || !v4 || !v5 || !v6 || !v7 || !v8)
+      throw new Error('missing schema versions')
+    const before = open('calorithm-test-upgrade-v9', [v1, v2, v3, v4, v5, v6, v7, v8])
+    await before.table('log_entries').put({ id: 'l1', date: '2026-11-20', kcal: 225 })
+    const cursor = { updatedAt: '2026-11-22T10:00:00.000000+00:00', id: 'l1' }
+    await before.table('sync_state').bulkPut([
+      { table: 'log_entries', cursor, lastPullAt: 1, unreadable: [] },
+      { table: 'foods', cursor, lastPullAt: 1, unreadable: [] },
+    ])
+    before.close()
+
+    const after = open('calorithm-test-upgrade-v9')
+    expect(await after.table('log_entries').get('l1')).toEqual({
+      id: 'l1',
+      date: '2026-11-20',
+      kcal: 225,
+      serving_size: null,
+      serving_unit: null,
+    })
+    // An older version dropped the serving from entries it pulled, so they're read again.
+    expect(await after.sync_state.get('log_entries')).toMatchObject({ cursor: null })
+    expect(await after.sync_state.get('foods')).toMatchObject({ cursor })
   })
 
   it('keeps existing data across an upgrade that adds a table', async () => {

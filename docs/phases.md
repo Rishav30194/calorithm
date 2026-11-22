@@ -814,3 +814,49 @@ Phase 12 waits for the user's MacroFactor subscription, so this phase runs first
   progress and stops the worker; the text box and photo button wait while a photo is read.
 - The browser test draws a label on a canvas and runs real recognition on it in both
   projects, and checks no request leaves the machine.
+
+## Phase 14 — Logging by weight, and built-in groceries everywhere
+
+**Status:** In progress (PR 1 of 3)
+
+**Goal:** log what you actually ate by weight, and find everyday groceries and spices
+wherever you pick a food.
+
+**Scope:**
+- **Log by weight.** A food whose serving has a weight (a "100 g" serving, or a unit such as
+  "tsp (3 g)") can be logged and edited in grams or ml: 70 g of a 100 g serving is 0.7
+  servings. The entry dialog gets **Amount (g)** linked to **Servings** and a live preview
+  of kcal, protein, carbs, and fat before saving. Foods measured by weight (a serving in
+  g or ml) open an amount step when picked, prefilled with one serving; count foods (1 roti,
+  1 egg) still log in one tap. Log entries copy the food's serving size and unit when
+  logged, so a later edit of the food never changes what an old entry's grams mean.
+- **Built-in foods wherever you pick a food.** The recipe ingredient picker searches the
+  built-in list as the meal picker does (picking copies the item into your foods), and the
+  **Foods** screen gets **Add from built-in foods**. Search matches the start of words, so
+  "hing" no longer finds "jhinga" (prawns).
+- **Missing groceries.** Garam masala and chaat masala are added as estimates from their
+  usual spices' USDA values, labelled as estimates. For hing, ajwain, kalonji, curry
+  leaves, amchur, and black salt, Claude finds an openly licensed source and reports it to
+  the user before adding any.
+
+**Acceptance criteria:**
+- [ ] Logging 70 g of a 100 g food stores 0.7 servings and 70% of each value.
+- [ ] The entry dialog converts between grams and servings both ways, previews the four
+  values before saving, and shows no grams for foods without a weight.
+- [ ] A weighed food asks for its amount when picked; a count food still logs in one tap.
+- [ ] Onion, tomato, and the spices can be added to a recipe without saving them first.
+- [ ] Garam masala and chaat masala are in the list, marked as estimates; any single spice
+  added has a recorded source the user approved.
+
+**Plan** (approved by the user 2026-11-22, with the amount step for weighed foods only):
+- PR 1 (0.10.0, one migration): `src/domain/portion.ts` (weight per serving, grams to
+  servings), test first; nullable `serving_size` and `serving_unit` on `log_entries`
+  (schema version 3, in `addedColumns`); the entry dialog's amount and preview; the
+  picker's amount step for weighed foods. Decision 0031: the extra tap for weighed foods,
+  against phase 3's two-tap criterion.
+- PR 2 (0.11.0): built-in foods in the recipe ingredient picker and on the **Foods**
+  screen; word-start search.
+- PR 3 (0.12.0): garam masala and chaat masala estimates; single spices after the user
+  approves their source.
+
+**Implementation notes:** none yet.
