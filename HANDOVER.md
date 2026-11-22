@@ -9,9 +9,17 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 1. **Phase 13 (nutrition label) is deployed as 0.9.0** (#43, with 0.8.0 and the phase 11
    close-out), ahead of phase 12, which waits for the user's MacroFactor subscription. Live
    check 2026-11-22: GitHub Pages serves the photo reader gzipped, so the first photo
-   downloads about 4.5 MB (core 1.48 MB, worker 0.03 MB, English data 2.95 MB). Left: the
-   user tries real labels on the iPhone (paste and photo, Indian packs, an angled photo,
-   and a second photo offline); then tick the iPhone criterion and mark phase 13 done.
+   downloads about 4.5 MB (core 1.48 MB, worker 0.03 MB, English data 2.95 MB). The user
+   tried it on the iPhone (2026-11-22): it works, but needs a close photo and sometimes
+   misses fat, carbs, protein, or the serving size. **Improving it is parked** at the
+   user's request. The plan when resumed: the user puts 5 to 10 failing photos in
+   `~/Downloads/labels` (used locally only, never committed); measure each change on them,
+   keeping what helps: read at higher resolution and enlarge small text (the 2000-pixel
+   downscale in `labelReader.ts` is the likely cause of needing close photos), grayscale and
+   contrast, try two Tesseract table modes and keep the reading with more values, teach the
+   parser real misreads (columns read separately, "g" read as "9"), show the read text
+   beside the form with **Fix the text**, and maybe a crop step. Phase 13 stays open until
+   then; the workaround is cropping to the table in Photos first.
    Where things stand: phases 1 to 11 are done. The app is live at
    `https://rishav30194.github.io/calorithm/` as 0.9.0 (tag `v0.9.0`), with nutrition
    labels, barcode scanning, built-in foods, recent and frequent foods, and carbs and fat. The hosted
