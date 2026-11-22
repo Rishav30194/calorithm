@@ -18,10 +18,14 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    change** (inside the **Email** provider panel), **Site URL** (the dashboard refused the
    trailing-slash form; the guide now gives it without one), then migrations, secrets, and
    the checks.
-   Claude's read-only checks of the hosted project (2026-11-21) found sign-ups still on
-   (`disable_signup: false` from `/auth/v1/settings`) and no tables or `delete_account`
-   (PostgREST 404s), although this folder is linked to the right project. Recheck both
-   after the user fixes them.
+   Migrations: all 14 applied to the hosted project on 2026-11-21 by Claude, with the
+   user's one-off approval (the database password came from the user's macOS Keychain item
+   `calorithm-supabase-db`; the pooler timed out while the user's VPN was on). The hosted
+   project doesn't grant table privileges automatically, unlike local Supabase, and no
+   migration grants them: `anon` gets "permission denied" on `app_config`, and
+   `authenticated` almost certainly does on every table (untested; no hosted user to sign
+   in as). A migration with explicit grants is needed before the app can work. Sign-ups
+   still read `disable_signup: false` although the dashboard shows them off.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
@@ -74,6 +78,8 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
   (PR #15) didn't stop it. Read the trace CI records on the first retry before changing it.
 - An editor formatter reformatted the Markdown tables in `docs/architecture.md` outside
   any edit during PR 1; check `git diff` for unrelated doc changes before committing.
+- `guard-bash.sh` blocks `db push` and `db reset` with `--linked` or `--db-url`, but not
+  CLI 3.x's `--remote`. Fixing it changes `.claude/` and needs the user's approval.
 - Supabase CLI 3.x commands such as `db push` and `migration list` target the local
   database unless given `--remote`, even with a project linked. The first hosted push
   (2026-11-21) went to local Docker for this reason.
