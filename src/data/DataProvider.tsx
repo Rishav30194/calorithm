@@ -19,6 +19,7 @@ import {
 } from './auth'
 import { dbNameFor, LocalDb, type OutboxEntry } from './db'
 import type { Env } from './env'
+import { type OutboxSummary, readOutbox } from './outbox'
 import { readProfile, type SetUnitsResult, setUnits, type Units } from './profile'
 import { browserPendingDeletes } from './storage'
 import { getClient } from './supabase'
@@ -240,25 +241,26 @@ export const useSyncStatus = (): SyncStatus => useData().status
 
 export const useSignOut = (): SignOutControls => useData().signOut
 
-export type FailedChange = { seq: number; table: string; code: string; message: string }
+export type { FailedChange, OutboxSummary } from './outbox'
 
-export type OutboxSummary = { pending: number; failed: FailedChange[] }
+// What the screens see of the outbox. Loading is not "nothing waiting": an empty default would
+// briefly show "Everything is synced" with changes still queued. A new user's database
+// remounts the provider (keyed on the user in App), so no result outlives its db.
+export type OutboxView =
+  | { state: 'loading' }
+  | { state: 'failed'; retry: () => void }
+  | { state: 'loaded'; summary: OutboxSummary }
 
-// Undefined while the outbox loads. An empty default would read as "nothing waiting" on the
-// first render and briefly show "Everything is synced" with changes still queued. A new user's
-// database remounts the provider (keyed on the user in App), so no result outlives its db.
-export const useOutbox = (): OutboxSummary | undefined => {
+export const useOutbox = (): OutboxView => {
   const { ctx } = useData()
-  const entries = useLiveQuery(() => ctx.db.outbox.toArray(), [ctx.db])
-  return useMemo(() => {
-    if (entries === undefined) return undefined
-    const failed: FailedChange[] = entries.flatMap((entry) =>
-      entry.failure && entry.seq !== undefined
-        ? [{ seq: entry.seq, table: entry.table, ...entry.failure }]
-        : [],
-    )
-    return { pending: entries.length - failed.length, failed }
-  }, [entries])
+  // Bumped by retry, so the query runs again.
+  const [attempt, setAttempt] = useState(0)
+  const read = useLiveQuery(() => readOutbox(ctx.db), [ctx.db, attempt])
+  const retry = useCallback(() => setAttempt((n) => n + 1), [])
+  return useMemo((): OutboxView => {
+    if (read === undefined) return { state: 'loading' }
+    return read.ok ? { state: 'loaded', summary: read.summary } : { state: 'failed', retry }
+  }, [read, retry])
 }
 
 export const useUnits = (): Units => {

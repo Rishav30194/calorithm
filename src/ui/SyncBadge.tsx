@@ -1,16 +1,23 @@
-import type { OutboxSummary } from '@/data/DataProvider'
+import type { OutboxView } from '@/data/DataProvider'
 import type { SyncStatus } from '@/data/sync/engine'
 import { strings } from '@/strings'
 
-// The outbox is undefined while it loads.
-type Props = { status: SyncStatus; outbox: OutboxSummary | undefined }
+type Props = { status: SyncStatus; outbox: OutboxView }
 
 const message = ({ status, outbox }: Props): string | null => {
   if (status.state === 'update_required') return null
-  // Nothing until the counts load, so the badge never shows a count it doesn't have yet.
-  if (outbox === undefined) return null
-  const { pending } = outbox
-  const failed = outbox.failed.length
+  switch (outbox.state) {
+    // Nothing until the counts load, so the badge never shows a count it doesn't have yet.
+    case 'loading':
+      return null
+    // Settings says why and offers to try again.
+    case 'failed':
+      return strings.sync.badge.unknown
+    case 'loaded':
+      break
+  }
+  const { pending } = outbox.summary
+  const failed = outbox.summary.failed.length
   if (failed > 0) return strings.sync.badge.failed(failed)
   if (status.problem === 'signed_out') return strings.sync.badge.signedOut
   if (status.problem === 'offline') return strings.sync.badge.offline(pending)

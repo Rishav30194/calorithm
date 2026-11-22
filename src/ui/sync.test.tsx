@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { FailedChange } from '@/data/DataProvider'
+import type { FailedChange, OutboxView } from '@/data/DataProvider'
 import type { SetUnitsResult } from '@/data/profile'
 import type { DiscardOutcome } from '@/data/sync/discard'
 import type { SyncStatus } from '@/data/sync/engine'
@@ -23,7 +23,11 @@ const refused: FailedChange = {
   message: 'violates check constraint',
 }
 
-const box = (pending: number, failed: FailedChange[] = []) => ({ pending, failed })
+const box = (pending: number, failed: FailedChange[] = []): OutboxView => ({
+  state: 'loaded',
+  summary: { pending, failed },
+})
+const loading: OutboxView = { state: 'loading' }
 
 describe('SyncBadge', () => {
   it('shows nothing when everything is synced', () => {
@@ -48,8 +52,32 @@ describe('SyncBadge', () => {
   })
 
   it('shows nothing until the outbox loads, rather than a count it doesn’t have', () => {
-    const { container } = render(<SyncBadge status={offline} outbox={undefined} />)
+    const { container } = render(<SyncBadge status={offline} outbox={loading} />)
     expect(container).toBeEmptyDOMElement()
+  })
+})
+
+describe('a failed outbox read', () => {
+  it('shows in the badge as an unknown status', () => {
+    render(<SyncBadge status={synced} outbox={{ state: 'failed', retry: vi.fn() }} />)
+    expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.unknown)
+  })
+
+  it('shows in the panel with Try again, and never as everything synced', async () => {
+    const retry = vi.fn()
+    render(
+      <SyncPanel
+        status={synced}
+        outbox={{ state: 'failed', retry }}
+        now={now}
+        locale="en-GB"
+        onDiscard={async () => ({ status: 'done' })}
+      />,
+    )
+    expect(screen.getByRole('alert')).toHaveTextContent(strings.sync.outboxFailed)
+    expect(screen.queryByText(strings.sync.allSynced)).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: strings.sync.retry }))
+    expect(retry).toHaveBeenCalled()
   })
 })
 
@@ -98,7 +126,7 @@ describe('SyncPanel', () => {
 
   // The outbox count loads after the first render; until then the panel can't know.
   it('says it’s checking, not that everything is synced, until the outbox loads', () => {
-    const { rerender } = panel({ outbox: undefined })
+    const { rerender } = panel({ outbox: loading })
     expect(screen.getByText(strings.sync.checking)).toBeInTheDocument()
     expect(screen.queryByText(strings.sync.allSynced)).not.toBeInTheDocument()
     expect(screen.getByText(strings.sync.lastSynced('5 minutes ago'))).toBeInTheDocument()

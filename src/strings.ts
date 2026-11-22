@@ -414,6 +414,8 @@ export const strings = {
       count === 1 ? '1 change waiting to sync' : `${count} changes waiting to sync`,
     allSynced: 'Everything is synced',
     checking: 'Checking for changes waiting to sync…',
+    outboxFailed: 'Couldn’t check for changes waiting to sync.',
+    retry: 'Try again',
     offline: 'Offline. Changes are saved on this device and sync when you’re back online.',
     signedOut: 'Your session expired. Sign out and sign in again to resume syncing.',
     failedTitle: 'Changes the server refused',
@@ -426,6 +428,7 @@ export const strings = {
       offline: (count: number) => (count > 0 ? `Offline · ${count} waiting` : 'Offline'),
       failed: (count: number) => (count === 1 ? '1 sync problem' : `${count} sync problems`),
       signedOut: 'Sync paused',
+      unknown: 'Sync status unknown',
     },
   },
 
