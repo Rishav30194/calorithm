@@ -20,13 +20,19 @@ type Props = {
   backLabel?: string
   // After the food is logged, the picker closes.
   onDone: () => void
-  // Reads a photo's text; tests pass their own.
-  readPhoto?: (photo: Blob, onProgress: (progress: number) => void) => Promise<string>
+  // Reads a photo's text, stopping when the signal aborts; tests pass their own.
+  readPhoto?: ReadPhoto
 }
 
-const readWithTesseract = async (photo: Blob, onProgress: (progress: number) => void) => {
+type ReadPhoto = (
+  photo: Blob,
+  onProgress: (progress: number) => void,
+  signal: AbortSignal,
+) => Promise<string>
+
+const readWithTesseract: ReadPhoto = async (photo, onProgress, signal) => {
   const { readLabelPhoto } = await import('./labelReader')
-  return readLabelPhoto(photo, onProgress)
+  return readLabelPhoto(photo, onProgress, signal)
 }
 
 type Step = { kind: 'paste' } | { kind: 'form'; reading: LabelReading | null }
@@ -72,11 +78,11 @@ export const LabelPanel = ({
   // Progress from 0 to 1 while a photo is read; null otherwise.
   const [progress, setProgress] = useState<number | null>(null)
   const [photoFailed, setPhotoFailed] = useState(false)
-  // A photo still being read when the panel closes is ignored.
-  const open = useRef(true)
+  // A photo still being read when the panel closes is stopped, and its text ignored.
+  const reading = useRef<AbortController | null>(null)
   useEffect(
     () => () => {
-      open.current = false
+      reading.current?.abort()
     },
     [],
   )
@@ -104,8 +110,10 @@ export const LabelPanel = ({
     setError(undefined)
     setPhotoFailed(false)
     setProgress(0)
-    const recognized = await readPhoto(photo, setProgress).catch(() => null)
-    if (!open.current) return
+    const controller = new AbortController()
+    reading.current = controller
+    const recognized = await readPhoto(photo, setProgress, controller.signal).catch(() => null)
+    if (controller.signal.aborted) return
     setProgress(null)
     if (recognized === null) {
       setPhotoFailed(true)
@@ -139,7 +147,10 @@ export const LabelPanel = ({
       {step.kind === 'paste' && (
         <form onSubmit={read} noValidate className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <label className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg bg-accent px-4 font-semibold text-accent-text focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent">
+            <label
+              aria-disabled={progress !== null}
+              className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg bg-accent px-4 font-semibold text-accent-text focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent aria-disabled:cursor-default aria-disabled:opacity-60"
+            >
               <input
                 type="file"
                 accept="image/*"
@@ -175,6 +186,8 @@ export const LabelPanel = ({
             }}
             error={error}
             rows={8}
+            // Text from a photo replaces the box's contents, so it waits while one is read.
+            disabled={progress !== null}
           />
           <button
             type="submit"

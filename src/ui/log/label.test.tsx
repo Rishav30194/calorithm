@@ -175,7 +175,7 @@ describe('LabelPanel photos', () => {
     renderWith(readPhoto)
 
     await userEvent.upload(screen.getByLabelText(text.photo), photo)
-    expect(readPhoto).toHaveBeenCalledWith(photo, expect.any(Function))
+    expect(readPhoto).toHaveBeenCalledWith(photo, expect.any(Function), expect.any(AbortSignal))
     expect(screen.getByRole('status')).toHaveTextContent(text.reading('40%'))
 
     finish(label)
@@ -190,6 +190,31 @@ describe('LabelPanel photos', () => {
     expect(screen.getByLabelText(text.text)).toHaveAccessibleDescription(
       expect.stringContaining(text.nothingRead),
     )
+  })
+
+  it('holds the text box and photo button while reading, and stops reading when closed', async () => {
+    let signal: AbortSignal | undefined
+    const readPhoto = vi.fn((_photo: Blob, _onProgress: (p: number) => void, s: AbortSignal) => {
+      signal = s
+      return new Promise<string>(() => {})
+    })
+    const { unmount } = render(
+      <LabelPanel
+        barcode={null}
+        locale="en-US"
+        onLogNew={vi.fn(async () => true)}
+        onBack={vi.fn()}
+        onDone={vi.fn()}
+        readPhoto={readPhoto}
+      />,
+    )
+    await userEvent.upload(screen.getByLabelText(text.photo), photo)
+
+    expect(screen.getByLabelText(text.text)).toBeDisabled()
+    expect(screen.getByLabelText(text.photo)).toBeDisabled()
+    expect(signal?.aborted).toBe(false)
+    unmount()
+    expect(signal?.aborted).toBe(true)
   })
 
   it('says when the photo can’t be read, and keeps pasting available', async () => {

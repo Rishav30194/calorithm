@@ -26,10 +26,14 @@ const tessdataDir = `tessdata/eng-${engVersion}`
 const tessdata = (): Plugin => {
   const file = `${tessdataDir}/eng.traineddata.gz`
   const source = () => readFileSync(require.resolve(engData))
+  let base = '/'
   return {
     name: 'calorithm-tessdata',
+    configResolved(config) {
+      base = config.base
+    },
     configureServer(server) {
-      server.middlewares.use(`/calorithm/${file}`, (_request, response) => {
+      server.middlewares.use(`${base}${file}`, (_request, response) => {
         response.setHeader('Content-Type', 'application/gzip')
         response.end(source())
       })

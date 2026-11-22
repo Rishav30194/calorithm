@@ -809,5 +809,8 @@ Phase 12 waits for the user's MacroFactor subscription, so this phase runs first
   `npm run dev`; the path carries the package version so the cache refreshes on a change.
 - A browser without WebAssembly SIMD can't start the core; the panel then says the photo
   couldn't be read and offers pasting.
+- `tesseract.js-core` 7.0.0 is pinned as a direct dependency, because the app loads its
+  core file by path and it must match the worker. Closing the panel aborts a read in
+  progress and stops the worker; the text box and photo button wait while a photo is read.
 - The browser test draws a label on a canvas and runs real recognition on it in both
   projects, and checks no request leaves the machine.

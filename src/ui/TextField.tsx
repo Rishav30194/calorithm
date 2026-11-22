@@ -16,6 +16,7 @@ type Props = {
   autoFocus?: boolean
   // A text area this many rows tall, for text such as a pasted nutrition label.
   rows?: number
+  disabled?: boolean
 }
 
 // A labelled input whose hint and error are announced with it. Text is 16 pixels so iPhone
@@ -34,6 +35,7 @@ export const TextField = ({
   max,
   autoFocus = false,
   rows,
+  disabled = false,
 }: Props) => {
   const id = useId()
   const hintId = `${id}-hint`
@@ -55,11 +57,12 @@ export const TextField = ({
         <textarea
           id={id}
           rows={rows}
+          disabled={disabled}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           aria-invalid={error || invalid ? true : undefined}
           aria-describedby={describedBy || undefined}
-          className="rounded-lg border border-border bg-bg px-3 py-2 text-base aria-[invalid=true]:border-danger"
+          className="rounded-lg border border-border bg-bg px-3 py-2 text-base disabled:opacity-60 aria-[invalid=true]:border-danger"
         />
       ) : (
         <input
