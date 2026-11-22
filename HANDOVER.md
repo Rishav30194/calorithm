@@ -6,30 +6,15 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 7 (production) PR 1 is merged as #27: the deploy and keep-awake workflows,
-   `docs/production.md`, and decision 0024 (public repository). Next, the user follows
-   `docs/production.md`: make the repository public, set **Pages** to **GitHub Actions**,
-   create the hosted Supabase project, apply the migrations, set the two secrets, then run
-   the six checks. Record each result in `docs/phases.md` and mark the phase done when all
-   pass. Deploy runs after #27's merge fail at the secret check until the secrets are set;
-   that's expected. Then run **Deploy** by hand from `main`.
-   Done by the user on 2026-11-21: repository public, **Pages** source set to **GitHub
-   Actions**, hosted project `calorithm` created, sign-ups off. Pending: **Secure password
-   change** (inside the **Email** provider panel), **Site URL** (the dashboard refused the
-   trailing-slash form; the guide now gives it without one), then migrations, secrets, and
-   the checks.
-   Migrations: all 14 applied to the hosted project on 2026-11-21 by Claude, with the
-   user's one-off approval (the database password came from the user's macOS Keychain item
-   `calorithm-supabase-db`; the pooler timed out while the user's VPN was on). The hosted
-   project doesn't grant table privileges automatically, unlike local Supabase, and no
-   migration granted them, so `anon` got "permission denied" on `app_config`. Migration
-   `20261121090000_grant_table_privileges.sql` grants them, and local Supabase now runs with
-   `auto_expose_new_tables = false` so it matches hosted. After that PR merges, the user
-   applies it to the hosted project (`docs/production.md`, step 6; the hook blocks Claude
-   from pushing), Claude reruns the read-only hosted checks, and the user deletes the
-   Keychain item: `security delete-generic-password -s calorithm-supabase-db`. Sign-ups
-   still read `disable_signup: false` although the dashboard shows them off; the user is
-   sending a screenshot.
+1. Phase 7 (production): the app is live at `https://rishav30194.github.io/calorithm/`
+   against the hosted project, with all 15 migrations, sign-ups off (checked
+   `disable_signup: true`), and the secrets set. Keep-awake and export are checked; see
+   `docs/phases.md` for each criterion. Left for the user on the iPhone: install and open
+   offline, confirm the **Laptop sync check** food arrived from the laptop, and see the
+   **Update available** banner once version 0.2.0 deploys. Then mark the phase done.
+   The hosted test account `rishav30194+delete@gmail.com` holds the user's phone entries;
+   never delete it or its data without the user's approval. If not yet done, the user
+   deletes the Keychain item: `security delete-generic-password -s calorithm-supabase-db`.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
