@@ -6,10 +6,14 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. **Phase 11 is done** (2026-11-22): barcode scanning shipped in 0.7.0 (#42), and the user
-   confirmed scanning, offline rescans, and a denied camera on the iPhone. No phase is in
-   progress; phase 12 (review against MacroFactor) waits for the user's subscription, so the
-   small fixes in the items that follow are the next work, when asked.
+1. **Phase 13 (nutrition label) is in progress**, ahead of phase 12, which waits for the
+   user's MacroFactor subscription. Phase 11 is done (the user confirmed scanning on the
+   iPhone, 2026-11-22). PR 1 (0.8.0: the label parser and **Paste label text**) is built on
+   `feature/nutrition-label`, which also carries the phase 11 close-out commit; push and
+   open its PR when the user asks. No migration. PR 2 (0.9.0) adds **Photo of label** with
+   `tesseract.js` 7.0.0, which the user approved on 2026-11-22 with an estimated 5 to 8 MB
+   first-use download: measure the real size, self-host it, cache it after first use, and
+   test with a generated label image. Then the user checks real labels on the iPhone.
    Where things stand: phases 1 to 11 are done. The app is live at
    `https://rishav30194.github.io/calorithm/` as 0.7.0 (tag `v0.7.0`), with barcode
    scanning, built-in foods, recent and frequent foods, and carbs and fat. The hosted
@@ -77,7 +81,7 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 186.4 kB of the 200 kB budget (0.7.0, 2026-11-22); the log,
+- First-load JavaScript is 186.6 kB of the 200 kB budget (0.8.0, 2026-11-22); the log,
   food, and backup screens and the built-in food list load on demand. A new screen of any
   size, and the barcode scanner, should too.
 - The built-in food list is rebuilt from USDA CSV downloads that aren't committed;

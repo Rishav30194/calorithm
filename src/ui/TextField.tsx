@@ -14,6 +14,8 @@ type Props = {
   min?: string
   max?: string
   autoFocus?: boolean
+  // A text area this many rows tall, for text such as a pasted nutrition label.
+  rows?: number
 }
 
 // A labelled input whose hint and error are announced with it. Text is 16 pixels so iPhone
@@ -31,6 +33,7 @@ export const TextField = ({
   min,
   max,
   autoFocus = false,
+  rows,
 }: Props) => {
   const id = useId()
   const hintId = `${id}-hint`
@@ -48,20 +51,32 @@ export const TextField = ({
           {hint}
         </p>
       )}
-      <input
-        id={id}
-        type={type}
-        min={min}
-        max={max}
-        inputMode={inputMode}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        aria-invalid={error || invalid ? true : undefined}
-        aria-describedby={describedBy || undefined}
-        // biome-ignore lint/a11y/noAutofocus: only the picker's search field, which opens on request
-        autoFocus={autoFocus}
-        className="min-h-11 rounded-lg border border-border bg-bg px-3 text-base aria-[invalid=true]:border-danger"
-      />
+      {rows !== undefined ? (
+        <textarea
+          id={id}
+          rows={rows}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          aria-invalid={error || invalid ? true : undefined}
+          aria-describedby={describedBy || undefined}
+          className="rounded-lg border border-border bg-bg px-3 py-2 text-base aria-[invalid=true]:border-danger"
+        />
+      ) : (
+        <input
+          id={id}
+          type={type}
+          min={min}
+          max={max}
+          inputMode={inputMode}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          aria-invalid={error || invalid ? true : undefined}
+          aria-describedby={describedBy || undefined}
+          // biome-ignore lint/a11y/noAutofocus: only the picker's search field, which opens on request
+          autoFocus={autoFocus}
+          className="min-h-11 rounded-lg border border-border bg-bg px-3 text-base aria-[invalid=true]:border-danger"
+        />
+      )}
       {error && (
         <p id={errorId} className="text-sm text-danger">
           {error}

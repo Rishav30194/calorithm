@@ -12,6 +12,7 @@ import { macroText } from '../macros'
 import { OpenFoodFactsCredit } from '../OpenFoodFactsCredit'
 import { TextField } from '../TextField'
 import { BarcodeCamera, type CameraProblem } from './BarcodeCamera'
+import { LabelPanel } from './LabelPanel'
 
 type Props = {
   start: 'scan' | 'enter'
@@ -32,6 +33,8 @@ type Step =
   | { kind: 'looking' }
   | { kind: 'saved'; foods: FoodView[] }
   | { kind: 'form'; barcode: string; product: ProductDraft | null; message: FormMessage }
+  // Reading the label of a pack Open Food Facts couldn't give, keeping its barcode.
+  | { kind: 'label'; barcode: string; message: FormMessage }
 
 const problemText = (problem: CameraProblem): string => {
   const text = strings.log.barcode
@@ -161,13 +164,15 @@ export const BarcodePanel = ({
 
   return (
     <div className="flex flex-col gap-3">
-      <button
-        type="button"
-        onClick={back}
-        className="inline-flex min-h-11 items-center self-start text-accent"
-      >
-        {text.back}
-      </button>
+      {step.kind !== 'label' && (
+        <button
+          type="button"
+          onClick={back}
+          className="inline-flex min-h-11 items-center self-start text-accent"
+        >
+          {text.back}
+        </button>
+      )}
       {failed && (
         <p role="alert" className="text-danger">
           {failed === 'lookup' ? text.lookupFailed : strings.log.picker.failed}
@@ -236,6 +241,17 @@ export const BarcodePanel = ({
       {step.kind === 'form' && (
         <>
           <p role="status">{text[step.message]}</p>
+          {step.product === null && (
+            <button
+              type="button"
+              onClick={() =>
+                setStep({ kind: 'label', barcode: step.barcode, message: step.message })
+              }
+              className="min-h-11 self-start rounded-lg border border-border px-3 font-medium"
+            >
+              {text.readLabel}
+            </button>
+          )}
           {step.message === 'unreachable' && (
             <button
               type="button"
@@ -255,6 +271,18 @@ export const BarcodePanel = ({
             }
           />
         </>
+      )}
+      {step.kind === 'label' && (
+        <LabelPanel
+          barcode={step.barcode}
+          locale={locale}
+          onLogNew={logNew}
+          backLabel={text.backToForm}
+          onBack={() =>
+            setStep({ kind: 'form', barcode: step.barcode, product: null, message: step.message })
+          }
+          onDone={onDone}
+        />
       )}
     </div>
   )

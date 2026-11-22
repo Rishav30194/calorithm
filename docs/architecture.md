@@ -312,6 +312,13 @@ Phase 11, decisions 0028 and 0029.
   saves the food with its barcode and `catalog_id = 'openfoodfacts'`, so the food keeps the
   ODbL credit, and logs one serving.
 
+## Nutrition labels
+
+Phase 13, decision 0030. `parseNutritionLabel` (`src/domain/label.ts`) turns label text into
+a basis and the four numbers, leaving doubtful values empty. **Read nutrition label** in the
+picker (`src/ui/log/LabelPanel.tsx`) takes text pasted from the iPhone's Live Text and fills
+the food form for checking. Nothing leaves the device.
+
 ## Hosting and environments
 
 | Environment | Front end | Database |

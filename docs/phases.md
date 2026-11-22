@@ -762,9 +762,9 @@ Phase 12 waits for the user's MacroFactor subscription, so this phase runs first
 - No AI and no server: the user wants none, and a static app can't hide an API key.
 
 **Acceptance criteria:**
-- [ ] Parser tests cover the three label formats with synthetic text, including kJ only,
+- [x] Parser tests cover the three label formats with synthetic text, including kJ only,
   two columns, and noisy text recognition output, plus property tests.
-- [ ] Pasted label text fills the form, and a value the parser can't read stays empty.
+- [x] Pasted label text fills the form, and a value the parser can't read stays empty.
 - [ ] A photo of a real label on the iPhone fills the four numbers, or leaves unread ones
   empty for the user to type.
 - [ ] Text recognition loads on demand and leaves first-load JavaScript within budget.
@@ -778,4 +778,14 @@ Phase 12 waits for the user's MacroFactor subscription, so this phase runs first
   use; browser tests with a generated label image; the user checks real labels on the
   iPhone.
 
-**Implementation notes:** none yet.
+**Implementation notes:**
+- PR 1 (0.8.0): `parseNutritionLabel` (`src/domain/label.ts`, decision 0030) reads a row
+  only when the nutrient's name comes before its first number, prefers the per-100 column
+  (a header naming a serving before 100 g makes it the second), reads kcal beside kJ and
+  falls back to kJ ÷ 4.184, fixes a letter O beside digits, and treats a comma as a decimal
+  mark except in energy values such as 1,569. It leaves empty a "<" amount, a row missing
+  the chosen column, and values no food can have (over 100 g, or 900 kcal, per 100 g).
+- **Read nutrition label** in the picker opens `LabelPanel`: paste, **Read label**, then
+  `FoodForm` filled for naming and checking, with a message naming any values left empty.
+  **Read the label** on the barcode flow's not-found and unreachable form keeps the barcode.
+  `TextField` takes `rows` for a text area.
