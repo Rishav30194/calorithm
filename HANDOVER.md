@@ -13,14 +13,13 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    review against MacroFactor once the user subscribes. The user wants macros only (kcal,
    protein, carbs, fat), no AI logging, and no bulk food database.
    Phase 8 is in progress (plan and decisions in `docs/phases.md` and decision 0025). PR 1
-   (nullable columns, sync, Dexie version 6) is built and reviewed on its branch; both
-   reviews' findings are fixed. **Before PR 1 merges, the user applies migration
-   `20261122010000_carbs_and_fat.sql` to the hosted project** (`docs/production.md`, step
-   6): every push to `main` deploys at once while CI is paused, and the new app sends
-   carbs and fat columns the hosted database doesn't have yet. Next: PR 2 (totals, food
-   form, recipes, log, copy and repeat; version 0.3.0), then PR 3 (export version 2). Bump the version
-   for each release (`docs/development.md`, "Versions and tags"), and apply hosted
-   migrations before merging the PR that needs them.
+   (nullable columns, sync, Dexie version 6) is merged as #33 and its migration is on the
+   hosted project. PR 2 (the food form, totals, recipes, the log, and copy and repeat;
+   version 0.3.0) is next to merge; it needs no migration. Then PR 3 (export format
+   version 2), then release 2: a migration raising `min_app_version` to 0.3.0 once every
+   device runs it. Bump the version for each release (`docs/development.md`, "Versions and
+   tags"), and apply hosted migrations before merging the PR that needs them: every push
+   to `main` deploys at once while CI is paused.
    The hosted test account (the user knows which) holds the user's phone entries; never
    delete it or its data without the user's approval. If not yet done, the user deletes the
    Keychain item: `security delete-generic-password -s calorithm-supabase-db`.

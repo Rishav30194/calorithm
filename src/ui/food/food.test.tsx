@@ -27,9 +27,19 @@ const oats: FoodView = {
   servingUnit: 'g',
   kcal: 150,
   proteinG: 5,
+  carbsG: 27,
+  fatG: 2.5,
   archived: false,
 }
-const milk: FoodView = { ...oats, id: 'f2', name: 'Milk', kcal: 65, proteinG: 3.4 }
+const milk: FoodView = {
+  ...oats,
+  id: 'f2',
+  name: 'Milk',
+  kcal: 65,
+  proteinG: 3.4,
+  carbsG: 4.8,
+  fatG: 3.6,
+}
 const butter: FoodView = { ...oats, id: 'f3', name: 'Butter', archived: true }
 
 const text = strings.foods.editor
@@ -53,6 +63,8 @@ describe('FoodEditor', () => {
     await user.type(screen.getByLabelText(text.servingUnit), 'g')
     await user.type(screen.getByLabelText(text.kcal), '100')
     await user.type(screen.getByLabelText(text.proteinG), '17')
+    await user.type(screen.getByLabelText(text.carbsG), '6')
+    await user.type(screen.getByLabelText(text.fatG), '0')
     await user.click(screen.getByRole('button', { name: text.save }))
 
     expect(onSave).toHaveBeenCalledWith({
@@ -61,7 +73,34 @@ describe('FoodEditor', () => {
       servingUnit: 'g',
       kcal: 100,
       proteinG: 17,
+      carbsG: 6,
+      fatG: 0,
     })
+  })
+
+  it('asks for carbs and fat on a food saved before they existed', async () => {
+    const onSave = vi.fn(async () => true)
+    render(
+      <FoodEditor
+        food={{ ...oats, carbsG: null, fatG: null }}
+        locale="en-US"
+        backHref="#/log/foods"
+        onSave={onSave}
+        onSetArchived={vi.fn()}
+      />,
+    )
+    const user = userEvent.setup()
+    expect(screen.getByLabelText(text.carbsG)).toHaveValue('')
+    expect(screen.getByLabelText(text.fatG)).toHaveValue('')
+
+    await user.click(screen.getByRole('button', { name: text.save }))
+    expect(onSave).not.toHaveBeenCalled()
+    expect(screen.getByLabelText(text.carbsG)).toHaveFocus()
+
+    await user.type(screen.getByLabelText(text.carbsG), '27')
+    await user.type(screen.getByLabelText(text.fatG), '2.5')
+    await user.click(screen.getByRole('button', { name: text.save }))
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ carbsG: 27, fatG: 2.5 }))
   })
 
   it('shows each field’s error and focuses the first bad field', async () => {
@@ -199,10 +238,10 @@ describe('RecipeEditor', () => {
 
     // 150 × 2 + 65 = 365 kcal; 5 × 2 + 3.4 = 13.4 g.
     expect(screen.getByText(recipeText.totals).nextElementSibling).toHaveTextContent(
-      strings.foods.nutrients('365 kcal', '13.4 g'),
+      strings.macros('365 kcal', '13.4 g', '58.8 g', '8.6 g'),
     )
     expect(screen.getByText(recipeText.perServing).nextElementSibling).toHaveTextContent(
-      strings.foods.nutrients('91 kcal', '3.4 g'),
+      strings.macros('91 kcal', '3.4 g', '14.7 g', '2.2 g'),
     )
 
     await user.click(screen.getByRole('button', { name: recipeText.save }))
@@ -251,8 +290,9 @@ describe('RecipeEditor', () => {
       name: 'Mix',
       servings: 1,
       archived: false,
-      totals: { kcal: 0, proteinG: 0 },
-      perServing: { kcal: 0, proteinG: 0 },
+      totals: { kcal: 0, proteinG: 0, carbsG: null, fatG: null },
+      perServing: { kcal: 0, proteinG: 0, carbsG: null, fatG: null },
+      missingCarbsOrFat: true,
       items: [
         {
           foodId: 'f1',
@@ -260,7 +300,7 @@ describe('RecipeEditor', () => {
           servingSize: 40,
           servingUnit: 'g',
           servings: 1,
-          perServing: { kcal: 150, proteinG: 5 },
+          perServing: { kcal: 150, proteinG: 5, carbsG: null, fatG: null },
         },
         {
           foodId: 'f2',
@@ -268,7 +308,7 @@ describe('RecipeEditor', () => {
           servingSize: 40,
           servingUnit: 'g',
           servings: 1,
-          perServing: { kcal: 65, proteinG: 3.4 },
+          perServing: { kcal: 65, proteinG: 3.4, carbsG: null, fatG: null },
         },
       ],
     }

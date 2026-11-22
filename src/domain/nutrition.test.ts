@@ -5,11 +5,13 @@ import {
   type Entry,
   isMeal,
   meals,
+  missingCarbsOrFat,
   mostUsed,
   type QuickPick,
   recipeEntryNutrients,
   recipePerServing,
   recipeTotals,
+  roundGrams,
   roundKcal,
   roundProtein,
   roundServings,
@@ -24,9 +26,13 @@ const decimalsOf = (value: number): number => {
 }
 
 const servings = fc.integer({ min: 1, max: 100_000 }).map((hundredths) => hundredths / 100)
+const grams = fc.integer({ min: 0, max: 10_000 }).map((tenths) => tenths / 10)
+// Carbs and fat may be not set (null), as on foods saved before they existed.
 const perServing = fc.record({
   kcal: fc.integer({ min: 0, max: 10_000 }),
-  proteinG: fc.integer({ min: 0, max: 10_000 }).map((tenths) => tenths / 10),
+  proteinG: grams,
+  carbsG: fc.option(grams, { nil: null }),
+  fatG: fc.option(grams, { nil: null }),
 })
 
 describe('rounding at the storage boundary', () => {
@@ -55,8 +61,18 @@ describe('rounding at the storage boundary', () => {
 
 describe('scaleNutrients', () => {
   it('multiplies per-serving values by the servings logged', () => {
-    expect(scaleNutrients({ kcal: 150, proteinG: 5 }, 1.3)).toEqual({ kcal: 195, proteinG: 6.5 })
-    expect(scaleNutrients({ kcal: 100, proteinG: 17 }, 0.5)).toEqual({ kcal: 50, proteinG: 8.5 })
+    expect(scaleNutrients({ kcal: 150, proteinG: 5, carbsG: null, fatG: null }, 1.3)).toEqual({
+      kcal: 195,
+      proteinG: 6.5,
+      carbsG: null,
+      fatG: null,
+    })
+    expect(scaleNutrients({ kcal: 100, proteinG: 17, carbsG: null, fatG: null }, 0.5)).toEqual({
+      kcal: 50,
+      proteinG: 8.5,
+      carbsG: null,
+      fatG: null,
+    })
   })
 
   it('gives storable values that grow with the servings', () => {
@@ -75,21 +91,31 @@ describe('scaleNutrients', () => {
 
 describe('recipes', () => {
   const porridge = [
-    { perServing: { kcal: 150, proteinG: 5 }, servings: 2 }, // oats
-    { perServing: { kcal: 65, proteinG: 3.4 }, servings: 3 }, // milk
+    { perServing: { kcal: 150, proteinG: 5, carbsG: null, fatG: null }, servings: 2 }, // oats
+    { perServing: { kcal: 65, proteinG: 3.4, carbsG: null, fatG: null }, servings: 3 }, // milk
   ]
 
   it('totals the ingredients', () => {
-    expect(recipeTotals(porridge)).toEqual({ kcal: 495, proteinG: 20.2 })
+    expect(recipeTotals(porridge)).toEqual({ kcal: 495, proteinG: 20.2, carbsG: null, fatG: null })
   })
 
   it('logs a fraction of the recipe from its exact totals, rounding once', () => {
     // 495 kcal makes 4 servings; half a serving is 61.875 kcal.
-    expect(recipeEntryNutrients(porridge, 4, 0.5)).toEqual({ kcal: 62, proteinG: 2.5 })
+    expect(recipeEntryNutrients(porridge, 4, 0.5)).toEqual({
+      kcal: 62,
+      proteinG: 2.5,
+      carbsG: null,
+      fatG: null,
+    })
   })
 
   it('gives unrounded per-serving values to store with an entry', () => {
-    expect(recipePerServing(porridge, 4)).toEqual({ kcal: 123.75, proteinG: 5.05 })
+    expect(recipePerServing(porridge, 4)).toEqual({
+      kcal: 123.75,
+      proteinG: 5.05,
+      carbsG: null,
+      fatG: null,
+    })
   })
 
   it('scaling the per-serving values gives the same entry as logging directly', () => {
@@ -128,6 +154,8 @@ const entry = (overrides: Partial<Entry> = {}): Entry => ({
   servings: 1,
   kcal: 150,
   proteinG: 5,
+  carbsG: null,
+  fatG: null,
   ...overrides,
 })
 
@@ -135,11 +163,11 @@ describe('totals', () => {
   it('sums kcal and protein without float drift', () => {
     expect(
       sumNutrients([
-        { kcal: 1, proteinG: 0.1 },
-        { kcal: 2, proteinG: 0.2 },
+        { kcal: 1, proteinG: 0.1, carbsG: null, fatG: null },
+        { kcal: 2, proteinG: 0.2, carbsG: null, fatG: null },
       ]),
-    ).toEqual({ kcal: 3, proteinG: 0.3 })
-    expect(sumNutrients([])).toEqual({ kcal: 0, proteinG: 0 })
+    ).toEqual({ kcal: 3, proteinG: 0.3, carbsG: null, fatG: null })
+    expect(sumNutrients([])).toEqual({ kcal: 0, proteinG: 0, carbsG: null, fatG: null })
   })
 
   it('splits a day by meal, with every meal present', () => {
@@ -149,10 +177,10 @@ describe('totals', () => {
       entry({ meal: 'dinner', kcal: 600, proteinG: 40.5 }),
     ])
     expect(totals).toEqual({
-      breakfast: { kcal: 250, proteinG: 22 },
-      lunch: { kcal: 0, proteinG: 0 },
-      dinner: { kcal: 600, proteinG: 40.5 },
-      snacks: { kcal: 0, proteinG: 0 },
+      breakfast: { kcal: 250, proteinG: 22, carbsG: null, fatG: null },
+      lunch: { kcal: 0, proteinG: 0, carbsG: null, fatG: null },
+      dinner: { kcal: 600, proteinG: 40.5, carbsG: null, fatG: null },
+      snacks: { kcal: 0, proteinG: 0, carbsG: null, fatG: null },
     })
   })
 
@@ -161,11 +189,106 @@ describe('totals', () => {
       meal: fc.constantFrom(...meals),
       kcal: fc.integer({ min: 0, max: 5_000 }),
       proteinG: fc.integer({ min: 0, max: 5_000 }).map((tenths) => tenths / 10),
+      carbsG: fc.option(grams, { nil: null }),
+      fatG: fc.option(grams, { nil: null }),
     })
     fc.assert(
       fc.property(fc.array(arbitraryEntry, { maxLength: 50 }), (entries) => {
         const byMeal = totalsByMeal(entries.map((e) => entry(e)))
         expect(sumNutrients(Object.values(byMeal))).toEqual(sumNutrients(entries))
+      }),
+    )
+  })
+})
+
+describe('carbs and fat (decision 0025)', () => {
+  const oats = { kcal: 150, proteinG: 5, carbsG: 27, fatG: 2.5 }
+  const unset = { kcal: 100, proteinG: 10, carbsG: null, fatG: null }
+
+  it('rounds grams to one decimal, as protein', () => {
+    expect(roundGrams(2.25)).toBe(2.3)
+    expect(roundGrams(27.04)).toBe(27)
+  })
+
+  it('scales carbs and fat with the servings, and keeps not set as not set', () => {
+    expect(scaleNutrients(oats, 1.5)).toEqual({ kcal: 225, proteinG: 7.5, carbsG: 40.5, fatG: 3.8 })
+    expect(scaleNutrients(unset, 2)).toEqual({ kcal: 200, proteinG: 20, carbsG: null, fatG: null })
+  })
+
+  it('sums the known values when some items have carbs or fat not set', () => {
+    expect(sumNutrients([oats, unset])).toEqual({ kcal: 250, proteinG: 15, carbsG: 27, fatG: 2.5 })
+    expect(missingCarbsOrFat([oats, unset])).toBe(true)
+    expect(missingCarbsOrFat([oats, oats])).toBe(false)
+  })
+
+  // Not set whenever nothing is known, an empty list included, so meal totals add up to the
+  // day's total. Screens show an empty day as 0 g.
+  it('gives not set when no item has a value, or there are no items', () => {
+    expect(sumNutrients([unset, unset])).toMatchObject({ carbsG: null, fatG: null })
+    expect(sumNutrients([])).toEqual({ kcal: 0, proteinG: 0, carbsG: null, fatG: null })
+    expect(missingCarbsOrFat([])).toBe(false)
+  })
+
+  it('totals a recipe’s carbs and fat from its ingredients', () => {
+    const rice = { kcal: 270, proteinG: 5.3, carbsG: 59.6, fatG: 0.4 }
+    const ingredients = [
+      { perServing: oats, servings: 2 },
+      { perServing: rice, servings: 1 },
+    ]
+    expect(recipeTotals(ingredients)).toEqual({
+      kcal: 570,
+      proteinG: 15.3,
+      carbsG: 113.6,
+      fatG: 5.4,
+    })
+    expect(recipePerServing(ingredients, 4)).toEqual({
+      kcal: 142.5,
+      proteinG: 3.825,
+      carbsG: 28.4,
+      fatG: 1.35,
+    })
+  })
+
+  it('splits carbs and fat by meal', () => {
+    const totals = totalsByMeal([
+      { meal: 'breakfast', ...oats },
+      { meal: 'dinner', ...unset },
+    ])
+    expect(totals.breakfast).toEqual(oats)
+    expect(totals.dinner).toEqual(unset)
+    expect(totals.lunch).toEqual({ kcal: 0, proteinG: 0, carbsG: null, fatG: null })
+  })
+
+  it('keeps one decimal and never drops below the smaller serving’s grams', () => {
+    fc.assert(
+      fc.property(perServing, servings, servings, (food, a, b) => {
+        const small = scaleNutrients(food, Math.min(a, b))
+        const large = scaleNutrients(food, Math.max(a, b))
+        for (const key of ['carbsG', 'fatG'] as const) {
+          const lo = small[key]
+          const hi = large[key]
+          expect(lo === null).toBe(food[key] === null)
+          if (lo === null || hi === null) continue
+          expect(decimalsOf(lo)).toBeLessThanOrEqual(1)
+          expect(hi).toBeGreaterThanOrEqual(lo)
+        }
+      }),
+    )
+  })
+
+  it('sums known grams to the rounded total of the parts', () => {
+    fc.assert(
+      fc.property(fc.array(perServing, { maxLength: 30 }), (items) => {
+        const known = items.flatMap((item) => (item.carbsG === null ? [] : [item.carbsG]))
+        const total = sumNutrients(items).carbsG
+        if (known.length === 0) {
+          expect(total).toBeNull()
+        } else {
+          expect(total).toBe(roundGrams(known.reduce((sum, value) => sum + value, 0)))
+        }
+        expect(missingCarbsOrFat(items)).toBe(
+          items.some((item) => item.carbsG === null || item.fatG === null),
+        )
       }),
     )
   })

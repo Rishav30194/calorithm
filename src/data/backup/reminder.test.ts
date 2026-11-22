@@ -25,6 +25,8 @@ const oats = () =>
     servingUnit: 'g',
     kcal: 150,
     proteinG: 5,
+    carbsG: 20,
+    fatG: 3,
   })
 
 describe('recordExport and lastExportDay', () => {

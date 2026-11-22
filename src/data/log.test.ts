@@ -36,6 +36,8 @@ const addOats = () =>
     servingUnit: 'g',
     kcal: 150,
     proteinG: 5,
+    carbsG: 20,
+    fatG: 3,
   })
 
 describe('logFood', () => {
@@ -137,6 +139,8 @@ describe('entriesOn', () => {
         servings: 1,
         kcal: 150,
         proteinG: 5,
+        carbsG: 20,
+        fatG: 3,
       },
     ])
   })
@@ -157,6 +161,8 @@ describe('changeServings', () => {
       servingUnit: 'g',
       kcal: 999,
       proteinG: 99,
+      carbsG: 20,
+      fatG: 3,
     })
 
     await changeServings(db, time.clock, entry.id, 3)
@@ -174,6 +180,8 @@ describe('changeServings precision', () => {
       servingUnit: 'leaf',
       kcal: 7,
       proteinG: 0.4,
+      carbsG: 20,
+      fatG: 3,
     })
     const entry = await logFood(db, time.clock, userId, {
       date: '2026-11-20',
@@ -388,6 +396,8 @@ describe('quickPicks', () => {
       servingUnit: 'g',
       kcal: 270,
       proteinG: 5.3,
+      carbsG: 20,
+      fatG: 3,
     })
     const old = await createFood(db, time.clock, userId, {
       name: 'Old bread',
@@ -395,6 +405,8 @@ describe('quickPicks', () => {
       servingUnit: 'slice',
       kcal: 80,
       proteinG: 3,
+      carbsG: 20,
+      fatG: 3,
     })
     await logFood(db, time.clock, userId, {
       date: '2026-11-21',
@@ -459,8 +471,66 @@ describe('quickPicks', () => {
       servingUnit: 'g',
       kcal: 150,
       proteinG: 5,
+      carbsG: 20,
+      fatG: 3,
     })
 
     expect((await quickPicks(db, '2026-11-21')).today[0]?.name).toBe('Rolled oats')
+  })
+})
+
+describe('carbs and fat (decision 0025)', () => {
+  const at = { date: '2026-11-20', meal: 'breakfast' } as const
+
+  it('copies them when logging, and rescales them with the servings', async () => {
+    const food = await addOats()
+    const entry = await logFood(db, time.clock, userId, { ...at, food, servings: 1.5 })
+    expect(entry).toMatchObject({
+      carbs_g: 30,
+      fat_g: 4.5,
+      carbs_g_per_serving: 20,
+      fat_g_per_serving: 3,
+    })
+
+    await changeServings(db, time.clock, entry.id, 0.5)
+
+    expect(logEntriesSpec.parse(await db.rows('log_entries').get(entry.id))).toMatchObject({
+      carbs_g: 10,
+      fat_g: 1.5,
+    })
+  })
+
+  it('keeps them through Copy from…', async () => {
+    const food = await addOats()
+    await logFood(db, time.clock, userId, { ...at, food, servings: 2 })
+
+    const [copy] = await copyMealTo(db, time.clock, userId, {
+      from: at,
+      to: { date: '2026-11-21', meal: 'lunch' },
+    })
+
+    expect(copy).toMatchObject({ carbs_g: 40, fat_g: 6, carbs_g_per_serving: 20 })
+  })
+
+  it('leaves them not set for a food saved before they existed', async () => {
+    const food = await addOats()
+    const old = { ...food, carbs_g: null, fat_g: null }
+    const entry = await logFood(db, time.clock, userId, { ...at, food: old, servings: 2 })
+
+    expect(entry).toMatchObject({ carbs_g: null, fat_g: null, carbs_g_per_serving: null })
+    expect((await entriesOn(db, at.date))[0]).toMatchObject({ carbsG: null, fatG: null })
+  })
+
+  it('totals a recipe’s carbs and fat when it is logged', async () => {
+    const food = await addOats()
+    const recipe = await createRecipe(db, time.clock, userId, {
+      name: 'Porridge',
+      servings: 2,
+      items: [{ foodId: food.id, servings: 3 }],
+    })
+
+    const entry = await logRecipe(db, time.clock, userId, { ...at, recipe, servings: 1 })
+
+    expect(entry).toMatchObject({ carbs_g: 30, fat_g: 4.5 })
   })
 })

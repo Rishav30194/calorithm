@@ -1,10 +1,10 @@
 import { formatKcal, formatProtein } from '@/domain/format'
-import type { Nutrients } from '@/domain/nutrition'
+import type { DailyTargets } from '@/domain/nutrition'
 import { strings } from '@/strings'
 
 import { routeHref } from '../routes'
 
-type Props = { total: Nutrients; targets: Nutrients | null; locale: string }
+type Props = { total: DailyTargets; targets: DailyTargets | null; locale: string }
 
 // The bar repeats the text beside it, so it's hidden from screen readers.
 const Bar = ({ label, text, share }: { label: string; text: string; share: number }) => (

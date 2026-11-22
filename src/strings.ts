@@ -1,5 +1,14 @@
 // All interface text. Screens import from here so translation later is one new file.
 export const strings = {
+  // kcal, protein, carbs, and fat in one line; carbs or fat is null when not set.
+  macros: (kcal: string, protein: string, carbs: string | null, fat: string | null) =>
+    [
+      kcal,
+      `${protein} protein`,
+      carbs === null ? 'carbs not set' : `${carbs} carbs`,
+      fat === null ? 'fat not set' : `${fat} fat`,
+    ].join(' · '),
+
   appName: 'Calorithm',
   loading: 'Loading…',
 
@@ -47,7 +56,7 @@ export const strings = {
     emptyMeal: 'Nothing logged yet.',
     servings: (amount: string, one: boolean) => (one ? `${amount} serving` : `${amount} servings`),
     entryDetail: (servings: string, nutrients: string) => `${servings} · ${nutrients}`,
-    nutrients: (kcal: string, protein: string) => `${kcal} · ${protein} protein`,
+    missingCarbsOrFat: 'Some foods here have no carbs or fat set, so those totals are partial.',
     complete: 'I logged everything I ate this day',
     completeHint: 'Only complete days count toward your weekly estimate.',
     completeFailed: 'Couldn’t save that. Try again.',
@@ -109,7 +118,6 @@ export const strings = {
     empty: 'No foods yet. Add the foods you eat often, then log them in two taps.',
     noMatch: 'No foods match your search.',
     serving: (size: string, unit: string) => `${size} ${unit}`,
-    nutrients: (kcal: string, protein: string) => `${kcal} · ${protein} protein`,
     detail: (serving: string, nutrients: string) => `${serving} · ${nutrients}`,
     editor: {
       newTitle: 'New food',
@@ -121,6 +129,8 @@ export const strings = {
       servingUnitHint: 'For example g, ml, or slice',
       kcal: 'kcal per serving',
       proteinG: 'Protein per serving (g)',
+      carbsG: 'Carbs per serving (g)',
+      fatG: 'Fat per serving (g)',
       save: 'Save',
       saving: 'Saving…',
       archive: 'Archive',
@@ -136,6 +146,8 @@ export const strings = {
       servingUnit: 'Enter a unit of up to 20 characters, such as g.',
       kcal: 'Enter whole kcal from 0 to 10000, without separators.',
       proteinG: 'Enter protein from 0 to 1000 g, with up to two decimals.',
+      carbsG: 'Enter carbs from 0 to 1000 g, with up to two decimals.',
+      fatG: 'Enter fat from 0 to 1000 g, with up to two decimals.',
     },
   },
 
@@ -149,7 +161,8 @@ export const strings = {
     empty: 'No recipes yet. Build one from your foods to log it in one tap.',
     noMatch: 'No recipes match your search.',
     makes: (servings: string) => `Makes ${servings}`,
-    perServing: (kcal: string, protein: string) => `${kcal} · ${protein} protein a serving`,
+    perServing: (nutrients: string) => `${nutrients} a serving`,
+    missingCarbsOrFat: 'Some ingredients have no carbs or fat set, so those totals are partial.',
     detail: (makes: string, perServing: string) => `${makes} · ${perServing}`,
     editor: {
       newTitle: 'New recipe',

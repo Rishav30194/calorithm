@@ -2,11 +2,11 @@ import { useState } from 'react'
 
 import type { FoodView, RecipeView } from '@/data/foods'
 import type { QuickPicks } from '@/data/log'
-import { formatAmount, formatKcal, formatProtein } from '@/domain/format'
+import { formatAmount } from '@/domain/format'
 import type { Meal, QuickPick, Source } from '@/domain/nutrition'
 import { strings } from '@/strings'
-
 import { Modal } from '../Modal'
+import { macroText } from '../macros'
 import { TextField } from '../TextField'
 
 type Props = {
@@ -71,8 +71,7 @@ export const LogPicker = ({
 
   const servingsText = (servings: number) =>
     strings.log.servings(formatAmount(servings, locale), servings === 1)
-  const nutrientText = (kcal: number, proteinG: number) =>
-    strings.log.nutrients(formatKcal(kcal, locale), formatProtein(proteinG, locale))
+
   const quick = (prefix: string, list: QuickPick[] | undefined): Row[] =>
     (list ?? []).map((pick) => ({
       key: `${prefix}:${pick.source.kind}:${pick.source.id}`,
@@ -93,7 +92,7 @@ export const LogPicker = ({
         name: food.name,
         detail: strings.foods.detail(
           strings.foods.serving(formatAmount(food.servingSize, locale), food.servingUnit),
-          nutrientText(food.kcal, food.proteinG),
+          macroText(food, locale),
         ),
       })),
     ...(recipes ?? [])
@@ -103,7 +102,7 @@ export const LogPicker = ({
         source: { kind: 'recipe' as const, id: recipe.id },
         servings: 1,
         name: recipe.name,
-        detail: text.recipeDetail(nutrientText(recipe.perServing.kcal, recipe.perServing.proteinG)),
+        detail: text.recipeDetail(macroText(recipe.perServing, locale)),
       })),
   ]
     .filter((row) => row.name.toLocaleLowerCase().includes(needle))

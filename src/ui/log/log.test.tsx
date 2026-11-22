@@ -32,6 +32,8 @@ const oats: FoodView = {
   kcal: 150,
   proteinG: 5,
   archived: false,
+  carbsG: null,
+  fatG: null,
 }
 const butter: FoodView = { ...oats, id: 'f2', name: 'Butter', archived: true }
 const chili: RecipeView = {
@@ -39,8 +41,9 @@ const chili: RecipeView = {
   name: 'Chili',
   servings: 4,
   archived: false,
-  totals: { kcal: 2000, proteinG: 120 },
-  perServing: { kcal: 500, proteinG: 30 },
+  totals: { kcal: 2000, proteinG: 120, carbsG: null, fatG: null },
+  perServing: { kcal: 500, proteinG: 30, carbsG: null, fatG: null },
+  missingCarbsOrFat: true,
 }
 const picks: QuickPicks = {
   today: [],
@@ -57,11 +60,13 @@ const entry = (overrides: Partial<LoggedEntry> = {}): LoggedEntry => ({
   servings: 2,
   kcal: 300,
   proteinG: 10,
+  carbsG: 54,
+  fatG: 5,
   ...overrides,
 })
 
 const emptyMeals = { breakfast: [], lunch: [], dinner: [], snacks: [] }
-const zero = { kcal: 0, proteinG: 0 }
+const zero = { kcal: 0, proteinG: 0, carbsG: null, fatG: null }
 
 describe('LogPicker', () => {
   const renderPicker = (onPick = vi.fn(async () => true), onClose = vi.fn()) => {
@@ -272,8 +277,13 @@ describe('CopyDialog', () => {
 describe('LogDay', () => {
   const day: DayView = {
     byMeal: { ...emptyMeals, breakfast: [entry()] },
-    mealTotals: { breakfast: { kcal: 300, proteinG: 10 }, lunch: zero, dinner: zero, snacks: zero },
-    total: { kcal: 300, proteinG: 10 },
+    mealTotals: {
+      breakfast: { kcal: 300, proteinG: 10, carbsG: 54, fatG: 5 },
+      lunch: zero,
+      dinner: zero,
+      snacks: zero,
+    },
+    total: { kcal: 300, proteinG: 10, carbsG: 54, fatG: 5 },
     complete: false,
   }
 
@@ -286,11 +296,42 @@ describe('LogDay', () => {
   it('shows the day and meal totals, and every meal', () => {
     renderDay()
     expect(screen.getByText(text.dayTotal).parentElement).toHaveTextContent(
-      '300 kcal · 10 g protein',
+      '300 kcal · 10 g protein · 54 g carbs · 5 g fat',
     )
     const lunch = screen.getByRole('region', { name: text.meals.lunch })
     expect(within(lunch).getByText(text.emptyMeal)).toBeInTheDocument()
+    // Nothing logged: 0 g, not "not set".
+    expect(lunch).toHaveTextContent('0 kcal · 0 g protein · 0 g carbs · 0 g fat')
     expect(screen.getByRole('button', { name: /Oats/ })).toHaveTextContent('2 servings')
+    expect(screen.queryByText(text.missingCarbsOrFat)).not.toBeInTheDocument()
+  })
+
+  it('says when some entries have carbs or fat not set, and shows the known part', () => {
+    const old = entry({ id: 'e2', name: 'Old toast', carbsG: null, fatG: null })
+    const handlers = {
+      onAdd: vi.fn(),
+      onCopy: vi.fn(),
+      onOpenEntry: vi.fn(),
+      onSetComplete: vi.fn(),
+    }
+    render(
+      <LogDay
+        date="2026-11-21"
+        today="2026-11-21"
+        day={{
+          ...day,
+          byMeal: { ...emptyMeals, breakfast: [entry(), old] },
+          total: { kcal: 600, proteinG: 20, carbsG: 54, fatG: 5 },
+        }}
+        locale="en-US"
+        {...handlers}
+      />,
+    )
+    expect(screen.getByText(text.dayTotal).parentElement).toHaveTextContent('54 g carbs · 5 g fat')
+    expect(screen.getByText(text.missingCarbsOrFat)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Old toast/ })).toHaveTextContent(
+      'carbs not set · fat not set',
+    )
   })
 
   it('measures today against the targets, beside the day total, and no other day', () => {

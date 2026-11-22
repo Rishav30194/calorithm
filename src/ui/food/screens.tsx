@@ -7,9 +7,10 @@ import {
   useRecipes,
 } from '@/data/foodHooks'
 import type { FoodView } from '@/data/foods'
-import { formatAmount, formatKcal, formatProtein } from '@/domain/format'
+import { formatAmount } from '@/domain/format'
 import { strings } from '@/strings'
 
+import { macroText } from '../macros'
 import { type FoodRoute, routeHref } from '../routes'
 import { ScreenErrorBoundary } from '../ScreenErrorBoundary'
 import { CatalogList } from './CatalogList'
@@ -38,7 +39,7 @@ const go = (href: string) => {
 const foodDetail = (food: FoodView, locale: string) =>
   strings.foods.detail(
     strings.foods.serving(formatAmount(food.servingSize, locale), food.servingUnit),
-    strings.foods.nutrients(formatKcal(food.kcal, locale), formatProtein(food.proteinG, locale)),
+    macroText(food, locale),
   )
 
 const Foods = ({ locale }: { locale: string }) => {
@@ -79,10 +80,7 @@ const Recipes = ({ locale }: { locale: string }) => {
         archived: recipe.archived,
         detail: strings.recipes.detail(
           strings.recipes.makes(formatAmount(recipe.servings, locale)),
-          strings.recipes.perServing(
-            formatKcal(recipe.perServing.kcal, locale),
-            formatProtein(recipe.perServing.proteinG, locale),
-          ),
+          strings.recipes.perServing(macroText(recipe.perServing, locale)),
         ),
         href: routeHref({ tab: 'log', screen: 'recipe', id: recipe.id }),
       }))}
