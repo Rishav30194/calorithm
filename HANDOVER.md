@@ -6,14 +6,13 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. Phase 7 (production) is in progress on `feature/phase-7-deploy`: the deploy and
-   keep-awake workflows, `docs/production.md`, and decision 0024 (public repository). The
-   user approves the push and PR. After merging, the user follows `docs/production.md`:
-   make the repository public, set **Pages** to **GitHub Actions**, create the hosted
-   Supabase project, apply the migrations, set the two secrets, then the six checks. Record
-   each result in `docs/phases.md` and mark the phase done when all pass.
-   The first deploy runs when this PR's merge passes CI; without the secrets it fails at the
-   secret check, which is expected until they're set.
+1. Phase 7 (production) PR 1 is merged as #27: the deploy and keep-awake workflows,
+   `docs/production.md`, and decision 0024 (public repository). Next, the user follows
+   `docs/production.md`: make the repository public, set **Pages** to **GitHub Actions**,
+   create the hosted Supabase project, apply the migrations, set the two secrets, then run
+   the six checks. Record each result in `docs/phases.md` and mark the phase done when all
+   pass. Deploy runs after #27's merge fail at the secret check until the secrets are set;
+   that's expected. Then run **Deploy** by hand from `main`.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
