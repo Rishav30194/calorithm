@@ -3,7 +3,7 @@ import { z } from 'zod/mini'
 // Open Food Facts (decision 0029): only the barcode leaves the device. v3.4 is pinned because
 // v3.5 and later replace `nutriments` with a shape that mixes label values and estimates.
 const API = 'https://world.openfoodfacts.org/api/v3.4/product'
-const FIELDS = 'code,product_name,brands,nutrition_data_per,nutriments'
+const FIELDS = 'code,product_name,brands,product_quantity_unit,nutriments'
 // Browsers can't set User-Agent, which Open Food Facts asks apps to use; its API accepts this
 // header from any origin instead (checked 2026-11-22, not documented by them).
 const APP_ID = `Calorithm/${__APP_VERSION__} (https://github.com/Rishav30194/calorithm)`
@@ -41,6 +41,7 @@ const foundSchema = z.object({
   product: z.object({
     product_name: z.optional(z.string()),
     brands: z.optional(z.string()),
+    product_quantity_unit: z.optional(z.string()),
     nutriments: z.optional(z.record(z.string(), z.unknown())),
   }),
 })
@@ -71,9 +72,9 @@ const draftOf = (product: z.infer<typeof foundSchema>['product']): ProductDraft 
   const name = (product.product_name?.trim() || brand).slice(0, MAX_NAME).trim()
   const draft: ProductDraft = {
     name,
-    // Open Food Facts keys its values per 100 g (per 100 ml for drinks); the form says to check.
+    // Open Food Facts keys its values per 100 g, or per 100 ml for a pack sold by volume.
     servingSize: 100,
-    servingUnit: 'g',
+    servingUnit: product.product_quantity_unit === 'ml' ? 'ml' : 'g',
     kcal: inRange(kcal === null ? null : Math.round(kcal), 10_000),
     proteinG: grams('proteins_100g'),
     carbsG: grams('carbohydrates_100g'),

@@ -1,8 +1,9 @@
 # Recorded Open Food Facts responses
 
 Responses recorded from `https://world.openfoodfacts.org/api/v3.4/product/{code}` on
-2026-11-22, with `fields=code,product_name,brands,nutrition_data_per,nutriments`. The unit and
-end-to-end tests replay them instead of calling the live service.
+2026-11-22, with `fields=code,product_name,brands,nutrition_data_per,nutriments`. The app now
+asks for `product_quantity_unit` in place of `nutrition_data_per`; the tests that need it add
+it to a copy. The unit and end-to-end tests replay them instead of calling the live service.
 
 - `product-found.json`: 3017620422003, status 200.
 - `product-not-found.json`: 0000000000031, status 404.

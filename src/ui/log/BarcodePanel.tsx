@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useEffect, useRef, useState } from 'react'
 
 import type { BarcodeLookup } from '@/data/barcodeLookup'
 import type { CatalogCopy, FoodInput, FoodView } from '@/data/foods'
@@ -78,14 +78,26 @@ export const BarcodePanel = ({
   )
   const [code, setCode] = useState('')
   const [codeError, setCodeError] = useState<string | undefined>(undefined)
-  const [failed, setFailed] = useState(false)
+  const [failed, setFailed] = useState<'lookup' | 'log' | null>(null)
+  const [busy, setBusy] = useState(false)
+  // Only the latest lookup counts, and none after the panel closes.
+  const latest = useRef(0)
+  useEffect(
+    () => () => {
+      latest.current += 1
+    },
+    [],
+  )
 
   const lookUp = async (value: string) => {
-    setFailed(false)
+    const request = ++latest.current
+    setFailed(null)
     setStep({ kind: 'looking' })
     const result = await onLookup(value).catch(() => null)
+    if (request !== latest.current) return
     if (result === null) {
-      setFailed(true)
+      setCode(value)
+      setFailed('lookup')
       setStep({ kind: 'enter', problem: null })
       return
     }
@@ -125,26 +137,40 @@ export const BarcodePanel = ({
     void lookUp(code)
   }
 
-  const logged = async (write: Promise<boolean>): Promise<boolean> => {
-    setFailed(false)
-    const ok = await write.catch(() => false)
+  const logSaved = async (foodId: string) => {
+    if (busy) return
+    setBusy(true)
+    setFailed(null)
+    const ok = await onLogSaved(foodId).catch(() => false)
+    setBusy(false)
     if (ok) onDone()
-    else setFailed(true)
+    else setFailed('log')
+  }
+
+  // The form shows its own error when this returns false.
+  const logNew = async (input: FoodInput | CatalogCopy): Promise<boolean> => {
+    const ok = await onLogNew(input)
+    if (ok) onDone()
     return ok
+  }
+
+  const back = () => {
+    latest.current += 1
+    onBack()
   }
 
   return (
     <div className="flex flex-col gap-3">
       <button
         type="button"
-        onClick={onBack}
+        onClick={back}
         className="inline-flex min-h-11 items-center self-start text-accent"
       >
         {text.back}
       </button>
       {failed && (
         <p role="alert" className="text-danger">
-          {strings.log.picker.failed}
+          {failed === 'lookup' ? text.lookupFailed : strings.log.picker.failed}
         </p>
       )}
       {step.kind === 'scan' && (
@@ -185,7 +211,8 @@ export const BarcodePanel = ({
               <li key={food.id}>
                 <button
                   type="button"
-                  onClick={() => void logged(onLogSaved(food.id))}
+                  disabled={busy}
+                  onClick={() => void logSaved(food.id)}
                   className="flex min-h-14 w-full flex-col items-start justify-center py-2 text-left"
                 >
                   <span className="font-medium">{food.name}</span>
@@ -209,15 +236,22 @@ export const BarcodePanel = ({
       {step.kind === 'form' && (
         <>
           <p role="status">{text[step.message]}</p>
+          {step.message === 'unreachable' && (
+            <button
+              type="button"
+              onClick={() => void lookUp(step.barcode)}
+              className="min-h-11 self-start rounded-lg border border-border px-3 font-medium"
+            >
+              {text.tryAgain}
+            </button>
+          )}
           <FoodForm
             initial={formValues(step.barcode, step.product, locale)}
             savedBarcode={null}
             note={step.product && <OpenFoodFactsCredit />}
             submitLabel={text.saveAndLog}
             onSave={(input) =>
-              logged(
-                onLogNew(step.product ? { ...input, catalogId: OPEN_FOOD_FACTS_SOURCE } : input),
-              )
+              logNew(step.product ? { ...input, catalogId: OPEN_FOOD_FACTS_SOURCE } : input)
             }
           />
         </>

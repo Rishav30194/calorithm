@@ -127,6 +127,54 @@ describe('BarcodePanel', () => {
     )
   })
 
+  it('logs a saved food once, however fast it’s tapped', async () => {
+    let finish: (ok: boolean) => void = () => {}
+    const handlers = renderPanel({ kind: 'saved', barcode: '8901234567890', foods: [paneer] })
+    handlers.onLogSaved.mockImplementation(() => new Promise((resolve) => (finish = resolve)))
+    await lookUp('8901234567890')
+
+    const row = screen.getByRole('button', { name: /^Paneer/ })
+    await userEvent.click(row)
+    await userEvent.click(row)
+    finish(true)
+    expect(handlers.onLogSaved).toHaveBeenCalledTimes(1)
+  })
+
+  it('looks up again from the unreachable message', async () => {
+    const handlers = renderPanel({ kind: 'unreachable', barcode: '96385074' })
+    await lookUp('96385074')
+    handlers.onLookup.mockResolvedValue({ kind: 'not_found', barcode: '96385074' })
+
+    await userEvent.click(screen.getByRole('button', { name: text.tryAgain }))
+    expect(handlers.onLookup).toHaveBeenLastCalledWith('96385074')
+    expect(await screen.findByText(text.notFound)).toBeInTheDocument()
+  })
+
+  it('keeps the code and says the lookup failed when it throws', async () => {
+    const handlers = renderPanel({ kind: 'not_found', barcode: '96385074' })
+    handlers.onLookup.mockRejectedValue(new Error('database closed'))
+    await lookUp('96385074')
+
+    expect(screen.getByRole('alert')).toHaveTextContent(text.lookupFailed)
+    expect(screen.getByLabelText(text.code)).toHaveValue('96385074')
+  })
+
+  it('shows one error when saving a scanned food fails', async () => {
+    const handlers = renderPanel({ kind: 'not_found', barcode: '96385074' })
+    handlers.onLogNew.mockResolvedValue(false)
+    await lookUp('96385074')
+    await userEvent.type(screen.getByLabelText(editor.name), 'Biscuits')
+    await userEvent.type(screen.getByLabelText(editor.servingSize), '1')
+    await userEvent.type(screen.getByLabelText(editor.servingUnit), 'pack')
+    for (const label of [editor.kcal, editor.proteinG, editor.carbsG, editor.fatG]) {
+      await userEvent.type(screen.getByLabelText(label), '1')
+    }
+    await userEvent.click(screen.getByRole('button', { name: text.saveAndLog }))
+
+    expect(await screen.findAllByRole('alert')).toHaveLength(1)
+    expect(handlers.onDone).not.toHaveBeenCalled()
+  })
+
   it('names a wrong check digit on the code field', async () => {
     renderPanel({ kind: 'invalid', reason: 'check_digit' })
     await lookUp('6291041500214')

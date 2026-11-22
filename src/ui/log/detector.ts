@@ -6,19 +6,20 @@ import wasmUrl from 'zxing-wasm/reader/zxing_reader.wasm?url'
 
 import { upcEToUpcA } from '@/domain/barcode'
 
-prepareZXingModule({
-  overrides: {
-    locateFile: (path: string, prefix: string) =>
-      path.endsWith('.wasm') ? wasmUrl : prefix + path,
-  },
-})
+const overrides = {
+  locateFile: (path: string, prefix: string) => (path.endsWith('.wasm') ? wasmUrl : prefix + path),
+}
 
 export type Detector = {
-  // The first product barcode in the frame, with UPC-E expanded, or null.
+  // The first product barcode in the frame, with UPC-E expanded, or null. Rejects when the
+  // decoder fails, rather than reporting no barcode.
   detect: (frame: HTMLVideoElement) => Promise<string | null>
 }
 
-export const createDetector = (): Detector => {
+// Resolves once the WebAssembly has loaded, so a decoder that can't load is reported as a
+// failure instead of a scanner that never finds anything.
+export const createDetector = async (): Promise<Detector> => {
+  await prepareZXingModule({ overrides, fireImmediately: true })
   const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] })
   return {
     detect: async (frame) => {

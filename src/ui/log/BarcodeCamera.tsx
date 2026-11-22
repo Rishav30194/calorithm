@@ -10,6 +10,8 @@ type Props = {
 }
 
 const SCAN_EVERY_MS = 250
+// A frame can fail to decode now and then; this many failures in a row mean the decoder is broken.
+const FAILURES_ALLOWED = 3
 
 const problemOf = (error: unknown): CameraProblem => {
   const name = error instanceof DOMException ? error.name : ''
@@ -53,13 +55,26 @@ export const BarcodeCamera = ({ onCode, onProblem }: Props) => {
         element.srcObject = stream
         await element.play()
         const { createDetector } = await import('./detector')
-        const detector = createDetector()
+        const detector = await createDetector()
         if (stopped) return
         setReady(true)
+        let failures = 0
         const scan = async () => {
-          const code = await detector.detect(element).catch(() => null)
+          const code = await detector.detect(element).then(
+            (found) => {
+              failures = 0
+              return found
+            },
+            () => {
+              failures += 1
+              return null
+            },
+          )
           if (stopped) return
-          if (code) {
+          if (failures >= FAILURES_ALLOWED) {
+            stop()
+            handlers.current.onProblem('failed')
+          } else if (code) {
             stop()
             handlers.current.onCode(code)
           } else {

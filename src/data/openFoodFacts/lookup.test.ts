@@ -10,7 +10,7 @@ const respond = (status: number, body: unknown) =>
 describe('productUrl', () => {
   it('asks the pinned API version for only the fields the form uses', () => {
     expect(productUrl('3017620422003')).toBe(
-      'https://world.openfoodfacts.org/api/v3.4/product/3017620422003?fields=code,product_name,brands,nutrition_data_per,nutriments',
+      'https://world.openfoodfacts.org/api/v3.4/product/3017620422003?fields=code,product_name,brands,product_quantity_unit,nutriments',
     )
   })
 })
@@ -28,6 +28,13 @@ describe('parseProductResponse', () => {
         carbsG: 57.5,
         fatG: 30.9,
       },
+    })
+  })
+
+  it('gives a drink its values per 100 ml', () => {
+    const drink = { ...found.product, product_quantity_unit: 'ml' }
+    expect(parseProductResponse(200, { ...found, product: drink })).toMatchObject({
+      product: { servingSize: 100, servingUnit: 'ml' },
     })
   })
 

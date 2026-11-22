@@ -44,6 +44,12 @@ describe('parseBarcode', () => {
     }
   })
 
+  // 01234505 fails as EAN-8, so it's read as the UPC-E code a scan would expand.
+  it('reads a typed UPC-E code as its expanded form when it isn’t a valid EAN-8 code', () => {
+    expect(parseBarcode('01234505')).toEqual({ ok: true, barcode: '0012000003455' })
+    expect(parseBarcode('01234504')).toEqual({ ok: false, reason: 'check_digit' })
+  })
+
   it('ignores spaces and hyphens around and between digits', () => {
     expect(parseBarcode(' 629 1041-500213 ')).toEqual({ ok: true, barcode: '6291041500213' })
   })
@@ -88,6 +94,8 @@ describe('parseBarcode', () => {
         const index = at % code.length
         const changed = (Number(code[index]) + shift) % 10
         const typo = `${code.slice(0, index)}${changed}${code.slice(index + 1)}`
+        // An 8-digit typo starting 0 or 1 can be a valid UPC-E code instead.
+        fc.pre(!(typo.length === 8 && /^[01]/.test(typo)))
         expect(parseBarcode(typo)).toEqual({ ok: false, reason: 'check_digit' })
       }),
     )

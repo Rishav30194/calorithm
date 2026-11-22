@@ -96,12 +96,13 @@ export const strings = {
       cameraFailed: 'The scanner couldn’t start. Enter the barcode instead.',
       saved: 'Your foods with this barcode',
       archived: 'Archived; logging it restores it',
-      found:
-        'Found on Open Food Facts. Values are per 100 g, or per 100 ml for drinks. Check them against the pack, then save.',
+      found: 'Found on Open Food Facts. Check the values against the pack, then save.',
       notFound: 'Open Food Facts doesn’t have this barcode. Enter the food from its label.',
       unreachable:
         'Couldn’t reach Open Food Facts. Check your connection, or enter the food from its label.',
       saveAndLog: 'Save and log',
+      lookupFailed: 'Couldn’t look that up. Try again.',
+      tryAgain: 'Try again',
     },
     entry: {
       servings: 'Servings',
