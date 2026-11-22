@@ -464,10 +464,10 @@ describe('quickPicks', () => {
     expect(picks.scores.has(`food:${old.id}`)).toBe(false)
   })
 
-  it('leaves out entries more than a year before the day', async () => {
+  it('leaves out entries more than 180 days before the day', async () => {
     const oats = await addOats()
     await logFood(db, time.clock, userId, {
-      date: '2025-11-20',
+      date: '2026-05-24',
       meal: 'lunch',
       food: oats,
       servings: 1,

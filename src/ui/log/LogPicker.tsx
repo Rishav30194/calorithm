@@ -11,7 +11,6 @@ import { TextField } from '../TextField'
 
 type Props = {
   meal: Meal
-  // Whether the day being logged is the device's today, which names the first two rows.
   picks: QuickPicks | undefined
   foods: FoodView[] | undefined
   recipes: RecipeView[] | undefined

@@ -313,8 +313,9 @@ export type QuickPicks = {
   scores: ReadonlyMap<string, number>
 }
 
-// A year of history: older logs would weigh almost nothing (decision in phase 9's notes).
-const HISTORY_DAYS = 365
+// A log 180 days old counts under 1.6% of a new one, so older ones are left unread: the picker
+// re-runs this on every change while open (decision 0026).
+const HISTORY_DAYS = 180
 const PICK_LIMIT = 10
 
 // The picker's one-tap rows, relative to the day being logged. Archived or deleted foods and

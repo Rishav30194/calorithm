@@ -553,7 +553,8 @@ which build entries from kcal and protein only. PR 3: export format version 2.
 **Plan** (approved 2026-11-21): one PR, version 0.4.0, no migration. **Recent** replaces
 **Today** and **Yesterday** in the picker, since it holds both and **Copy from…** re-logs a
 whole meal. A log counts 1 on its day, halving every 30 days; **Most used** and the picker's
-list rank by that score, over the last 365 days.
+list rank by that score, over the last 180 days (decision 0026; the plan said 365, cut after
+timing it).
 
 **Implementation notes:** none yet.
 
