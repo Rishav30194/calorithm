@@ -30,6 +30,9 @@ export type FoodInput = {
   proteinG: number
   carbsG: number
   fatG: number
+  // In its stored form (src/domain/barcode.ts). Left out to keep a food's saved barcode, which
+  // can't be cleared through sync (decision 0025).
+  barcode?: string
 }
 
 // A built-in item being copied into the user's foods (decision 0027).
@@ -83,6 +86,7 @@ export const createFood = (
       id: crypto.randomUUID(),
       archived_at: null,
       catalog_id: 'catalogId' in input ? input.catalogId : null,
+      barcode: input.barcode ?? null,
       ...foodFields(input),
     },
     clock,
@@ -99,7 +103,12 @@ export const updateFood = async (
   if (!existing) return { ok: false, reason: 'not_found' }
   return {
     ok: true,
-    row: await writeRow(db, foodsSpec, { ...existing, ...foodFields(input) }, clock),
+    row: await writeRow(
+      db,
+      foodsSpec,
+      { ...existing, ...foodFields(input), barcode: input.barcode ?? existing.barcode },
+      clock,
+    ),
   }
 }
 
@@ -245,6 +254,7 @@ export type FoodView = {
   fatG: number | null
   // The built-in item it was copied from (decision 0027), or null.
   catalogId: string | null
+  barcode: string | null
   archived: boolean
 }
 
@@ -281,6 +291,7 @@ const toFoodView = (food: FoodRow): FoodView => ({
   carbsG: food.carbs_g,
   fatG: food.fat_g,
   catalogId: food.catalog_id,
+  barcode: food.barcode,
   archived: food.archived_at !== null,
 })
 
@@ -292,6 +303,18 @@ const liveFoods = async (db: LocalDb): Promise<FoodRow[]> =>
 
 export const listFoods = async (db: LocalDb): Promise<FoodView[]> =>
   (await liveFoods(db)).map(toFoodView).sort(byName)
+
+// Your foods with a pack's barcode, so a scan finds them without the network: active ones by
+// name, then archived ones, which a scan can restore.
+export const findFoodsByBarcode = async (db: LocalDb, barcode: string): Promise<FoodView[]> => {
+  const foods = (await db.rows('foods').where('barcode').equals(barcode).toArray()).flatMap(
+    (raw) => {
+      const food = foodsSpec.parse(raw)
+      return food && food.deleted_at === null ? [toFoodView(food)] : []
+    },
+  )
+  return foods.sort((a, b) => Number(a.archived) - Number(b.archived) || byName(a, b))
+}
 
 export const foodById = async (db: LocalDb, id: string): Promise<FoodView | null> => {
   const food = foodsSpec.parse(await db.rows('foods').get(id))

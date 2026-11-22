@@ -114,6 +114,20 @@ export const schemaVersions: readonly SchemaVersion[] = [
         })
     },
   },
+  {
+    // A pack's barcode (phase 11): none for stored foods.
+    version: 8,
+    // Indexed, so a scan finds a saved food without reading every food.
+    stores: { foods: 'id, catalog_id, barcode' },
+    upgrade: async (tx) => {
+      await tx
+        .table('foods')
+        .toCollection()
+        .modify((row: Record<string, unknown>) => {
+          row.barcode ??= null
+        })
+    },
+  },
 ]
 
 export const dbNameFor = (userId: string): string => `calorithm-${userId}`

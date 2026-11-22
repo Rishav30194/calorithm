@@ -12,6 +12,7 @@ const food = {
   proteinG: '5',
   carbsG: '27',
   fatG: '2,5',
+  barcode: '',
 }
 
 describe('parseFoodForm', () => {
@@ -44,6 +45,7 @@ describe('parseFoodForm', () => {
       proteinG: '-1',
       carbsG: '1000.5',
       fatG: 'some',
+      barcode: '123',
     })
     expect(parsed).toEqual({
       ok: false,
@@ -55,6 +57,7 @@ describe('parseFoodForm', () => {
         proteinG: strings.foods.errors.proteinG,
         carbsG: strings.foods.errors.carbsG,
         fatG: strings.foods.errors.fatG,
+        barcode: strings.foods.errors.barcode,
       },
     })
   })
@@ -91,6 +94,45 @@ describe('parseFoodForm', () => {
     expect(parseFoodForm({ ...food, servingSize: '0.004' })).toMatchObject({ ok: false })
     expect(parseFoodForm({ ...food, name: 'x'.repeat(101) })).toMatchObject({ ok: false })
     expect(parseFoodForm({ ...food, proteinG: '1000.1' })).toMatchObject({ ok: false })
+  })
+})
+
+describe('parseFoodForm barcodes', () => {
+  const errors = strings.foods.errors
+
+  it('leaves the barcode out when the field is empty', () => {
+    const parsed = parseFoodForm({ ...food, barcode: '  ' })
+    expect(parsed.ok && 'barcode' in parsed.input).toBe(false)
+  })
+
+  it('saves a barcode in its stored form', () => {
+    expect(parseFoodForm({ ...food, barcode: ' 036000 291452 ' })).toMatchObject({
+      ok: true,
+      input: { barcode: '0036000291452' },
+    })
+  })
+
+  it('names a wrong length and a wrong check digit apart', () => {
+    expect(parseFoodForm({ ...food, barcode: '12345' })).toEqual({
+      ok: false,
+      errors: { barcode: errors.barcode },
+    })
+    expect(parseFoodForm({ ...food, barcode: '6291041500214' })).toEqual({
+      ok: false,
+      errors: { barcode: errors.barcodeCheckDigit },
+    })
+  })
+
+  // Sync can't clear a value back to not set (decision 0025), so the form doesn't offer it.
+  it('refuses to remove a saved barcode, and accepts a changed one', () => {
+    expect(parseFoodForm({ ...food, barcode: '' }, '6291041500213')).toEqual({
+      ok: false,
+      errors: { barcode: errors.barcodeKept },
+    })
+    expect(parseFoodForm({ ...food, barcode: '96385074' }, '6291041500213')).toMatchObject({
+      ok: true,
+      input: { barcode: '96385074' },
+    })
   })
 })
 

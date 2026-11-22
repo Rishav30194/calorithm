@@ -207,7 +207,30 @@ describe('LocalDb', () => {
       carbs_g: 27,
       fat_g: 2.5,
       catalog_id: null,
+      barcode: null,
     })
+  })
+
+  it('gives existing foods no barcode, and indexes barcodes, when upgraded to version 8', async () => {
+    const [v1, v2, v3, v4, v5, v6, v7] = schemaVersions
+    if (!v1 || !v2 || !v3 || !v4 || !v5 || !v6 || !v7) throw new Error('missing schema versions')
+    const before = open('calorithm-test-upgrade-v8', [v1, v2, v3, v4, v5, v6, v7])
+    await before.table('foods').put({ id: 'f1', name: 'Oats', catalog_id: null })
+    before.close()
+
+    const after = open('calorithm-test-upgrade-v8')
+    expect(await after.table('foods').get('f1')).toEqual({
+      id: 'f1',
+      name: 'Oats',
+      catalog_id: null,
+      barcode: null,
+    })
+    await after.table('foods').put({ id: 'f2', name: 'Paneer', barcode: '8901234567894' })
+    expect(
+      (await after.table('foods').where('barcode').equals('8901234567894').toArray()).map(
+        (food: { id: string }) => food.id,
+      ),
+    ).toEqual(['f2'])
   })
 
   it('keeps existing data across an upgrade that adds a table', async () => {

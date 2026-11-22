@@ -1,6 +1,7 @@
 import { expect, type Page, test } from '@playwright/test'
 
-import { expectNoAxeViolations, signIn } from './helpers'
+import { serverBarcodeOf } from './database'
+import { expectNoAxeViolations, seedUser, signIn } from './helpers'
 
 // Rows stay in the local database between runs, so every name is unique to its test run.
 const unique = (name: string) =>
@@ -76,6 +77,38 @@ test('a food can be created, edited, archived, and restored', async ({ page }) =
   await page.getByRole('link', { name: new RegExp(name) }).click()
   await page.getByRole('button', { name: 'Restore' }).click()
   await expect(page.getByRole('button', { name: 'Archive' })).toBeVisible()
+})
+
+test('a food keeps a barcode in its stored form, and the server gets it', async ({ page }) => {
+  const name = unique('Paneer')
+  await signIn(page)
+  await openList(page, 'Foods')
+  await page.getByRole('link', { name: 'Add food' }).click()
+  await page.getByLabel('Name').fill(name)
+  await page.getByLabel('Serving size').fill('100')
+  await page.getByLabel('Serving unit').fill('g')
+  await page.getByLabel('kcal per serving').fill('265')
+  await page.getByLabel('Protein per serving (g)').fill('18')
+  await page.getByLabel('Carbs per serving (g)').fill('1.2')
+  await page.getByLabel('Fat per serving (g)').fill('21')
+
+  const barcode = page.getByLabel('Barcode (optional)')
+  await barcode.fill('036000291453')
+  await page.getByRole('button', { name: 'Save' }).click()
+  await expect(barcode).toHaveAccessibleDescription(/last digit doesn’t match/)
+
+  // A 12-digit UPC-A code is stored as its 13-digit EAN form.
+  await barcode.fill('036000 291452')
+  await page.getByRole('button', { name: 'Save' }).click()
+  await expect(page.getByRole('heading', { name: 'Foods', level: 2 })).toBeVisible()
+  await expect.poll(() => serverBarcodeOf(seedUser.id, name)).toBe('0036000291452')
+
+  await search(page, 'Search foods', name)
+  await page.getByRole('link', { name: new RegExp(name) }).click()
+  await expect(barcode).toHaveValue('0036000291452')
+  await barcode.fill('')
+  await page.getByRole('button', { name: 'Save' }).click()
+  await expect(barcode).toHaveAccessibleDescription(/can be changed but not removed/)
 })
 
 test('a recipe totals its ingredients', async ({ page }) => {
