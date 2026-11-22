@@ -94,6 +94,33 @@ describe('parseExport', () => {
     expect(parseExport(text, context)).toEqual({ ok: false, reason: 'newer_version' })
   })
 
+  it('accepts foods and log entries from before carbs and fat, with them not set', () => {
+    const text = edited((file) => {
+      for (const table of ['foods', 'log_entries'] as const) {
+        for (const row of rows(file, table)) {
+          row.schema_version = 1
+          delete row.carbs_g
+          delete row.fat_g
+          delete row.carbs_g_per_serving
+          delete row.fat_g_per_serving
+        }
+      }
+    })
+
+    const result = parseExport(text, context)
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.file.tables.foods.length).toBeGreaterThan(0)
+    expect(result.file.tables.log_entries.length).toBeGreaterThan(0)
+    for (const food of result.file.tables.foods) {
+      expect(food).toMatchObject({ schema_version: 1, carbs_g: null, fat_g: null })
+    }
+    for (const entry of result.file.tables.log_entries) {
+      expect(entry).toMatchObject({ schema_version: 1, carbs_g: null, carbs_g_per_serving: null })
+    }
+  })
+
   it('refuses a row written in a newer schema version', () => {
     const text = edited((file) => {
       first(file, 'weights').schema_version = 2

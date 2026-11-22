@@ -499,7 +499,8 @@ targets the weekly check-in sets.
 **Plan** (approved 2026-11-21): three PRs. PR 1: nullable columns, sync, and Dexie version 6
 (decision 0025: the columns stay nullable, and the second release raises `min_app_version`
 instead of adding `NOT NULL`). PR 2: totals, the food form, recipes, and the log, then
-version 0.3.0. PR 3: export format version 2.
+version 0.3.0; it must also carry carbs and fat through copy and repeat in `src/data/log.ts`,
+which build entries from kcal and protein only. PR 3: export format version 2.
 
 **Implementation notes:** none yet.
 

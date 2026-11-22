@@ -360,6 +360,69 @@ describe('push', () => {
     ])
   })
 
+  describe('carbs and fat not set on this device (decision 0025)', () => {
+    const food = (id: string, name: string) => ({
+      ...sync({ id }),
+      name,
+      serving_size: 40,
+      serving_unit: 'g',
+      kcal: 150,
+      protein_g: 5,
+      archived_at: null,
+    })
+    const storeOnServer = (id: string, carbs: number, fat: number) =>
+      remote.upsert('foods', [
+        {
+          ...food(id, 'Synthetic oats'),
+          carbs_g: carbs,
+          fat_g: fat,
+          schema_version: 2,
+          client_updated_at: '2026-11-19T09:00:00.000Z',
+        },
+      ])
+    const queue = (id: string, row: Record<string, unknown>, schemaVersion: number) =>
+      db.outbox.add({
+        table: 'foods',
+        rowId: id,
+        row: { ...row, client_updated_at: '2026-11-19T10:00:00.000Z' },
+        schemaVersion,
+        rev: 1,
+        attempts: 0,
+        nextAttemptAt: 0,
+        failure: null,
+      })
+
+    beforeEach(() => {
+      ctx = { ...ctx, tables: syncedTables }
+    })
+
+    it('keeps the server’s values when a version 2 edit has them not set', async () => {
+      const id = crypto.randomUUID()
+      await storeOnServer(id, 27, 2.5)
+      await queue(id, { ...food(id, 'Edited here'), carbs_g: null, fat_g: null }, 2)
+
+      expect((await push(ctx)).status).toBe('done')
+
+      expect(remote.rows('foods')).toEqual([
+        expect.objectContaining({ id, name: 'Edited here', carbs_g: 27, fat_g: 2.5 }),
+      ])
+    })
+
+    it('keeps them when the same batch also sends a food that has carbs and fat', async () => {
+      const oldId = crypto.randomUUID()
+      const newId = crypto.randomUUID()
+      await storeOnServer(oldId, 27, 2.5)
+      await queue(oldId, food(oldId, 'Renamed offline'), 1)
+      await queue(newId, { ...food(newId, 'Paneer'), carbs_g: 1.2, fat_g: 20.8 }, 2)
+
+      expect((await push(ctx)).status).toBe('done')
+
+      const stored = new Map(remote.rows('foods').map((row) => [row.id, row]))
+      expect(stored.get(oldId)).toMatchObject({ carbs_g: 27, fat_g: 2.5 })
+      expect(stored.get(newId)).toMatchObject({ carbs_g: 1.2, fat_g: 20.8 })
+    })
+  })
+
   it('keeps an entry edited while its push was in flight', async () => {
     const row = await writeRow(db, parentSpec, { ...sync(), name: 'first' }, time.clock)
     const upsert = remote.upsert.bind(remote)

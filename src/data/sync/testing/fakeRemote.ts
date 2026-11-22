@@ -94,9 +94,14 @@ export class FakeRemote implements Remote {
       return { ok: false, error }
     }
 
+    // Like postgrest-js: one column list for the whole batch, and a row missing one of its
+    // columns sends null for it. A column no row in the batch has keeps its stored value.
+    const columns = [...new Set(incoming.flatMap((raw) => Object.keys(raw)))]
     const rows: Row[] = []
     for (const raw of incoming) {
-      const row = { ...raw }
+      const row: Record<string, unknown> = Object.fromEntries(
+        columns.map((column) => [column, raw[column] ?? null]),
+      )
       if (!isRow(row)) {
         return { ok: false, error: { kind: 'rejected', code: '23502', message: 'missing column' } }
       }
@@ -120,7 +125,6 @@ export class FakeRemote implements Remote {
       const stored = this.store(table).get(row.id)
       // public.skip_stale_update(): an older edit leaves the stored row alone.
       if (stored && toMicros(row.client_updated_at) < toMicros(stored.client_updated_at)) return []
-      // Like PostgREST's upsert, a column the row leaves out keeps its stored value.
       return [{ ...stored, ...row, updated_at: updatedAt }]
     })
 
