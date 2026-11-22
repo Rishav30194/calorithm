@@ -118,6 +118,10 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - `e2e/weight.spec.ts` "switch without changing stored values" failed once in a full local
   run (2026-11-22) and passed on its own and in later full runs; read its trace if it
   recurs.
+- `e2e/log.spec.ts` "a day is marked complete and stays so after a reload" failed once in a
+  full run (2026-11-22, desktop): the bottom navigation intercepted the click while the page
+  scrolled, and the checkbox didn't change. It passed 16 of 16 on its own. If it recurs, make
+  the check wait for the box to be stable and in view, without weakening what it asserts.
 - End-to-end tests that write food or log rows use unique names and random far-future days,
   because the local database keeps rows between runs and both projects share users.
 - The sign-out end-to-end tests change `second.user@calorithm.test`'s profile and skip the
