@@ -817,7 +817,7 @@ Phase 12 waits for the user's MacroFactor subscription, so this phase runs first
 
 ## Phase 14 — Logging by weight, and built-in groceries everywhere
 
-**Status:** In progress (PR 2 of 3)
+**Status:** In progress (PRs 1 to 3 built; 0.12.0 to deploy)
 
 **Goal:** log what you actually ate by weight, and find everyday groceries and spices
 wherever you pick a food.
@@ -845,8 +845,9 @@ wherever you pick a food.
   values before saving, and shows no grams for foods without a weight.
 - [x] A weighed food asks for its amount when picked; a count food still logs in one tap.
 - [x] Onion, tomato, and the spices can be added to a recipe without saving them first.
-- [ ] Garam masala and chaat masala are in the list, marked as estimates; any single spice
-  added has a recorded source the user approved.
+- [x] Garam masala (from CoFID, approved instead of an estimate) and chaat masala (marked
+  as an estimate) are in the list; any single spice added has a recorded source the user
+  approved.
 
 **Plan** (approved by the user 2026-11-22, with the amount step for weighed foods only):
 - PR 1 (0.10.0, one migration): `src/domain/portion.ts` (weight per serving, grams to
@@ -885,3 +886,10 @@ wherever you pick a food.
   built-in item is picked; the **Foods** screen counts archived copies as added, so "Show
   archived" never lists an item twice. "No match" shows only when neither your foods nor
   the loaded built-in list match.
+- PR 3 (0.12.0, decision 0032): garam masala comes from CoFID 2021 (food 13-829), which has
+  literature values, rather than an estimate, with the user's approval of CoFID (Open
+  Government Licence v3.0) on 2026-11-22. Curry leaves also come from CoFID (13-821); black
+  salt takes USDA table salt's values; amchur, ajwain, kalonji, and chaat masala are named
+  "(estimate)", from USDA values as `scripts/catalog/other.json` records. Hing is left out,
+  as CoFID lacks its energy and carbs. `build-catalog.mjs --keep-usda` rebuilds without the
+  USDA downloads. The picker's source line credits CoFID with the licence's statement.

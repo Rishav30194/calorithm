@@ -1,0 +1,94 @@
+{
+  "about": "Built-in items USDA FoodData Central doesn't have (phase 14, decision 0032). Values are per 100 g. CoFID items copy McCance and Widdowson's Composition of Foods Integrated Dataset 2021 (Open Government Licence v3.0). Estimates derive from USDA SR Legacy (2018-04) values, as each basis says, and their names say they're estimates. Teaspoon weights follow the nearest USDA spice's.",
+  "items": [
+    {
+      "id": "garam-masala",
+      "name": "Garam masala",
+      "aliases": ["masala"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (2 g)",
+      "per100": { "kcal": 379, "proteinG": 15.6, "carbsG": 45.2, "fatG": 15.1 },
+      "source": { "dataset": "CoFID 2021", "foodCode": "13-829" },
+      "note": "CoFID 'Garam masala', literature sources. Teaspoon weight from USDA curry powder (2.0 g)."
+    },
+    {
+      "id": "curry-leaves",
+      "name": "Curry leaves",
+      "aliases": ["kadi patta", "kari patta", "meetha neem"],
+      "category": "spices",
+      "servingSize": 100,
+      "servingUnit": "g",
+      "per100": { "kcal": 97, "proteinG": 7.9, "carbsG": 13.3, "fatG": 1.3 },
+      "source": { "dataset": "CoFID 2021", "foodCode": "13-821" },
+      "note": "CoFID 'Curry leaves, fresh', literature sources. Weighed, as a sprig varies."
+    },
+    {
+      "id": "black-salt",
+      "name": "Black salt",
+      "aliases": ["kala namak"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (6 g)",
+      "per100": { "kcal": 0, "proteinG": 0, "carbsG": 0, "fatG": 0 },
+      "source": { "dataset": "SR Legacy", "fdcId": 173468 },
+      "note": "A mineral salt: USDA 'Salt, table' (173468), which has no energy, protein, carbs, or fat, and its teaspoon weight."
+    },
+    {
+      "id": "amchur",
+      "name": "Amchur (estimate)",
+      "aliases": ["aamchur", "dry mango powder", "mango powder"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (2 g)",
+      "per100": { "kcal": 334, "proteinG": 4.6, "carbsG": 83.3, "fatG": 2.1 },
+      "source": {
+        "dataset": "Estimate",
+        "basis": "USDA 'Mangos, raw' (169910) dried from 83.46% to 8% water: each value times 92 / 16.54."
+      },
+      "note": "Teaspoon weight close to USDA ground ginger (1.8 g)."
+    },
+    {
+      "id": "ajwain",
+      "name": "Ajwain (estimate)",
+      "aliases": ["ajowan", "carom seeds", "omum"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (2.1 g)",
+      "per100": { "kcal": 333, "proteinG": 19.8, "carbsG": 49.9, "fatG": 14.6 },
+      "source": {
+        "dataset": "Estimate",
+        "basis": "USDA 'Spices, caraway seed' (170918), a seed of the same family, as a stand-in."
+      },
+      "note": "Teaspoon weight from USDA caraway seed."
+    },
+    {
+      "id": "kalonji",
+      "name": "Kalonji (estimate)",
+      "aliases": ["nigella seeds", "onion seeds", "kalaunji"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (2.1 g)",
+      "per100": { "kcal": 375, "proteinG": 17.8, "carbsG": 44.2, "fatG": 22.3 },
+      "source": {
+        "dataset": "Estimate",
+        "basis": "USDA 'Spices, cumin seed' (170923), a similar oily seed spice, as a stand-in."
+      },
+      "note": "Teaspoon weight from USDA whole cumin seed."
+    },
+    {
+      "id": "chaat-masala",
+      "name": "Chaat masala (estimate)",
+      "aliases": ["chat masala"],
+      "category": "spices",
+      "servingSize": 1,
+      "servingUnit": "tsp (2 g)",
+      "per100": { "kcal": 244, "proteinG": 8.1, "carbsG": 47.7, "fatG": 8 },
+      "source": {
+        "dataset": "Estimate",
+        "basis": "A usual mix by weight, from USDA SR Legacy: amchur (estimate above) 25%, black salt 25%, cumin seed (170923) 20%, coriander seed (170922) 10%, black pepper (170931) 10%, chili powder (171319) 5%, ground ginger (170926) 5%."
+      },
+      "note": "Teaspoon weight from USDA curry powder (2.0 g)."
+    }
+  ]
+}
