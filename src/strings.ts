@@ -177,10 +177,11 @@ export const strings = {
     search: 'Search foods',
     showArchived: 'Show archived',
     archived: 'Archived',
-    empty: 'No foods yet. Add the foods you eat often, then log them in two taps.',
+    empty: 'No foods of your own yet. Search the built-in foods, or add the foods you eat often.',
     noMatch: 'No foods match your search.',
     serving: (size: string, unit: string) => `${size} ${unit}`,
     detail: (serving: string, nutrients: string) => `${serving} · ${nutrients}`,
+    addBuiltInFailed: 'Couldn’t add that food. Try again.',
     editor: {
       newTitle: 'New food',
       editTitle: 'Edit food',
@@ -267,7 +268,7 @@ export const strings = {
     picker: {
       title: 'Add an ingredient',
       search: 'Search foods',
-      empty: 'No foods to add. Add foods first.',
+      empty: 'None of your own foods yet. Search to find built-in foods.',
       noMatch: 'No foods match your search.',
       close: 'Close',
     },

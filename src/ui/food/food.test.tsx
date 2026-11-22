@@ -218,8 +218,70 @@ describe('archiving', () => {
   })
 })
 
+const noBuiltIn = () => ({
+  state: undefined,
+  onSearch: vi.fn(),
+  onRetry: vi.fn(),
+  onCopy: vi.fn(async () => ({ id: 'copied' })),
+})
+
+const onion = {
+  id: 'onion',
+  name: 'Onion',
+  aliases: ['pyaz'],
+  category: 'vegetables',
+  servingSize: 100,
+  servingUnit: 'g',
+  kcal: 40,
+  proteinG: 1.1,
+  carbsG: 9.3,
+  fatG: 0.1,
+  source: { dataset: 'SR Legacy', fdcId: 170000 },
+}
+
 describe('RecipeEditor', () => {
   const recipeText = strings.recipes.editor
+
+  // Phase 14: groceries go into a recipe without being saved as foods first.
+  it('adds a built-in food as an ingredient, copying it into your foods', async () => {
+    const builtIn = {
+      ...noBuiltIn(),
+      state: [onion],
+      onCopy: vi.fn(async () => ({ id: 'f-onion' })),
+    }
+    const onionFood: FoodView = { ...oats, id: 'f-onion', name: 'Onion', catalogId: 'onion' }
+    const { rerender } = render(
+      <RecipeEditor
+        recipe={null}
+        foods={[oats]}
+        locale="en-US"
+        backHref="#/log/recipes"
+        onSave={vi.fn()}
+        onSetArchived={vi.fn()}
+        builtIn={builtIn}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: recipeText.addIngredient }))
+    const picker = screen.getByRole('dialog', { name: strings.recipes.picker.title })
+    await userEvent.type(within(picker).getByLabelText(strings.recipes.picker.search), 'pyaz')
+    expect(builtIn.onSearch).toHaveBeenCalled()
+    await userEvent.click(within(picker).getByRole('button', { name: /Onion/ }))
+    expect(builtIn.onCopy).toHaveBeenCalledWith(onion)
+
+    // The copy arrives in your foods, and the recipe lists it as an ingredient.
+    rerender(
+      <RecipeEditor
+        recipe={null}
+        foods={[oats, onionFood]}
+        locale="en-US"
+        backHref="#/log/recipes"
+        onSave={vi.fn()}
+        onSetArchived={vi.fn()}
+        builtIn={builtIn}
+      />,
+    )
+    expect(screen.getByLabelText('Servings of Onion')).toHaveValue('1')
+  })
 
   const renderNew = (onSave = vi.fn(async () => true)) => {
     render(
@@ -230,6 +292,7 @@ describe('RecipeEditor', () => {
         backHref="#/log/recipes"
         onSave={onSave}
         onSetArchived={vi.fn()}
+        builtIn={noBuiltIn()}
       />,
     )
     return onSave
@@ -336,6 +399,7 @@ describe('RecipeEditor', () => {
         backHref="#/log/recipes"
         onSave={vi.fn()}
         onSetArchived={vi.fn()}
+        builtIn={noBuiltIn()}
       />,
     )
 

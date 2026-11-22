@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test'
 
-import { serverBarcodeOf } from './database'
+import { removeBuiltInCopies, serverBarcodeOf } from './database'
 import { expectNoAxeViolations, seedUser, signIn } from './helpers'
 
 // Rows stay in the local database between runs, so every name is unique to its test run.
@@ -204,3 +204,47 @@ for (const colorScheme of ['light', 'dark'] as const) {
     })
   })
 }
+
+test.describe('built-in foods wherever a food is picked (phase 14)', () => {
+  // Both projects share the seed user, so one project resets and copies the items.
+  test.skip(({ isMobile }) => isMobile, 'Runs in the desktop project only')
+
+  test('a built-in grocery goes straight into a recipe', async ({ page }) => {
+    removeBuiltInCopies(seedUser.id, 'garlic')
+    const recipe = unique('Tadka')
+    await signIn(page)
+    await page.goto('./#/log/recipes/new')
+    await page.getByLabel('Name').fill(recipe)
+    await page.getByLabel('Servings it makes').fill('4')
+    await page.getByRole('button', { name: 'Add ingredient' }).click()
+    const picker = page.getByRole('dialog', { name: 'Add an ingredient' })
+    await picker.getByLabel('Search foods').fill('lahsun')
+    await picker.getByRole('button', { name: /^Garlic(?! powder)/ }).click()
+
+    await expect(page.getByLabel('Servings of Garlic')).toHaveValue('1')
+    await page.getByRole('button', { name: 'Save' }).click()
+    await expect(page.getByRole('heading', { name: 'Recipes', level: 2 })).toBeVisible()
+    await page.getByLabel('Search recipes').fill(recipe)
+    await expect(page.getByRole('link', { name: new RegExp(recipe) })).toBeVisible()
+  })
+
+  test('the Foods screen adds a built-in food and opens it for checking', async ({ page }) => {
+    removeBuiltInCopies(seedUser.id, 'ginger')
+    await signIn(page)
+    await openList(page, 'Foods')
+    await search(page, 'Search foods', 'adrak')
+    await page
+      .getByRole('region', { name: 'Built-in foods' })
+      .getByRole('button', { name: /^Ginger(?! powder)/ })
+      .click()
+
+    await expect(page.getByRole('heading', { name: 'Edit food', level: 2 })).toBeVisible()
+    await expect(page.getByLabel('Name')).toHaveValue('Ginger')
+    await page.getByRole('link', { name: 'Back to foods' }).click()
+    await search(page, 'Search foods', 'adrak')
+    // Copied once: it now shows as your own food, not again under the built-in foods.
+    await expect(
+      page.getByRole('region', { name: 'Built-in foods' }).getByRole('button'),
+    ).toHaveCount(0)
+  })
+})

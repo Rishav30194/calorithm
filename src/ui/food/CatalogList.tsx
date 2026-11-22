@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { type ReactNode, useId, useState } from 'react'
 
 import { TextField } from '../TextField'
 
@@ -22,13 +22,18 @@ type Props = {
     noMatch: string
   }
   items: CatalogItem[]
+  // More matches for the search, below the list, such as the built-in foods. With them the
+  // search shows even when the list is empty.
+  extra?: (query: string) => ReactNode
+  // Told of each search, so the extra matches can load on the first one.
+  onSearch?: (query: string) => void
 }
 
 const matches = (name: string, query: string) =>
   name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())
 
 // The food and recipe lists: search, an archived switch, and one link per row.
-export const CatalogList = ({ title, back, add, text, items }: Props) => {
+export const CatalogList = ({ title, back, add, text, items, extra, onSearch }: Props) => {
   const [query, setQuery] = useState('')
   const [showArchived, setShowArchived] = useState(false)
   const switchId = useId()
@@ -50,11 +55,18 @@ export const CatalogList = ({ title, back, add, text, items }: Props) => {
           {add.label}
         </a>
       </div>
-      {items.length === 0 ? (
-        <p className="text-muted">{text.empty}</p>
-      ) : (
+      {items.length === 0 && <p className="text-muted">{text.empty}</p>}
+      {(items.length > 0 || extra) && (
         <>
-          <TextField label={text.search} value={query} onChange={setQuery} type="search" />
+          <TextField
+            label={text.search}
+            value={query}
+            onChange={(value) => {
+              setQuery(value)
+              onSearch?.(value)
+            }}
+            type="search"
+          />
           <label htmlFor={switchId} className="flex min-h-11 items-center gap-3">
             <input
               id={switchId}
@@ -66,7 +78,7 @@ export const CatalogList = ({ title, back, add, text, items }: Props) => {
             {text.showArchived}
           </label>
           {shown.length === 0 ? (
-            <p className="text-muted">{text.noMatch}</p>
+            items.length > 0 && !extra && <p className="text-muted">{text.noMatch}</p>
           ) : (
             <ul className="flex flex-col divide-y divide-border border-y border-border">
               {shown.map((item) => (
@@ -84,6 +96,7 @@ export const CatalogList = ({ title, back, add, text, items }: Props) => {
               ))}
             </ul>
           )}
+          {extra?.(query)}
         </>
       )}
     </div>

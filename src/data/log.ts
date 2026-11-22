@@ -20,6 +20,7 @@ import { dayId } from './dayId'
 import type { LocalDb } from './db'
 import {
   type CatalogCopy,
+  copyCatalogFood,
   createFood,
   type FoodInput,
   foodNutrients,
@@ -144,29 +145,7 @@ export const logCatalogFood = (
   servings = 1,
 ): Promise<LogEntryRow> =>
   db.transaction('rw', db.rows('foods'), db.rows('log_entries'), db.outbox, async () => {
-    const existing = (await db.rows('foods').where('catalog_id').equals(item.id).toArray()).flatMap(
-      (raw) => {
-        const food = foodsSpec.parse(raw)
-        return food && food.deleted_at === null ? [food] : []
-      },
-    )[0]
-    // An archived copy comes back: the picker only offers the item again once it's archived.
-    const restored =
-      existing && existing.archived_at !== null
-        ? await writeRow(db, foodsSpec, { ...existing, archived_at: null }, clock)
-        : existing
-    const food =
-      restored ??
-      (await createFood(db, clock, userId, {
-        name: item.name,
-        servingSize: item.servingSize,
-        servingUnit: item.servingUnit,
-        kcal: item.kcal,
-        proteinG: item.proteinG,
-        carbsG: item.carbsG,
-        fatG: item.fatG,
-        catalogId: item.id,
-      }))
+    const food = await copyCatalogFood(db, clock, userId, item)
     return logFood(db, clock, userId, { ...target, food, servings })
   })
 

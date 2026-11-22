@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import type { CatalogFood } from '@/data/catalog/search'
 import {
   useFood,
   useFoodActions,
@@ -7,12 +9,14 @@ import {
   useRecipes,
 } from '@/data/foodHooks'
 import type { FoodView } from '@/data/foods'
+import { useCatalog } from '@/data/logHooks'
 import { formatAmount } from '@/domain/format'
 import { strings } from '@/strings'
 
 import { macroText } from '../macros'
 import { type FoodRoute, routeHref } from '../routes'
 import { ScreenErrorBoundary } from '../ScreenErrorBoundary'
+import { BuiltInMatches } from './BuiltInMatches'
 import { CatalogList } from './CatalogList'
 import { FoodEditor } from './FoodEditor'
 import { RecipeEditor } from './RecipeEditor'
@@ -44,7 +48,25 @@ const foodDetail = (food: FoodView, locale: string) =>
 
 const Foods = ({ locale }: { locale: string }) => {
   const foods = useFoods()
+  const actions = useFoodActions()
+  // The built-in list loads on the first search, not when the screen opens.
+  const [searched, setSearched] = useState(false)
+  const catalog = useCatalog(searched)
+  const [busy, setBusy] = useState(false)
+  const [failed, setFailed] = useState(false)
   if (!foods) return <Loading />
+  const copied = new Set(
+    foods.flatMap((food) => (!food.archived && food.catalogId ? [food.catalogId] : [])),
+  )
+  // A built-in item becomes one of your foods and opens for checking against your pack.
+  const addBuiltIn = async (item: CatalogFood) => {
+    setBusy(true)
+    setFailed(false)
+    const copy = await actions.copyBuiltIn(item).catch(() => null)
+    setBusy(false)
+    if (copy) go(routeHref({ tab: 'log', screen: 'food', id: copy.id }))
+    else setFailed(true)
+  }
   return (
     <CatalogList
       title={strings.foods.title}
@@ -58,6 +80,27 @@ const Foods = ({ locale }: { locale: string }) => {
         detail: foodDetail(food, locale),
         href: routeHref({ tab: 'log', screen: 'food', id: food.id }),
       }))}
+      onSearch={(query) => {
+        if (query.trim() !== '') setSearched(true)
+      }}
+      extra={(query) => (
+        <>
+          {failed && (
+            <p role="alert" className="text-danger">
+              {strings.foods.addBuiltInFailed}
+            </p>
+          )}
+          <BuiltInMatches
+            state={catalog.state}
+            query={query}
+            copied={copied}
+            locale={locale}
+            busy={busy}
+            onRetry={catalog.retry}
+            onPick={(item) => void addBuiltIn(item)}
+          />
+        </>
+      )}
     />
   )
 }
@@ -139,6 +182,10 @@ const RecipeForm = ({ id, locale }: { id: string | null; locale: string }) => {
   const foods = useFoods()
   const recipe = useRecipe(id ?? '')
   const actions = useRecipeActions()
+  const foodActions = useFoodActions()
+  // The built-in list loads on the first ingredient search, not when the editor opens.
+  const [searched, setSearched] = useState(false)
+  const catalog = useCatalog(searched)
   if (!foods || (id !== null && recipe === undefined)) return <Loading />
   if (id !== null && !recipe) {
     return (
@@ -167,6 +214,12 @@ const RecipeForm = ({ id, locale }: { id: string | null; locale: string }) => {
       }}
       onSetArchived={async (archived) => {
         if (id !== null) await actions.setArchived(id, archived)
+      }}
+      builtIn={{
+        state: catalog.state,
+        onSearch: () => setSearched(true),
+        onRetry: catalog.retry,
+        onCopy: foodActions.copyBuiltIn,
       }}
     />
   )

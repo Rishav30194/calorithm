@@ -31,6 +31,14 @@ describe('searchCatalog (decision 0027)', () => {
     expect(found.indexOf('Rice, white, cooked')).toBeLessThan(found.indexOf('Puffed rice'))
   })
 
+  // Phase 14: "hing" used to find prawns through their alias "jhinga".
+  it('matches the start of a word, not the middle of one', () => {
+    expect(names(searchCatalog(foods, 'hing', new Set()))).not.toContain('Prawns, cooked')
+    expect(names(searchCatalog(foods, 'jhinga', new Set()))).toContain('Prawns, cooked')
+    expect(names(searchCatalog(foods, 'chili powder', new Set()))).toContain('Red chili powder')
+    expect(names(searchCatalog(foods, 'meric', new Set()))).toEqual([])
+  })
+
   it('leaves out items already copied into your foods', () => {
     expect(names(searchCatalog(foods, 'haldi', new Set(['turmeric'])))).toEqual([])
   })

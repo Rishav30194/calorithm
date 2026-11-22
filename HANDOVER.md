@@ -9,8 +9,9 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 1. **Phase 14 PR 1 (0.10.0, logging by weight) is deployed** (#45, 2026-11-22; the hosted
    project has migrations through `20261122050000`). Dexie version 9 clears the
    `log_entries` pull cursor, so each device's first sync after updating rereads every log
-   entry once. Next: PR 2 (built-in foods in the recipe ingredient picker and on the
-   **Foods** screen, word-start search, 0.11.0), then PR 3 (garam and chaat masala
+   entry once. PR 2 (0.11.0: built-in foods in the recipe ingredient picker and on the
+   **Foods** screen, word-start search) is built on `feature/builtin-everywhere`, no
+   migration; push and open its PR when the user asks. Then PR 3 (garam and chaat masala
    estimates; hing, ajwain, kalonji, curry leaves, amchur, and black salt only after the
    user approves a source, 0.12.0), per `docs/phases.md`, phase 14. Follow-up: route foods
    saved from a barcode scan or a label through the amount step. The user hasn't yet tried

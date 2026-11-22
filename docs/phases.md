@@ -817,7 +817,7 @@ Phase 12 waits for the user's MacroFactor subscription, so this phase runs first
 
 ## Phase 14 — Logging by weight, and built-in groceries everywhere
 
-**Status:** In progress (PR 1 of 3)
+**Status:** In progress (PR 2 of 3)
 
 **Goal:** log what you actually ate by weight, and find everyday groceries and spices
 wherever you pick a food.
@@ -844,7 +844,7 @@ wherever you pick a food.
 - [x] The entry dialog converts between grams and servings both ways, previews the four
   values before saving, and shows no grams for foods without a weight.
 - [x] A weighed food asks for its amount when picked; a count food still logs in one tap.
-- [ ] Onion, tomato, and the spices can be added to a recipe without saving them first.
+- [x] Onion, tomato, and the spices can be added to a recipe without saving them first.
 - [ ] Garam masala and chaat masala are in the list, marked as estimates; any single spice
   added has a recorded source the user approved.
 
@@ -872,3 +872,11 @@ wherever you pick a food.
   open the step with the servings last logged. `logCatalogFood` takes servings.
 - The phase 3 browser tests now use a "bowl (40 g)" unit, a piece with a weight, so they
   still log in one tap.
+- PR 2 (0.11.0): `copyCatalogFood` (`src/data/foods.ts`) returns the copy made before,
+  restores an archived one, or creates one; logging a built-in item uses it too. The
+  recipe ingredient picker (`FoodPicker`) and the **Foods** screen (`CatalogList`'s new
+  `extra` and `onSearch`) show `BuiltInMatches` under the search, loading the list on the
+  first search. A pick in the recipe picker adds the copy as an ingredient; on the **Foods**
+  screen it opens the copy in the editor. Both show the search even with no foods of your
+  own. `searchCatalog` matches word starts: "chili powder" finds "Red chili powder", "hing"
+  no longer finds "jhinga".
