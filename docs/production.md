@@ -25,10 +25,11 @@ moved, search the settings for it.
 
 1. Create a project on the free plan, in the region closest to you.
 2. In **Authentication** > **Sign In / Providers**, turn off **Allow new users to sign up**.
-3. In the same settings, turn on **Secure password change**. Account deletion relies on it
-   (decision 0023).
+3. In the same settings, select the **Email** provider to open its panel, then turn on
+   **Secure password change**. Account deletion relies on it (decision 0023).
 4. In **Authentication** > **URL Configuration**, set **Site URL** to
-   `https://rishav30194.github.io/calorithm/`.
+   `https://rishav30194.github.io/calorithm`, with no trailing slash. The app sends no auth
+   emails yet, so this only matters once it does.
 5. In **Authentication** > **Users**, add your own user with a strong password, and a
    throwaway user for the deletion check.
 6. From the project folder, apply the migrations:
