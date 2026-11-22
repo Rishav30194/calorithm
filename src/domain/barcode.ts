@@ -36,3 +36,22 @@ export const parseBarcode = (input: string): BarcodeResult => {
   }
   return { ok: true, barcode: canonical(code) }
 }
+
+// A UPC-E code (8 digits, number system 0 or 1) as the 12-digit UPC-A code it shortens, so
+// it parses and matches like any other code. The last of its six middle digits picks how
+// the zeros it left out go back in.
+export const upcEToUpcA = (code: string): string | null => {
+  if (!/^[01][0-9]{7}$/.test(code)) return null
+  const system = code.slice(0, 1)
+  const [a, b, c, d, e, last] = code.slice(1, 7)
+  const check = code.slice(7)
+  const body =
+    last === '0' || last === '1' || last === '2'
+      ? `${a}${b}${last}0000${c}${d}${e}`
+      : last === '3'
+        ? `${a}${b}${c}00000${d}${e}`
+        : last === '4'
+          ? `${a}${b}${c}${d}00000${e}`
+          : `${a}${b}${c}${d}${e}0000${last}`
+  return `${system}${body}${check}`
+}

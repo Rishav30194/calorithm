@@ -17,7 +17,13 @@ import {
 import type { CatalogFood } from './catalog/search'
 import { dayId } from './dayId'
 import type { LocalDb } from './db'
-import { createFood, foodNutrients, recipeIngredients } from './foods'
+import {
+  type CatalogCopy,
+  createFood,
+  type FoodInput,
+  foodNutrients,
+  recipeIngredients,
+} from './foods'
 import { type Clock, softDelete, writeRow } from './repository'
 import {
   daysSpec,
@@ -318,6 +324,38 @@ export const logSource = async (
   if (!recipe || recipe.deleted_at !== null) return { ok: false, reason: 'not_found' }
   return { ok: true, row: await logRecipe(db, clock, userId, { date, meal, recipe, servings }) }
 }
+
+// A scanned barcode matched a saved food: logs one serving, bringing an archived food back
+// into the pickers, as a built-in pick does.
+export const logScannedFood = (
+  db: LocalDb,
+  clock: Clock,
+  userId: string,
+  target: Target,
+  foodId: string,
+): Promise<LogSourceResult> =>
+  db.transaction('rw', db.rows('foods'), db.rows('log_entries'), db.outbox, async () => {
+    const found = foodsSpec.parse(await db.rows('foods').get(foodId))
+    if (!found || found.deleted_at !== null) return { ok: false, reason: 'not_found' }
+    const food =
+      found.archived_at === null
+        ? found
+        : await writeRow(db, foodsSpec, { ...found, archived_at: null }, clock)
+    return { ok: true, row: await logFood(db, clock, userId, { ...target, food, servings: 1 }) }
+  })
+
+// A food checked in the form after a scan: saved with its barcode, and one serving logged.
+export const logNewFood = (
+  db: LocalDb,
+  clock: Clock,
+  userId: string,
+  target: Target,
+  input: FoodInput | CatalogCopy,
+): Promise<LogEntryRow> =>
+  db.transaction('rw', db.rows('foods'), db.rows('log_entries'), db.outbox, async () => {
+    const food = await createFood(db, clock, userId, input)
+    return logFood(db, clock, userId, { ...target, food, servings: 1 })
+  })
 
 // Every entry from the first day to the last, inclusive, by day and then in logged order.
 export const entriesBetween = async (

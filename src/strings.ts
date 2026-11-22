@@ -78,6 +78,30 @@ export const strings = {
       noMatch: 'Nothing matches your search.',
       close: 'Close',
       failed: 'Couldn’t log that. Try again.',
+      scan: 'Scan barcode',
+      enter: 'Enter barcode',
+    },
+    barcode: {
+      back: 'Back to search',
+      camera: 'Camera view',
+      startingCamera: 'Starting the camera…',
+      aim: 'Hold the barcode inside the frame.',
+      code: 'Barcode',
+      codeHint: 'The digits under the bars on the pack',
+      lookUp: 'Look up',
+      lookingUp: 'Looking up…',
+      denied:
+        'Camera access is off for this app. Allow it in your browser’s settings, or enter the barcode.',
+      noCamera: 'No camera was found. Enter the barcode instead.',
+      cameraFailed: 'The scanner couldn’t start. Enter the barcode instead.',
+      saved: 'Your foods with this barcode',
+      archived: 'Archived; logging it restores it',
+      found:
+        'Found on Open Food Facts. Values are per 100 g, or per 100 ml for drinks. Check them against the pack, then save.',
+      notFound: 'Open Food Facts doesn’t have this barcode. Enter the food from its label.',
+      unreachable:
+        'Couldn’t reach Open Food Facts. Check your connection, or enter the food from its label.',
+      saveAndLog: 'Save and log',
     },
     entry: {
       servings: 'Servings',
@@ -144,6 +168,7 @@ export const strings = {
       archivedNote: 'Archived. It stays on past days and in recipes, but not in pickers.',
       fromBuiltIn:
         'Added from the built-in foods (USDA FoodData Central). Check the values against your pack.',
+      fromOpenFoodFacts: 'Values from Open Food Facts.',
       notFound: 'This food isn’t on this device. It may have been removed on another device.',
       saveFailed: 'Couldn’t save. Try again.',
       archiveFailed: 'Couldn’t change that. Try again.',
@@ -160,6 +185,11 @@ export const strings = {
       barcodeCheckDigit: 'That barcode’s last digit doesn’t match the others. Check the digits.',
       barcodeKept: 'A saved barcode can be changed but not removed.',
     },
+  },
+
+  openFoodFacts: {
+    credit: '© Open Food Facts contributors',
+    license: 'Open Database License',
   },
 
   recipes: {

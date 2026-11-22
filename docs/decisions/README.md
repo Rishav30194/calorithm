@@ -48,3 +48,4 @@ change a decision, write a new record that supersedes the old one.
 | [0026](0026-ranking-foods-by-recent-use.md) | Ranking foods by recent use | Accepted |
 | [0027](0027-built-in-foods-from-usda.md) | Built-in foods from USDA FoodData Central | Accepted |
 | [0028](0028-barcode-stored-form.md) | One stored form per barcode | Accepted |
+| [0029](0029-open-food-facts-lookup.md) | Open Food Facts for unknown barcodes | Accepted |

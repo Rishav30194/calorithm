@@ -1,7 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 
-import { gtinCheckDigit, parseBarcode } from './barcode'
+import { gtinCheckDigit, parseBarcode, upcEToUpcA } from './barcode'
 
 // A code's body with its check digit appended.
 const withCheck = (body: string): string => `${body}${gtinCheckDigit(body)}`
@@ -89,6 +89,35 @@ describe('parseBarcode', () => {
         const changed = (Number(code[index]) + shift) % 10
         const typo = `${code.slice(0, index)}${changed}${code.slice(index + 1)}`
         expect(parseBarcode(typo)).toEqual({ ok: false, reason: 'check_digit' })
+      }),
+    )
+  })
+})
+
+describe('upcEToUpcA', () => {
+  it('expands each of the four UPC-E patterns', () => {
+    // The last of the six middle digits picks the pattern.
+    expect(upcEToUpcA('01234505')).toBe('012000003455')
+    expect(upcEToUpcA('01234531')).toBe('012300000451')
+    expect(upcEToUpcA('01234548')).toBe('012340000058')
+    expect(upcEToUpcA('01234565')).toBe('012345000065')
+  })
+
+  it('refuses codes that aren’t UPC-E', () => {
+    expect(upcEToUpcA('21234565')).toBeNull()
+    expect(upcEToUpcA('0123456')).toBeNull()
+    expect(upcEToUpcA('0123456a')).toBeNull()
+  })
+
+  it('keeps the number system and check digit, so a valid UPC-E code parses', () => {
+    fc.assert(
+      fc.property(fc.constantFrom('0', '1'), digits(6), (system, middle) => {
+        const expanded = upcEToUpcA(`${system}${middle}0`)
+        if (expanded === null) throw new Error('not expanded')
+        const body = expanded.slice(0, 11)
+        const code = upcEToUpcA(`${system}${middle}${gtinCheckDigit(body)}`)
+        expect(code === null ? null : parseBarcode(code).ok).toBe(true)
+        expect(code?.[0]).toBe(system)
       }),
     )
   })

@@ -47,6 +47,21 @@ const butter: FoodView = { ...oats, id: 'f3', name: 'Butter', archived: true }
 const text = strings.foods.editor
 
 describe('FoodEditor', () => {
+  it('credits Open Food Facts on a food saved from there (decision 0029)', () => {
+    render(
+      <FoodEditor
+        food={{ ...oats, catalogId: 'openfoodfacts', barcode: '3017620422003' }}
+        locale="en-US"
+        backHref="#/log/foods"
+        onSave={vi.fn()}
+        onSetArchived={vi.fn()}
+      />,
+    )
+    expect(screen.getByText(text.fromOpenFoodFacts)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: strings.openFoodFacts.credit })).toBeInTheDocument()
+    expect(screen.queryByText(text.fromBuiltIn)).toBeNull()
+  })
+
   it('saves the parsed food', async () => {
     const onSave = vi.fn(async () => true)
     render(
