@@ -64,6 +64,11 @@ const between = (min: number, max: number) => [z.gte(min), z.lte(max)] as const
 const grams = (places: number, max: number) =>
   z._default(z.nullable(z.number().check(...between(0, max), decimals(places))), null)
 
+// A log entry's grams are servings times a food's, so like its protein they're checked only
+// for precision here; the database's range check refuses an impossible total on sync.
+const loggedGrams = (places: number) =>
+  z._default(z.nullable(z.number().check(z.gte(0), decimals(places))), null)
+
 export type ProfileRow = Tables<'profile'>
 
 const profileSchema = z.object({
@@ -163,10 +168,10 @@ export const logEntriesSpec: TableSpec<LogEntryRow> = {
       protein_g: z.number(),
       kcal_per_serving: z.number(),
       protein_g_per_serving: z.number(),
-      carbs_g: grams(1, 10000),
-      fat_g: grams(1, 10000),
-      carbs_g_per_serving: grams(3, 10000),
-      fat_g_per_serving: grams(3, 10000),
+      carbs_g: loggedGrams(1),
+      fat_g: loggedGrams(1),
+      carbs_g_per_serving: loggedGrams(3),
+      fat_g_per_serving: loggedGrams(3),
       logged_at: z.string(),
     }),
   ),

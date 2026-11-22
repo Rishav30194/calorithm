@@ -3,10 +3,11 @@ import { useEffect, useId, useState } from 'react'
 import type { LoggedEntry } from '@/data/log'
 import type { DayView } from '@/data/logHooks'
 import { addDays } from '@/domain/dates'
-import { formatAmount, formatKcal, formatProtein } from '@/domain/format'
-import { type Meal, meals, type Nutrients } from '@/domain/nutrition'
+import { formatAmount } from '@/domain/format'
+import { type DailyTargets, type Meal, meals, missingCarbsOrFat } from '@/domain/nutrition'
 import { strings } from '@/strings'
 
+import { macroText } from '../macros'
 import { routeHref } from '../routes'
 import { TargetProgress } from './TargetProgress'
 
@@ -16,7 +17,7 @@ type Props = {
   day: DayView
   // The latest check-in's targets, shown on today only; null before the first, undefined
   // while loading.
-  targets?: Nutrients | null | undefined
+  targets?: DailyTargets | null | undefined
   locale: string
   onAdd: (meal: Meal) => void
   onCopy: (meal: Meal) => void
@@ -55,8 +56,7 @@ export const LogDay = ({
   // synced from another device replaces it.
   const [complete, setCompleteShown] = useState(day.complete)
   useEffect(() => setCompleteShown(day.complete), [day.complete])
-  const nutrients = ({ kcal, proteinG }: Nutrients) =>
-    text.nutrients(formatKcal(kcal, locale), formatProtein(proteinG, locale))
+  const allEntries = meals.flatMap((meal) => day.byMeal[meal])
 
   const setComplete = async (value: boolean) => {
     setCompleteShown(value)
@@ -93,8 +93,13 @@ export const LogDay = ({
       <div className="flex flex-col gap-2">
         <p className="rounded-lg bg-surface p-3">
           <span className="text-muted">{text.dayTotal} </span>
-          <span className="font-semibold">{nutrients(day.total)}</span>
+          <span className="font-semibold">
+            {macroText(day.total, locale, allEntries.length === 0)}
+          </span>
         </p>
+        {missingCarbsOrFat(allEntries) && (
+          <p className="text-sm text-muted">{text.missingCarbsOrFat}</p>
+        )}
         {/* The targets are the latest check-in's, so only today is measured against them. */}
         {date === today && targets !== undefined && (
           <TargetProgress total={day.total} targets={targets} locale={locale} />
@@ -108,7 +113,9 @@ export const LogDay = ({
           <section key={meal} aria-label={name} className="flex flex-col gap-2">
             <div className="flex items-baseline justify-between gap-2">
               <h3 className="text-lg font-semibold">{name}</h3>
-              <span className="text-sm text-muted">{nutrients(day.mealTotals[meal])}</span>
+              <span className="text-sm text-muted">
+                {macroText(day.mealTotals[meal], locale, entries.length === 0)}
+              </span>
             </div>
             {entries.length === 0 ? (
               <p className="text-muted">{text.emptyMeal}</p>
@@ -125,7 +132,7 @@ export const LogDay = ({
                       <span className="text-sm text-muted">
                         {text.entryDetail(
                           text.servings(formatAmount(entry.servings, locale), entry.servings === 1),
-                          nutrients(entry),
+                          macroText(entry, locale),
                         )}
                       </span>
                     </button>

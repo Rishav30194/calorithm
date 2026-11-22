@@ -61,6 +61,8 @@ export const seedSample = async (db: LocalDb, clock: Clock, userId: string): Pro
     servingUnit: 'g',
     kcal: 150,
     proteinG: 5,
+    carbsG: 20,
+    fatG: 3,
   })
   const milk = await createFood(db, clock, userId, {
     name: 'Milk',
@@ -68,6 +70,8 @@ export const seedSample = async (db: LocalDb, clock: Clock, userId: string): Pro
     servingUnit: 'ml',
     kcal: 120,
     proteinG: 8.5,
+    carbsG: 20,
+    fatG: 3,
   })
   const bar = await createFood(db, clock, userId, {
     name: 'Old bar',
@@ -75,6 +79,8 @@ export const seedSample = async (db: LocalDb, clock: Clock, userId: string): Pro
     servingUnit: 'bar',
     kcal: 200,
     proteinG: 10,
+    carbsG: 20,
+    fatG: 3,
   })
   await setFoodArchived(db, clock, bar.id, true)
   const porridge = await createRecipe(db, clock, userId, {

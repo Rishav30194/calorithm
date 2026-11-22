@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useCallback } from 'react'
 
 import type { CheckinFields } from '@/domain/checkin'
-import type { Nutrients } from '@/domain/nutrition'
+import type { DailyTargets } from '@/domain/nutrition'
 
 import { type CheckinState, checkinState, latestCheckin, saveCheckin } from './checkins'
 import { useData } from './DataProvider'
@@ -28,7 +28,7 @@ export const useSaveCheckin = (): ((fields: CheckinFields) => Promise<void>) => 
 
 // The latest check-in's daily targets; null before the first check-in, undefined while
 // loading.
-export const useTargets = (): Nutrients | null | undefined => {
+export const useTargets = (): DailyTargets | null | undefined => {
   const { ctx } = useData()
   return useLiveQuery(async () => {
     const latest = await latestCheckin(ctx.db)

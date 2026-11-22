@@ -35,6 +35,8 @@ const addFood = async (page: Page, name: string) => {
   await page.getByLabel('Serving unit').fill('g')
   await page.getByLabel('kcal per serving').fill('150')
   await page.getByLabel('Protein per serving (g)').fill('5')
+  await page.getByLabel('Carbs per serving (g)').fill('27')
+  await page.getByLabel('Fat per serving (g)').fill('2.5')
   await page.getByRole('button', { name: 'Save' }).click()
   await expect(page.getByRole('heading', { name: 'Foods', level: 2 })).toBeVisible()
 }
@@ -84,7 +86,7 @@ test('an export imported into another account brings its data across (phase 6 cr
   await openFoods(other)
   await other.getByLabel('Search foods').fill(name)
   await expect(other.getByRole('link', { name: new RegExp(name) })).toContainText(
-    '40 g · 150 kcal · 5 g protein',
+    '40 g · 150 kcal · 5 g protein · 27 g carbs · 2.5 g fat',
   )
   await context.close()
 })

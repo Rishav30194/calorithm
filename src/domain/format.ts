@@ -20,6 +20,10 @@ export const formatAmount = (value: number, locale: string): string => number(va
 export const formatProtein = (grams: number, locale: string): string =>
   `${number(grams, 1, locale)} g`
 
+// Carbs and fat: stored with one decimal, as protein.
+export const formatGrams = (grams: number, locale: string): string =>
+  `${number(grams, 1, locale)} g`
+
 // Weights are stored in kilograms; pounds exist only on screen.
 export const formatWeight = (kg: number, unit: WeightUnit, locale: string): string => {
   return `${number(fromKg(kg, unit), 1, locale)} ${unit}`

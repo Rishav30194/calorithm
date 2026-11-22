@@ -27,7 +27,8 @@ const unit = z.string().check(z.trim(), z.minLength(1), z.maxLength(20))
 // Two decimals are stored, so anything below 0.01 would round to zero.
 const servings = (max: number) => z.number().check(z.gte(0.01), z.lte(max))
 const kcal = z.int().check(z.gte(0), z.lte(10_000))
-const protein = z.number().check(z.gte(0), z.lte(1_000))
+// Protein, carbs, and fat per serving, in grams.
+const grams = z.number().check(z.gte(0), z.lte(1_000))
 
 type Errors<Field extends string> = Partial<Record<Field, string>>
 
@@ -51,6 +52,8 @@ export type FoodFormValues = {
   servingUnit: string
   kcal: string
   proteinG: string
+  carbsG: string
+  fatG: string
 }
 
 export type FoodField = keyof FoodFormValues
@@ -73,19 +76,26 @@ export const parseFoodForm = (values: FoodFormValues): FoodFormResult => {
     ),
     servingUnit: field(errors, 'servingUnit', unit, values.servingUnit, messages.servingUnit),
     kcal: field(errors, 'kcal', kcal, toNumber(values.kcal), messages.kcal),
-    proteinG: field(errors, 'proteinG', protein, toNumber(values.proteinG), messages.proteinG),
+    proteinG: field(errors, 'proteinG', grams, toNumber(values.proteinG), messages.proteinG),
+    carbsG: field(errors, 'carbsG', grams, toNumber(values.carbsG), messages.carbsG),
+    fatG: field(errors, 'fatG', grams, toNumber(values.fatG), messages.fatG),
   }
-  const { name: n, servingSize, servingUnit, kcal: k, proteinG } = parsed
+  const { name: n, servingSize, servingUnit, kcal: k, proteinG, carbsG, fatG } = parsed
   if (
     n === undefined ||
     servingSize === undefined ||
     servingUnit === undefined ||
     k === undefined ||
-    proteinG === undefined
+    proteinG === undefined ||
+    carbsG === undefined ||
+    fatG === undefined
   ) {
     return { ok: false, errors }
   }
-  return { ok: true, input: { name: n, servingSize, servingUnit, kcal: k, proteinG } }
+  return {
+    ok: true,
+    input: { name: n, servingSize, servingUnit, kcal: k, proteinG, carbsG, fatG },
+  }
 }
 
 export type RecipeFormValues = {

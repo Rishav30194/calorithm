@@ -14,7 +14,7 @@ import {
 
 import { dayId } from './dayId'
 import type { LocalDb } from './db'
-import { recipeIngredients } from './foods'
+import { foodNutrients, recipeIngredients } from './foods'
 import { type Clock, softDelete, writeRow } from './repository'
 import {
   daysSpec,
@@ -29,6 +29,19 @@ import {
 export type LoggedEntry = Entry & { id: string }
 
 type Target = { date: string; meal: Meal }
+
+const thousandths = (value: number): number => Math.round(value * 1000) / 1000
+
+const optionalThousandths = (value: number | null): number | null =>
+  value === null ? null : thousandths(value)
+
+// The values stored per serving when the entry was logged.
+const perServingOf = (row: LogEntryRow): Nutrients => ({
+  kcal: row.kcal_per_serving,
+  proteinG: row.protein_g_per_serving,
+  carbsG: row.carbs_g_per_serving,
+  fatG: row.fat_g_per_serving,
+})
 
 const newEntry = (
   db: LocalDb,
@@ -63,14 +76,13 @@ const newEntry = (
       name: fields.name,
       kcal: nutrients.kcal,
       protein_g: nutrients.proteinG,
+      carbs_g: nutrients.carbsG,
+      fat_g: nutrients.fatG,
       // The columns hold three decimals.
-      kcal_per_serving: Math.round(fields.perServing.kcal * 1000) / 1000,
-      protein_g_per_serving: Math.round(fields.perServing.proteinG * 1000) / 1000,
-      // Not copied until foods carry them (phase 8, PR 2).
-      carbs_g: null,
-      fat_g: null,
-      carbs_g_per_serving: null,
-      fat_g_per_serving: null,
+      kcal_per_serving: thousandths(fields.perServing.kcal),
+      protein_g_per_serving: thousandths(fields.perServing.proteinG),
+      carbs_g_per_serving: optionalThousandths(fields.perServing.carbsG),
+      fat_g_per_serving: optionalThousandths(fields.perServing.fatG),
       logged_at: fields.loggedAt ?? clock().toISOString(),
     },
     clock,
@@ -92,7 +104,7 @@ export const logFood = (
     recipeId: null,
     name: food.name,
     servings: rounded,
-    perServing: { kcal: food.kcal, proteinG: food.protein_g },
+    perServing: foodNutrients(food),
   })
 }
 
@@ -133,6 +145,8 @@ const toEntry = (row: LogEntryRow): LoggedEntry | null => {
     servings: row.servings,
     kcal: row.kcal,
     proteinG: row.protein_g,
+    carbsG: row.carbs_g,
+    fatG: row.fat_g,
   }
 }
 
@@ -162,12 +176,18 @@ export const changeServings = async (
   const row = logEntriesSpec.parse(await db.rows('log_entries').get(id))
   if (!row || row.deleted_at !== null) return { ok: false, reason: 'not_found' }
   const rounded = roundServings(servings)
-  const perServing = { kcal: row.kcal_per_serving, proteinG: row.protein_g_per_serving }
-  const nutrients = scaleNutrients(perServing, rounded)
+  const nutrients = scaleNutrients(perServingOf(row), rounded)
   await writeRow(
     db,
     logEntriesSpec,
-    { ...row, servings: rounded, kcal: nutrients.kcal, protein_g: nutrients.proteinG },
+    {
+      ...row,
+      servings: rounded,
+      kcal: nutrients.kcal,
+      protein_g: nutrients.proteinG,
+      carbs_g: nutrients.carbsG,
+      fat_g: nutrients.fatG,
+    },
     clock,
   )
   return { ok: true }
@@ -200,7 +220,7 @@ export const copyMealTo = (
           recipeId: row.recipe_id,
           name: row.name,
           servings: row.servings,
-          perServing: { kcal: row.kcal_per_serving, proteinG: row.protein_g_per_serving },
+          perServing: perServingOf(row),
           loggedAt: new Date(start + index).toISOString(),
         }),
       )

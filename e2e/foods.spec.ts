@@ -17,7 +17,15 @@ const openList = async (page: Page, list: 'Foods' | 'Recipes') => {
 
 const addFood = async (
   page: Page,
-  food: { name: string; size: string; unit: string; kcal: string; protein: string },
+  food: {
+    name: string
+    size: string
+    unit: string
+    kcal: string
+    protein: string
+    carbs: string
+    fat: string
+  },
 ) => {
   await openList(page, 'Foods')
   await page.getByRole('link', { name: 'Add food' }).click()
@@ -26,6 +34,8 @@ const addFood = async (
   await page.getByLabel('Serving unit').fill(food.unit)
   await page.getByLabel('kcal per serving').fill(food.kcal)
   await page.getByLabel('Protein per serving (g)').fill(food.protein)
+  await page.getByLabel('Carbs per serving (g)').fill(food.carbs)
+  await page.getByLabel('Fat per serving (g)').fill(food.fat)
   await page.getByRole('button', { name: 'Save' }).click()
   await expect(page.getByRole('heading', { name: 'Foods', level: 2 })).toBeVisible()
 }
@@ -35,11 +45,19 @@ const search = (page: Page, label: string, text: string) => page.getByLabel(labe
 test('a food can be created, edited, archived, and restored', async ({ page }) => {
   const name = unique('Oats')
   await signIn(page)
-  await addFood(page, { name, size: '40', unit: 'g', kcal: '150', protein: '5' })
+  await addFood(page, {
+    name,
+    size: '40',
+    unit: 'g',
+    kcal: '150',
+    protein: '5',
+    carbs: '27',
+    fat: '2.5',
+  })
 
   await search(page, 'Search foods', name)
   const row = page.getByRole('link', { name: new RegExp(name) })
-  await expect(row).toContainText('40 g · 150 kcal · 5 g protein')
+  await expect(row).toContainText('40 g · 150 kcal · 5 g protein · 27 g carbs · 2.5 g fat')
 
   await row.click()
   await page.getByLabel('kcal per serving').fill('160')
@@ -65,8 +83,24 @@ test('a recipe totals its ingredients', async ({ page }) => {
   const milk = unique('Milk')
   const porridge = unique('Porridge')
   await signIn(page)
-  await addFood(page, { name: oats, size: '40', unit: 'g', kcal: '150', protein: '5' })
-  await addFood(page, { name: milk, size: '100', unit: 'ml', kcal: '65', protein: '3.4' })
+  await addFood(page, {
+    name: oats,
+    size: '40',
+    unit: 'g',
+    kcal: '150',
+    protein: '5',
+    carbs: '27',
+    fat: '2.5',
+  })
+  await addFood(page, {
+    name: milk,
+    size: '100',
+    unit: 'ml',
+    kcal: '65',
+    protein: '3.4',
+    carbs: '4.8',
+    fat: '3.6',
+  })
 
   await openList(page, 'Recipes')
   await page.getByRole('link', { name: 'Add recipe' }).click()
@@ -80,16 +114,18 @@ test('a recipe totals its ingredients', async ({ page }) => {
   }
   await page.getByLabel(`Servings of ${oats}`).fill('2')
 
-  // 150 × 2 + 65 = 365 kcal and 13.4 g; a quarter is 91 kcal and 3.4 g.
+  // 150 × 2 + 65 = 365 kcal, 13.4 g protein, 58.8 g carbs, 8.6 g fat; a quarter of each.
   await expect(page.getByText('Whole recipe').locator('+ dd')).toHaveText(
-    '365 kcal · 13.4 g protein',
+    '365 kcal · 13.4 g protein · 58.8 g carbs · 8.6 g fat',
   )
-  await expect(page.getByText('Per serving').locator('+ dd')).toHaveText('91 kcal · 3.4 g protein')
+  await expect(page.getByText('Per serving').locator('+ dd')).toHaveText(
+    '91 kcal · 3.4 g protein · 14.7 g carbs · 2.2 g fat',
+  )
 
   await page.getByRole('button', { name: 'Save' }).click()
   await search(page, 'Search recipes', porridge)
   await expect(page.getByRole('link', { name: new RegExp(porridge) })).toContainText(
-    'Makes 4 · 91 kcal · 3.4 g protein a serving',
+    'Makes 4 · 91 kcal · 3.4 g protein · 14.7 g carbs · 2.2 g fat a serving',
   )
 })
 
@@ -108,7 +144,15 @@ for (const colorScheme of ['light', 'dark'] as const) {
     test('have no axe violations', async ({ page }) => {
       const food = unique('Rice')
       await signIn(page)
-      await addFood(page, { name: food, size: '75', unit: 'g', kcal: '270', protein: '5.3' })
+      await addFood(page, {
+        name: food,
+        size: '75',
+        unit: 'g',
+        kcal: '270',
+        protein: '5.3',
+        carbs: '59.6',
+        fat: '0.4',
+      })
       await expectNoAxeViolations(page)
 
       await page.getByRole('link', { name: 'Add food' }).click()

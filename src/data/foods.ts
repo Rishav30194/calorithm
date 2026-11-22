@@ -3,6 +3,7 @@ import {
   type Nutrients,
   recipePerServing,
   recipeTotals,
+  roundGrams,
   roundKcal,
   roundProtein,
   roundServings,
@@ -27,6 +28,8 @@ export type FoodInput = {
   servingUnit: string
   kcal: number
   proteinG: number
+  carbsG: number
+  fatG: number
 }
 
 export type RecipeInput = {
@@ -51,6 +54,16 @@ const foodFields = (input: FoodInput) => ({
   serving_unit: input.servingUnit.trim(),
   kcal: roundKcal(input.kcal),
   protein_g: roundProtein(input.proteinG),
+  carbs_g: roundGrams(input.carbsG),
+  fat_g: roundGrams(input.fatG),
+})
+
+// A food's values per serving, as the calculations take them.
+export const foodNutrients = (food: FoodRow): Nutrients => ({
+  kcal: food.kcal,
+  proteinG: food.protein_g,
+  carbsG: food.carbs_g,
+  fatG: food.fat_g,
 })
 
 export const createFood = (
@@ -66,9 +79,6 @@ export const createFood = (
       ...syncDefaults(userId),
       id: crypto.randomUUID(),
       archived_at: null,
-      // Not set until the food form asks for them (phase 8, PR 2).
-      carbs_g: null,
-      fat_g: null,
       ...foodFields(input),
     },
     clock,
@@ -210,7 +220,7 @@ export const recipeIngredients = async (db: LocalDb, recipeId: string): Promise<
     const food = foodsSpec.parse(await db.rows('foods').get(item.food_id))
     if (food && food.deleted_at === null) {
       ingredients.push({
-        perServing: { kcal: food.kcal, proteinG: food.protein_g },
+        perServing: foodNutrients(food),
         servings: item.servings,
       })
     }
@@ -226,6 +236,9 @@ export type FoodView = {
   servingUnit: string
   kcal: number
   proteinG: number
+  // Null when not set, on foods saved before carbs and fat existed.
+  carbsG: number | null
+  fatG: number | null
   archived: boolean
 }
 
@@ -259,6 +272,8 @@ const toFoodView = (food: FoodRow): FoodView => ({
   servingUnit: food.serving_unit,
   kcal: food.kcal,
   proteinG: food.protein_g,
+  carbsG: food.carbs_g,
+  fatG: food.fat_g,
   archived: food.archived_at !== null,
 })
 
@@ -295,7 +310,7 @@ const recipeView = async (
               servingSize: food.serving_size,
               servingUnit: food.serving_unit,
               servings: item.servings,
-              perServing: { kcal: food.kcal, proteinG: food.protein_g },
+              perServing: foodNutrients(food),
             },
           ]
         : []

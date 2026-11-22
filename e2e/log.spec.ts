@@ -23,6 +23,8 @@ const addFood = async (page: Page, name: string, kcal: string) => {
   await page.getByLabel('Serving unit').fill('g')
   await page.getByLabel('kcal per serving').fill(kcal)
   await page.getByLabel('Protein per serving (g)').fill('5')
+  await page.getByLabel('Carbs per serving (g)').fill('27')
+  await page.getByLabel('Fat per serving (g)').fill('2.5')
   await page.getByRole('button', { name: 'Save' }).click()
   await expect(page.getByRole('heading', { name: 'Foods', level: 2 })).toBeVisible()
 }

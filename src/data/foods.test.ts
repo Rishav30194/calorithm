@@ -27,7 +27,15 @@ beforeEach(() => {
 
 afterEach(closeAll)
 
-const oats = { name: 'Oats', servingSize: 40, servingUnit: 'g', kcal: 150, proteinG: 5 }
+const oats = {
+  name: 'Oats',
+  servingSize: 40,
+  servingUnit: 'g',
+  kcal: 150,
+  proteinG: 5,
+  carbsG: 20,
+  fatG: 3,
+}
 
 const outboxFor = async (table: string) =>
   (await db.outbox.toArray()).filter((entry) => entry.table === table)
@@ -56,6 +64,8 @@ describe('createFood and updateFood', () => {
       servingUnit: ' g ',
       kcal: 99.6,
       proteinG: 17.25,
+      carbsG: 20,
+      fatG: 3,
     })
 
     expect(food).toMatchObject({
@@ -139,6 +149,8 @@ describe('createRecipe and updateRecipe', () => {
       servingUnit: 'ml',
       kcal: 65,
       proteinG: 3.4,
+      carbsG: 20,
+      fatG: 3,
     })
 
     const recipe = await createRecipe(db, time.clock, userId, {
@@ -156,8 +168,8 @@ describe('createRecipe and updateRecipe', () => {
     expect(ingredients).toHaveLength(2)
     expect(ingredients).toEqual(
       expect.arrayContaining([
-        { perServing: { kcal: 150, proteinG: 5 }, servings: 2 },
-        { perServing: { kcal: 65, proteinG: 3.4 }, servings: 3 },
+        { perServing: { kcal: 150, proteinG: 5, carbsG: 20, fatG: 3 }, servings: 2 },
+        { perServing: { kcal: 65, proteinG: 3.4, carbsG: 20, fatG: 3 }, servings: 3 },
       ]),
     )
     expect(await outboxFor('recipe_items')).toHaveLength(2)
@@ -242,8 +254,8 @@ describe('reading foods and recipes for the screens', () => {
         name: 'Porridge',
         servings: 4,
         archived: false,
-        totals: { kcal: 450, proteinG: 15 },
-        perServing: { kcal: 113, proteinG: 3.8 },
+        totals: { kcal: 450, proteinG: 15, carbsG: 60, fatG: 9 },
+        perServing: { kcal: 113, proteinG: 3.8, carbsG: 15, fatG: 2.3 },
       }),
     ])
   })

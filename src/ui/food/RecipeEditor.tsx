@@ -1,9 +1,10 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 
 import type { FoodView, RecipeDetail, RecipeInput } from '@/data/foods'
-import { formatAmount, formatKcal, formatProtein } from '@/domain/format'
+import { formatAmount } from '@/domain/format'
 import {
   type Ingredient,
+  missingCarbsOrFat,
   type Nutrients,
   recipePerServing,
   recipeTotals,
@@ -11,6 +12,7 @@ import {
 } from '@/domain/nutrition'
 import { strings } from '@/strings'
 
+import { macroText } from '../macros'
 import { TextField } from '../TextField'
 import { FoodPicker } from './FoodPicker'
 import { editableNumber, parseRecipeForm, type RecipeField, toNumber } from './forms'
@@ -74,14 +76,12 @@ export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArc
     foodById.get(foodId)?.name ?? recipe?.items.find((item) => item.foodId === foodId)?.name ?? ''
   const perServingOf = (foodId: string): Nutrients | null => {
     const food = foodById.get(foodId)
-    return food ? { kcal: food.kcal, proteinG: food.proteinG } : null
+    return food
+      ? { kcal: food.kcal, proteinG: food.proteinG, carbsG: food.carbsG, fatG: food.fatG }
+      : null
   }
 
-  const nutrientText = (nutrients: Nutrients) =>
-    strings.foods.nutrients(
-      formatKcal(nutrients.kcal, locale),
-      formatProtein(nutrients.proteinG, locale),
-    )
+  const nutrientText = (nutrients: Nutrients) => macroText(nutrients, locale)
   const describeFood = (food: FoodView) =>
     strings.foods.detail(
       strings.foods.serving(formatAmount(food.servingSize, locale), food.servingUnit),
@@ -199,6 +199,9 @@ export const RecipeEditor = ({ recipe, foods, locale, backHref, onSave, onSetArc
           <dt className="text-muted">{text.perServing}</dt>
           <dd>{perServing ? nutrientText(perServing) : text.noPerServing}</dd>
         </dl>
+        {missingCarbsOrFat(ingredients.map((ingredient) => ingredient.perServing)) && (
+          <p className="text-sm text-muted">{strings.recipes.missingCarbsOrFat}</p>
+        )}
 
         {failed && (
           <p role="alert" className="text-danger">

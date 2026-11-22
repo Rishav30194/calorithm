@@ -92,6 +92,8 @@ describe('buildExport with deleted parents', () => {
       servingUnit: 'g',
       kcal: 150,
       proteinG: 5,
+      carbsG: 20,
+      fatG: 3,
     })
     const unused = await createFood(db, time.clock, userId, {
       name: 'Rice',
@@ -99,6 +101,8 @@ describe('buildExport with deleted parents', () => {
       servingUnit: 'g',
       kcal: 270,
       proteinG: 5.3,
+      carbsG: 20,
+      fatG: 3,
     })
     await logFood(db, time.clock, userId, {
       date: '2026-11-20',
@@ -224,6 +228,8 @@ describe('importData', () => {
       servingUnit: 'g',
       kcal: 150,
       proteinG: 5,
+      carbsG: 20,
+      fatG: 3,
     })
     await setWeighIn(db, time.clock, userId, { date: '2026-11-20', kg: 82.4 })
     time.advance(60_000)
@@ -236,6 +242,8 @@ describe('importData', () => {
       servingUnit: 'g',
       kcal: 150,
       proteinG: 5,
+      carbsG: 20,
+      fatG: 3,
     })
     const weight = await weightId(userId, '2026-11-20')
     await rewindWeight(db, weight)
@@ -349,7 +357,12 @@ describe('importData', () => {
           const created = []
           for (const input of foods) {
             created.push(
-              await createFood(source, time.clock, userId, { ...input, servingUnit: 'g' }),
+              await createFood(source, time.clock, userId, {
+                ...input,
+                servingUnit: 'g',
+                carbsG: 20,
+                fatG: 3,
+              }),
             )
           }
           for (const [index, date, quarters] of entries) {

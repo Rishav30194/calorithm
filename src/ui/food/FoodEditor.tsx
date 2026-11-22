@@ -23,8 +23,11 @@ const initialValues = (food: FoodView | null, locale: string): FoodFormValues =>
         servingUnit: food.servingUnit,
         kcal: show(food.kcal),
         proteinG: show(food.proteinG),
+        // Not set on foods saved before carbs and fat existed: left empty to fill in.
+        carbsG: food.carbsG === null ? '' : show(food.carbsG),
+        fatG: food.fatG === null ? '' : show(food.fatG),
       }
-    : { name: '', servingSize: '', servingUnit: '', kcal: '', proteinG: '' }
+    : { name: '', servingSize: '', servingUnit: '', kcal: '', proteinG: '', carbsG: '', fatG: '' }
 }
 
 export const FoodEditor = ({ food, locale, backHref, onSave, onSetArchived }: Props) => {
@@ -117,6 +120,20 @@ export const FoodEditor = ({ food, locale, backHref, onSave, onSetArchived }: Pr
           onChange={set('proteinG')}
           inputMode="decimal"
           error={errors.proteinG}
+        />
+        <TextField
+          label={text.carbsG}
+          value={values.carbsG}
+          onChange={set('carbsG')}
+          inputMode="decimal"
+          error={errors.carbsG}
+        />
+        <TextField
+          label={text.fatG}
+          value={values.fatG}
+          onChange={set('fatG')}
+          inputMode="decimal"
+          error={errors.fatG}
         />
         {failed && (
           <p role="alert" className="text-danger">

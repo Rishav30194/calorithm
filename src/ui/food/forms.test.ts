@@ -4,13 +4,29 @@ import { strings } from '@/strings'
 
 import { editableNumber, parseFoodForm, parseRecipeForm, toNumber } from './forms'
 
-const food = { name: 'Oats', servingSize: '40', servingUnit: 'g', kcal: '150', proteinG: '5' }
+const food = {
+  name: 'Oats',
+  servingSize: '40',
+  servingUnit: 'g',
+  kcal: '150',
+  proteinG: '5',
+  carbsG: '27',
+  fatG: '2,5',
+}
 
 describe('parseFoodForm', () => {
   it('turns valid text into a food', () => {
     expect(parseFoodForm(food)).toEqual({
       ok: true,
-      input: { name: 'Oats', servingSize: 40, servingUnit: 'g', kcal: 150, proteinG: 5 },
+      input: {
+        name: 'Oats',
+        servingSize: 40,
+        servingUnit: 'g',
+        kcal: 150,
+        proteinG: 5,
+        carbsG: 27,
+        fatG: 2.5,
+      },
     })
   })
 
@@ -26,6 +42,8 @@ describe('parseFoodForm', () => {
       servingUnit: '',
       kcal: '12.5',
       proteinG: '-1',
+      carbsG: '1000.5',
+      fatG: 'some',
     })
     expect(parsed).toEqual({
       ok: false,
@@ -35,7 +53,25 @@ describe('parseFoodForm', () => {
         servingUnit: strings.foods.errors.servingUnit,
         kcal: strings.foods.errors.kcal,
         proteinG: strings.foods.errors.proteinG,
+        carbsG: strings.foods.errors.carbsG,
+        fatG: strings.foods.errors.fatG,
       },
+    })
+  })
+
+  // A food saved before carbs and fat existed gets them on its next edit (decision 0025).
+  it('requires carbs and fat', () => {
+    expect(parseFoodForm({ ...food, carbsG: '' })).toEqual({
+      ok: false,
+      errors: { carbsG: strings.foods.errors.carbsG },
+    })
+    expect(parseFoodForm({ ...food, fatG: ' ' })).toEqual({
+      ok: false,
+      errors: { fatG: strings.foods.errors.fatG },
+    })
+    expect(parseFoodForm({ ...food, carbsG: '0', fatG: '0' })).toMatchObject({
+      ok: true,
+      input: { carbsG: 0, fatG: 0 },
     })
   })
 
