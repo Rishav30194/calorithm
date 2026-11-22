@@ -466,7 +466,7 @@ is made public, because GitHub Pages on the Free plan serves only public reposit
 
 ## Phase 8 — Carbs and fat
 
-**Status:** In progress
+**Status:** Done (2026-11-22)
 
 **Goal:** every food, recipe, and log entry carries kcal, protein, carbs, and fat.
 
@@ -525,7 +525,8 @@ which build entries from kcal and protein only. PR 3: export format version 2.
   `newer_version`, and a format bump would only have stopped 0.3.0 importing a newer app's
   file. The format stays version 1. Import now refuses carbs or fat on log entries that the
   database's ranges would refuse.
-- Left for release 2: raise `min_app_version` to 0.3.0 once every device runs it.
+- Release 2: migration `20261122030000` raises `min_app_version` to 0.3.0, after the user
+  confirmed their phone and laptop run 0.5.0 (2026-11-22).
 
 ## Phase 9 — Recent and frequent foods
 

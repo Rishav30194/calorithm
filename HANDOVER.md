@@ -12,14 +12,12 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    fat, recent and frequent foods, built-in Indian and gym foods, barcode scanning, then a
    review against MacroFactor once the user subscribes. The user wants macros only (kcal,
    protein, carbs, fat), no AI logging, and no bulk food database.
-   Phase 8: all three PRs are merged (#33 to #35, 0.3.1). Left: release 2, a migration
-   raising `min_app_version` to 0.3.0 once the user confirms every device runs 0.3.0 or
-   later; then mark phase 8 done.
+   Phase 8 is done: release 2's migration `20261122030000` raises `min_app_version` to
+   0.3.0. **The user applies it to the hosted project before it merges.**
    Phase 9 (recent and frequent foods, 0.4.0) is merged (#36).
-   Phase 10 (built-in foods, USDA only, decision 0027): PR 1 merged (#37). PR 2 (the
-   picker, 0.5.0) is on its branch and marks the phase done. **Before PR 2 merges, the user
-   applies migration `20261122020000_foods_catalog_id.sql` to the hosted project**
-   (`docs/production.md`, step 6). Next: phase 11 (barcode scanning).
+   Phase 10 (built-in foods, 0.5.0) is merged (#37, #38). Next: phase 11 (barcode
+   scanning); present its plan with two questions: the contact address Open Food Facts asks
+   for, and the scanning library and its size.
    Bump the version for each release (`docs/development.md`, "Versions and tags"), and apply hosted migrations before merging the PR that needs them: every push
    to `main` deploys at once while CI is paused.
    The hosted test account (the user knows which) holds the user's phone entries; never
