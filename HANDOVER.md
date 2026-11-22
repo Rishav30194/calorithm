@@ -36,17 +36,10 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    test foods; never delete it or its data without the user's approval. If not yet done,
    the user deletes the Keychain item: `security delete-generic-password -s
    calorithm-supabase-db`.
-2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
-   no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
-3. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
+2. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
    data** in settings save the file from the installed app, and that **Import data** opens
    the Files picker.
-4. Counts in `src/strings.ts` aren't formatted with `Intl`, which CLAUDE.md requires. Fix
-   them all together in a small PR.
-5. `daysSpec` and `logEntriesSpec` accept dates before 2000-01-01, which the database refuses,
-   so such a change would fail on every push. The screens never offer those dates. Weigh-ins
-   are already checked (phase 4 PR 2); fix the other two together in a small PR.
-6. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+3. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
 
 Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth git-credential'`
 (then `push` or `fetch`), because git has no stored GitHub credentials and the global git config stays untouched.

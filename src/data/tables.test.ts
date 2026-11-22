@@ -302,6 +302,15 @@ describe('values the columns can’t store', () => {
     expect(weightsSpec.parse({ ...weight, date: '20/11/2026' })).toBeNull()
   })
 
+  it('rejects a day or log entry dated before 2000, as the database does', () => {
+    expect(daysSpec.parse({ ...day, date: '1999-12-31' })).toBeNull()
+    expect(logEntriesSpec.parse({ ...logEntry, date: '1999-12-31' })).toBeNull()
+    expect(daysSpec.parse({ ...day, date: '2000-01-01' })).toMatchObject({ date: '2000-01-01' })
+    expect(logEntriesSpec.parse({ ...logEntry, date: '2000-01-01' })).toMatchObject({
+      date: '2000-01-01',
+    })
+  })
+
   it('rejects a weigh-in dated before 2000, as the database does', () => {
     expect(weightsSpec.parse({ ...weight, date: '1999-12-31' })).toBeNull()
     expect(weightsSpec.parse({ ...weight, date: '2000-01-01' })).toEqual({
