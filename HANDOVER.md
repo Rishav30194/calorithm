@@ -19,8 +19,8 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    Phase 10 (built-in foods, USDA only, decision 0027): PR 1 merged (#37). PR 2 (the
    picker, 0.5.0) is on its branch and marks the phase done. **Before PR 2 merges, the user
    applies migration `20261122020000_foods_catalog_id.sql` to the hosted project**
-   (`docs/production.md`, step 6). Next: phase 11 (barcode scanning). Bump the version for each release (`docs/development.md`, "Versions and
-   tags"), and apply hosted migrations before merging the PR that needs them: every push
+   (`docs/production.md`, step 6). Next: phase 11 (barcode scanning).
+   Bump the version for each release (`docs/development.md`, "Versions and tags"), and apply hosted migrations before merging the PR that needs them: every push
    to `main` deploys at once while CI is paused.
    The hosted test account (the user knows which) holds the user's phone entries; never
    delete it or its data without the user's approval. If not yet done, the user deletes the
@@ -42,6 +42,9 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 
 ## Open questions
 
+- Does a browser retry a failed dynamic import (the built-in food list) without a page
+  reload? The picker's **Try again** resets the hook either way; check on the iPhone by
+  searching offline before the list is cached, then online.
 - Does Supabase's free plan include downloadable backups? The user checks in the dashboard.
 - Exact rate limit of Supabase's built-in email sending. Matters only before friends join.
 - No hosted Supabase project exists yet (checked 2026-11-21: the user's account has only an
