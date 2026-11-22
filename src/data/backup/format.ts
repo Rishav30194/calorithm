@@ -27,7 +27,12 @@ import {
 } from '../tables'
 
 export const EXPORT_FORMAT = 'calorithm-export'
-export const EXPORT_VERSION = 1
+// Version 2 adds carbs and fat to foods and log entries (decision 0025). Version 1 files
+// still import, with carbs and fat not set; an app older than version 2 refuses version 2
+// files instead of dropping them.
+export const EXPORT_VERSION = 2
+
+export type ExportVersion = 1 | typeof EXPORT_VERSION
 
 // Many years of heavy logging fit well under this; a larger file is refused before parsing.
 export const MAX_EXPORT_CHARS = 25_000_000
@@ -45,7 +50,7 @@ export type ExportTables = {
 
 export type ExportFile = {
   format: typeof EXPORT_FORMAT
-  version: typeof EXPORT_VERSION
+  version: ExportVersion
   exported_at: string
   app_version: string
   // The account that exported the file; importing into another account gives rows new ids.
@@ -83,7 +88,7 @@ const rowList = z.array(z.unknown())
 
 const envelope = z.object({
   format: z.literal(EXPORT_FORMAT),
-  version: z.literal(EXPORT_VERSION),
+  version: z.union([z.literal(1), z.literal(EXPORT_VERSION)]),
   exported_at: z.string().check(z.refine(isTimestamp)),
   app_version: z.string().check(z.maxLength(50)),
   user_id: z.string().check(z.refine(isUuid)),

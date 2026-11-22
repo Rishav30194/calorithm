@@ -89,13 +89,18 @@ describe('parseExport', () => {
     expect(parseExport(text(), context)).toEqual({ ok: false, reason: 'not_export' })
   })
 
+  it('writes format version 2, which carries carbs and fat', () => {
+    expect(sample.version).toBe(2)
+  })
+
   it('refuses a file from a newer format version', () => {
-    const text = edited((file) => Object.assign(file, { version: 2, tables: 'anything' }))
+    const text = edited((file) => Object.assign(file, { version: 3, tables: 'anything' }))
     expect(parseExport(text, context)).toEqual({ ok: false, reason: 'newer_version' })
   })
 
-  it('accepts foods and log entries from before carbs and fat, with them not set', () => {
+  it('accepts a format version 1 file, with carbs and fat not set', () => {
     const text = edited((file) => {
+      Object.assign(file, { version: 1 })
       for (const table of ['foods', 'log_entries'] as const) {
         for (const row of rows(file, table)) {
           row.schema_version = 1

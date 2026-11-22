@@ -500,6 +500,26 @@ describe('carbs and fat (decision 0025)', () => {
     })
   })
 
+  it('keeps logged entries as they were when the food’s carbs or fat change', async () => {
+    const food = await addOats()
+    const entry = await logFood(db, time.clock, userId, { ...at, food, servings: 1 })
+
+    await updateFood(db, time.clock, food.id, {
+      name: 'Oats',
+      servingSize: 40,
+      servingUnit: 'g',
+      kcal: 150,
+      proteinG: 5,
+      carbsG: 25,
+      fatG: 4,
+    })
+
+    expect(logEntriesSpec.parse(await db.rows('log_entries').get(entry.id))).toMatchObject({
+      carbs_g: 20,
+      fat_g: 3,
+    })
+  })
+
   it('keeps them through Copy from…', async () => {
     const food = await addOats()
     await logFood(db, time.clock, userId, { ...at, food, servings: 2 })

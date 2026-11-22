@@ -316,7 +316,7 @@ describe('importData', () => {
   it.each([
     ['not JSON', 'not json', 'not_json'],
     ['another format', '{"format":"other","version":1}', 'not_export'],
-    ['a newer version', '{"format":"calorithm-export","version":2}', 'newer_version'],
+    ['a newer version', '{"format":"calorithm-export","version":3}', 'newer_version'],
   ])('writes nothing for a file that is %s', async (_case, text, reason) => {
     const db = freshDb()
     expect(await importData(db, text, userId, context)).toEqual({ ok: false, reason })
