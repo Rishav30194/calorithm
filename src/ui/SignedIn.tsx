@@ -48,7 +48,7 @@ const useNow = (): number => {
 const Badge = () => {
   const status = useSyncStatus()
   const outbox = useOutbox()
-  return <SyncBadge status={status} outbox={outbox} />
+  return <SyncBadge status={status} outbox={outbox} locale={navigator.language} />
 }
 
 const SyncSettings = () => {

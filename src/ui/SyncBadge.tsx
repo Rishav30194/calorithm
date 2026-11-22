@@ -1,10 +1,11 @@
 import type { OutboxView } from '@/data/DataProvider'
 import type { SyncStatus } from '@/data/sync/engine'
+import { formatCount } from '@/domain/format'
 import { strings } from '@/strings'
 
-type Props = { status: SyncStatus; outbox: OutboxView }
+type Props = { status: SyncStatus; outbox: OutboxView; locale: string }
 
-const message = ({ status, outbox }: Props): string | null => {
+const message = ({ status, outbox, locale }: Props): string | null => {
   if (status.state === 'update_required') return null
   switch (outbox.state) {
     // Nothing until the counts load, so the badge never shows a count it doesn't have yet.
@@ -18,9 +19,11 @@ const message = ({ status, outbox }: Props): string | null => {
   }
   const { pending } = outbox.summary
   const failed = outbox.summary.failed.length
-  if (failed > 0) return strings.sync.badge.failed(failed)
+  if (failed > 0) return strings.sync.badge.failed(formatCount(failed, locale), failed === 1)
   if (status.problem === 'signed_out') return strings.sync.badge.signedOut
-  if (status.problem === 'offline') return strings.sync.badge.offline(pending)
+  if (status.problem === 'offline') {
+    return strings.sync.badge.offline(pending > 0 ? formatCount(pending, locale) : null)
+  }
   if (status.state === 'syncing') return strings.sync.badge.syncing
   return null
 }

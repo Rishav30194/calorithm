@@ -31,35 +31,44 @@ const loading: OutboxView = { state: 'loading' }
 
 describe('SyncBadge', () => {
   it('shows nothing when everything is synced', () => {
-    const { container } = render(<SyncBadge status={synced} outbox={box(0)} />)
+    const { container } = render(<SyncBadge status={synced} outbox={box(0)} locale="en-GB" />)
     expect(container).toBeEmptyDOMElement()
   })
 
   it('shows offline with the number of changes waiting', () => {
-    render(<SyncBadge status={offline} outbox={box(2)} />)
-    expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.offline(2))
+    render(<SyncBadge status={offline} outbox={box(2)} locale="en-GB" />)
+    expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.offline('2'))
   })
 
   it('puts refused changes first', () => {
-    render(<SyncBadge status={offline} outbox={box(2, [refused])} />)
-    expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.failed(1))
+    render(<SyncBadge status={offline} outbox={box(2, [refused])} locale="en-GB" />)
+    expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.failed('1', true))
   })
 
   it('shows a paused sync when the session expired', () => {
     const status: SyncStatus = { state: 'idle', lastSyncedAt: null, problem: 'signed_out' }
-    render(<SyncBadge status={status} outbox={box(0)} />)
+    render(<SyncBadge status={status} outbox={box(0)} locale="en-GB" />)
     expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.signedOut)
   })
 
   it('shows nothing until the outbox loads, rather than a count it doesn’t have', () => {
-    const { container } = render(<SyncBadge status={offline} outbox={loading} />)
+    const { container } = render(<SyncBadge status={offline} outbox={loading} locale="en-GB" />)
     expect(container).toBeEmptyDOMElement()
+  })
+})
+
+describe('counts', () => {
+  it('format with the locale’s digits and grouping', () => {
+    render(<SyncBadge status={offline} outbox={box(1234)} locale="de-DE" />)
+    expect(screen.getByRole('status')).toHaveTextContent('Offline · 1.234 waiting')
   })
 })
 
 describe('a failed outbox read', () => {
   it('shows in the badge as an unknown status', () => {
-    render(<SyncBadge status={synced} outbox={{ state: 'failed', retry: vi.fn() }} />)
+    render(
+      <SyncBadge status={synced} outbox={{ state: 'failed', retry: vi.fn() }} locale="en-GB" />,
+    )
     expect(screen.getByRole('status')).toHaveTextContent(strings.sync.badge.unknown)
   })
 
@@ -103,7 +112,7 @@ describe('SyncPanel', () => {
   it('explains being offline and counts the changes waiting', () => {
     panel({ status: offline, outbox: box(3) })
     expect(screen.getByText(strings.sync.neverSynced)).toBeInTheDocument()
-    expect(screen.getByText(strings.sync.waiting(3))).toBeInTheDocument()
+    expect(screen.getByText(strings.sync.waiting('3', false))).toBeInTheDocument()
     expect(screen.getByText(strings.sync.offline)).toBeInTheDocument()
   })
 
@@ -141,7 +150,7 @@ describe('SyncPanel', () => {
       />,
     )
     expect(screen.queryByText(strings.sync.checking)).not.toBeInTheDocument()
-    expect(screen.getByText(strings.sync.waiting(1))).toBeInTheDocument()
+    expect(screen.getByText(strings.sync.waiting('1', true))).toBeInTheDocument()
     expect(screen.queryByText(strings.sync.allSynced)).not.toBeInTheDocument()
   })
 

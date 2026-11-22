@@ -3,7 +3,7 @@ import { useState } from 'react'
 import type { FailedChange, OutboxSummary, OutboxView } from '@/data/DataProvider'
 import type { DiscardOutcome } from '@/data/sync/discard'
 import type { SyncStatus } from '@/data/sync/engine'
-import { formatAgo } from '@/domain/format'
+import { formatAgo, formatCount } from '@/domain/format'
 import { strings } from '@/strings'
 
 type Props = {
@@ -90,7 +90,9 @@ export const SyncPanel = ({ status, outbox, now, locale, onDiscard }: Props) => 
         </div>
       )}
       {summary !== null && summary.pending > 0 && (
-        <p className="text-muted">{strings.sync.waiting(summary.pending)}</p>
+        <p className="text-muted">
+          {strings.sync.waiting(formatCount(summary.pending, locale), summary.pending === 1)}
+        </p>
       )}
       {summary !== null && allSynced(status, summary) && (
         <p className="text-muted">{strings.sync.allSynced}</p>

@@ -1,19 +1,21 @@
 import { useEffect, useId, useRef } from 'react'
 
 import type { UnsentFile } from '@/data/DataProvider'
+import { formatCount } from '@/domain/format'
 import { strings } from '@/strings'
 
 import { download } from './download'
 
 type Props = {
   count: number
+  locale: string
   onExport: () => UnsentFile | null
   onConfirm: () => void
   onCancel: () => void
 }
 
 // A modal <dialog> keeps focus inside it and closes on Escape, which counts as Cancel.
-export const SignOutDialog = ({ count, onExport, onConfirm, onCancel }: Props) => {
+export const SignOutDialog = ({ count, locale, onExport, onConfirm, onCancel }: Props) => {
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   const bodyId = useId()
@@ -45,7 +47,7 @@ export const SignOutDialog = ({ count, onExport, onConfirm, onCancel }: Props) =
         {strings.signOutWarning.title}
       </h2>
       <p id={bodyId} className="mb-4">
-        {strings.signOutWarning.body(count)}
+        {strings.signOutWarning.body(formatCount(count, locale), count === 1)}
       </p>
       <div className="flex flex-col gap-2">
         <button
