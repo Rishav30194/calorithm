@@ -12,8 +12,8 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    `docs/phases.md` for each criterion. Left for the user on the iPhone: install and open
    offline, confirm the **Laptop sync check** food arrived from the laptop, and see the
    **Update available** banner once version 0.2.0 deploys. Then mark the phase done.
-   The hosted test account `rishav30194+delete@gmail.com` holds the user's phone entries;
-   never delete it or its data without the user's approval. If not yet done, the user
+   The hosted test account (the user knows which) holds the user's phone entries; never
+   delete it or its data without the user's approval. If not yet done, the user
    deletes the Keychain item: `security delete-generic-password -s calorithm-supabase-db`.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.

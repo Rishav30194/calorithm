@@ -81,12 +81,13 @@ Never edit a migration that's on `main`. Fix it with a new one.
 
 - A PR that changes what users get bumps `version` in `package.json` with
   `npm version X.Y.Z --no-git-tag-version`, which also updates `package-lock.json`. Docs,
-  tests, and CI changes don't bump it.
+  tests, and CI changes don't bump it, unless the release must deploy for its own sake: 0.2.0
+  only changed CI, and was bumped so a new deployment could show the update prompt.
 - Before 1.0.0: bump the minor number (`0.2.0` to `0.3.0`) for a feature or a change in
   behavior, and the patch number (`0.2.0` to `0.2.1`) for a fix.
 - After a successful deploy, the **Deploy** workflow tags the deployed commit `vX.Y.Z`, so
-  `git tag` lists every version that went live. A deploy without a bump leaves the existing
-  tag where it is and adds a notice to the run.
+  `git tag` lists every bumped version that went live. A deploy without a bump leaves the
+  existing tag where it is, so that build has no tag, and the run shows a warning.
 - The app compares this version with `app_config.min_app_version` before every sync, and
   writes it into each export file.
 

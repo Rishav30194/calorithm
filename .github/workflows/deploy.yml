@@ -112,13 +112,16 @@ jobs:
           version=$(gh api "repos/$GITHUB_REPOSITORY/contents/package.json?ref=$SHA" --jq .content | base64 -d | jq -r .version)
           [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::package.json version '$version' isn't x.y.z"; exit 1; }
           tag="v$version"
-          if existing=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq .object.sha 2>/dev/null); then
+          if existing=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq .object.sha 2>lookup.err); then
             if [[ "$existing" == "$SHA" ]]; then
               echo "$tag already marks this commit"
             else
-              echo "::notice::$tag already marks $existing; bump the version in package.json to tag this release"
+              echo "::warning::$tag already marks $existing, so this deploy has no tag. Bump the version in package.json for each release."
             fi
-          else
+          elif grep -q "HTTP 404" lookup.err; then
             gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$SHA" >/dev/null
             echo "Tagged $SHA as $tag"
+          else
+            cat lookup.err >&2
+            exit 1
           fi
