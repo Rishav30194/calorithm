@@ -569,7 +569,7 @@ timing it).
 
 ## Phase 10 — Built-in Indian and gym foods
 
-**Status:** In progress
+**Status:** Done (2026-11-22)
 
 **Goal:** common Indian home foods and gym staples are there to pick, without typing their
 numbers.
@@ -591,12 +591,16 @@ numbers.
   updated.
 
 **Acceptance criteria:**
-- [ ] Searching "paneer", "dal", or "roti" in the picker shows built-in items before you
-  have created any food.
-- [ ] Picking a built-in item adds it to your foods with all four numbers and its source.
-- [ ] The list loads on demand and leaves first-load JavaScript within its 200 kB budget.
-- [ ] A test checks every item: four numbers present, kcal within 10% of 4 × protein +
-  4 × carbs + 9 × fat, and a source on each.
+- [x] Searching "paneer", "dal", or "roti" in the picker shows built-in items before you
+  have created any food. (`src/data/catalog/search.test.ts`, `src/ui/log/log.test.tsx`, and
+  `e2e/log.spec.ts`)
+- [x] Picking a built-in item adds it to your foods with all four numbers and its source.
+  (`logCatalogFood` in `src/data/log.test.ts`, and `e2e/log.spec.ts`)
+- [x] The list loads on demand and leaves first-load JavaScript within its 200 kB budget.
+  (Its own 38 kB chunk, precached for offline use; first load 185.0 kB.)
+- [x] A test checks every item: four numbers present, energy consistent with protein,
+  carbs, and fat, and a source on each. (`src/data/catalog/foods.test.ts`; the energy check
+  is "not above 4/4/9 by more than 10%, nor below 45% of it", see the plan.)
 
 **Open question:** whether NIN permits reuse of IFCT 2017 values. Until answered, use
 USDA values only.
@@ -608,7 +612,15 @@ migration), version 0.5.0. The energy check is "not above 4/4/9 by more than 10%
 45% of it", not "within 10%": USDA's food-specific factors put fruit and vegetables below
 the general formula.
 
-**Implementation notes:** none yet.
+**Implementation notes:**
+- PR #37: 192 foods from USDA FoodData Central (SR Legacy and FNDDS 2021-2023), built by
+  `scripts/build-catalog.mjs` from `scripts/catalog/items.json`; `docs/catalog.md` lists the
+  gaps (jaggery, poha, khichdi, and others) and approximations (paneer's carbs).
+- PR 2 (0.5.0): the picker searches the list by English and Hindi names once you type, and
+  a tap copies the item into your foods and logs one serving. Foods gained a nullable
+  `catalog_id` (migration `20261122020000`, schema version 3, Dexie version 7), so a copy
+  names its source and the item isn't offered again; push never sends it as null. The
+  picker now keeps its search box for someone with no foods yet.
 
 ## Phase 11 — Barcode scanning
 

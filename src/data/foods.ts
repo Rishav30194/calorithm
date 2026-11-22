@@ -32,6 +32,9 @@ export type FoodInput = {
   fatG: number
 }
 
+// A built-in item being copied into the user's foods (decision 0027).
+export type CatalogCopy = FoodInput & { catalogId: string }
+
 export type RecipeInput = {
   name: string
   servings: number
@@ -70,7 +73,7 @@ export const createFood = (
   db: LocalDb,
   clock: Clock,
   userId: string,
-  input: FoodInput,
+  input: FoodInput | CatalogCopy,
 ): Promise<FoodRow> =>
   writeRow(
     db,
@@ -79,6 +82,7 @@ export const createFood = (
       ...syncDefaults(userId),
       id: crypto.randomUUID(),
       archived_at: null,
+      catalog_id: 'catalogId' in input ? input.catalogId : null,
       ...foodFields(input),
     },
     clock,
@@ -239,6 +243,8 @@ export type FoodView = {
   // Null when not set, on foods saved before carbs and fat existed.
   carbsG: number | null
   fatG: number | null
+  // The built-in item it was copied from (decision 0027), or null.
+  catalogId: string | null
   archived: boolean
 }
 
@@ -274,6 +280,7 @@ const toFoodView = (food: FoodRow): FoodView => ({
   proteinG: food.protein_g,
   carbsG: food.carbs_g,
   fatG: food.fat_g,
+  catalogId: food.catalog_id,
   archived: food.archived_at !== null,
 })
 

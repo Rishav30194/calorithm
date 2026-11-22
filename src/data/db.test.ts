@@ -173,7 +173,8 @@ describe('LocalDb', () => {
     before.close()
 
     const after = open('calorithm-test-upgrade-v6')
-    expect(await after.table('foods').get('f1')).toEqual({
+    // Version 7 also adds catalog_id; this case checks carbs and fat.
+    expect(await after.table('foods').get('f1')).toMatchObject({
       id: 'f1',
       name: 'Oats',
       kcal: 150,
@@ -190,6 +191,23 @@ describe('LocalDb', () => {
       fat_g_per_serving: null,
     })
     expect(await after.table('weights').get('w1')).toEqual({ id: 'w1', date: '2026-11-20' })
+  })
+
+  it('marks existing foods as not from the built-in list when upgraded to version 7', async () => {
+    const [v1, v2, v3, v4, v5, v6] = schemaVersions
+    if (!v1 || !v2 || !v3 || !v4 || !v5 || !v6) throw new Error('missing schema versions')
+    const before = open('calorithm-test-upgrade-v7', [v1, v2, v3, v4, v5, v6])
+    await before.table('foods').put({ id: 'f1', name: 'Oats', carbs_g: 27, fat_g: 2.5 })
+    before.close()
+
+    const after = open('calorithm-test-upgrade-v7')
+    expect(await after.table('foods').get('f1')).toEqual({
+      id: 'f1',
+      name: 'Oats',
+      carbs_g: 27,
+      fat_g: 2.5,
+      catalog_id: null,
+    })
   })
 
   it('keeps existing data across an upgrade that adds a table', async () => {

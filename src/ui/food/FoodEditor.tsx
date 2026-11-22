@@ -107,6 +107,7 @@ export const FoodEditor = ({ food, locale, backHref, onSave, onSetArchived }: Pr
             error={errors.servingUnit}
           />
         </div>
+        {food?.catalogId && <p className="text-sm text-muted">{text.fromBuiltIn}</p>}
         <TextField
           label={text.kcal}
           value={values.kcal}

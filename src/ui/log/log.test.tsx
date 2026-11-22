@@ -4,7 +4,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import type { FoodView, RecipeView } from '@/data/foods'
 import type { LoggedEntry, QuickPicks } from '@/data/log'
-import type { DayView } from '@/data/logHooks'
+import type { CatalogState, DayView } from '@/data/logHooks'
 import { strings } from '@/strings'
 
 import { CopyDialog } from './CopyDialog'
@@ -31,6 +31,7 @@ const oats: FoodView = {
   servingUnit: 'g',
   kcal: 150,
   proteinG: 5,
+  catalogId: null,
   archived: false,
   carbsG: null,
   fatG: null,
@@ -78,7 +79,10 @@ describe('LogPicker', () => {
         picks={picks}
         foods={[oats, butter]}
         recipes={[chili]}
+        builtIn={undefined}
         locale="en-US"
+        onPickBuiltIn={vi.fn()}
+        onSearch={vi.fn()}
         onPick={onPick}
         onClose={onClose}
       />,
@@ -95,6 +99,66 @@ describe('LogPicker', () => {
 
     expect(onPick).toHaveBeenCalledWith({ kind: 'food', id: 'f1' }, 2)
     expect(onClose).toHaveBeenCalled()
+  })
+
+  describe('built-in foods (decision 0027)', () => {
+    const haldi = {
+      id: 'turmeric',
+      name: 'Turmeric',
+      aliases: ['haldi'],
+      category: 'spices',
+      servingSize: 1,
+      servingUnit: 'tsp (3 g)',
+      kcal: 9,
+      proteinG: 0.3,
+      carbsG: 2,
+      fatG: 0.1,
+      source: { dataset: 'SR Legacy', fdcId: 172231 },
+    }
+    const renderWith = (foods: FoodView[], builtIn: CatalogState | undefined) => {
+      const handlers = { onPickBuiltIn: vi.fn(async () => true), onSearch: vi.fn() }
+      render(
+        <LogPicker
+          meal="lunch"
+          picks={picks}
+          foods={foods}
+          recipes={[]}
+          builtIn={builtIn}
+          locale="en-US"
+          onPick={vi.fn()}
+          onClose={vi.fn()}
+          {...handlers}
+        />,
+      )
+      return handlers
+    }
+
+    it('asks for the list on the first search, and logs a built-in match in one tap', async () => {
+      const { onSearch, onPickBuiltIn } = renderWith([], [haldi])
+      await userEvent.type(screen.getByLabelText(text.picker.search), 'haldi')
+
+      expect(onSearch).toHaveBeenCalled()
+      const section = screen.getByRole('region', { name: text.picker.builtIn })
+      expect(section).toHaveTextContent(text.picker.builtInSource)
+      await userEvent.click(within(section).getByRole('button', { name: /Turmeric/ }))
+      expect(onPickBuiltIn).toHaveBeenCalledWith(haldi)
+    })
+
+    it('shows your copy instead of the built-in item once you have one', async () => {
+      renderWith([{ ...oats, id: 'f9', name: 'Turmeric', catalogId: 'turmeric' }], [haldi])
+      await userEvent.type(screen.getByLabelText(text.picker.search), 'turm')
+
+      const section = screen.getByRole('region', { name: text.picker.builtIn })
+      expect(within(section).queryAllByRole('button')).toHaveLength(0)
+      expect(screen.getAllByRole('button', { name: /Turmeric/ })).toHaveLength(1)
+    })
+
+    it('lets someone with no foods yet search the built-in list', async () => {
+      renderWith([], 'loading')
+      expect(screen.getByText(text.picker.empty)).toBeInTheDocument()
+      await userEvent.type(screen.getByLabelText(text.picker.search), 'dahi')
+      expect(screen.getByText(text.picker.builtInLoading)).toBeInTheDocument()
+    })
   })
 
   it('logs one serving from search, and leaves archived foods out', async () => {
@@ -133,7 +197,10 @@ describe('LogPicker', () => {
         }}
         foods={[cookie, oats, bran]}
         recipes={[]}
+        builtIn={undefined}
         locale="en-US"
+        onPickBuiltIn={vi.fn()}
+        onSearch={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -160,7 +227,10 @@ describe('LogPicker', () => {
         picks={undefined}
         foods={undefined}
         recipes={undefined}
+        builtIn={undefined}
         locale="en-US"
+        onPickBuiltIn={vi.fn()}
+        onSearch={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -173,7 +243,10 @@ describe('LogPicker', () => {
         picks={{ recent: [], mostUsed: [], scores: new Map() }}
         foods={[]}
         recipes={[]}
+        builtIn={undefined}
         locale="en-US"
+        onPickBuiltIn={vi.fn()}
+        onSearch={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,

@@ -93,8 +93,8 @@ export type FoodRow = Tables<'foods'>
 
 export const foodsSpec: TableSpec<FoodRow> = {
   name: 'foods',
-  schemaVersion: 2,
-  addedColumns: { 2: ['carbs_g', 'fat_g'] },
+  schemaVersion: 3,
+  addedColumns: { 2: ['carbs_g', 'fat_g'], 3: ['catalog_id'] },
   parse: parser(
     z.object({
       ...syncColumns,
@@ -105,6 +105,8 @@ export const foodsSpec: TableSpec<FoodRow> = {
       protein_g: z.number(),
       carbs_g: grams(1, 1000),
       fat_g: grams(1, 1000),
+      // The built-in item a food was copied from (decision 0027); null for foods typed in.
+      catalog_id: z._default(z.nullable(z.string().check(z.minLength(1), z.maxLength(60))), null),
       archived_at: z.nullable(z.string()),
     }),
   ),

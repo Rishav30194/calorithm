@@ -1,8 +1,10 @@
 # Built-in foods
 
 The built-in food list: 192 common Indian groceries, dishes, spices, and gym foods, with
-kcal, protein, carbs, and fat per serving. From phase 10's PR 2, the log picker offers them,
-and picking one copies it into your foods. Decision 0027 explains the source.
+kcal, protein, carbs, and fat per serving. Type in the log picker's search and matches show
+under **Built-in foods**; picking one copies it into your foods (with its `catalog_id`) and
+logs a serving. A copied item shows as your own food after that. Decision 0027 explains
+the source.
 
 ## Source
 
@@ -25,8 +27,7 @@ Agricultural Research Service. FoodData Central. fdc.nal.usda.gov.
 | Dishes | 22: dal, roti, paratha, naan, puri, idli, dosa, masala dosa, sambar, upma, samosa, pakora, palak paneer, chicken and fish curry, biryani, and ladoo |
 | Other | 7: sugar, brown sugar, honey, tea with milk, dark chocolate, cocoa, and ketchup |
 
-No beef or pork. Each food lists common Hindi names ("aloo", "dahi", "jeera") for the
-picker's search in PR 2.
+No beef or pork. Search works by English and common Hindi names: "aloo", "dahi", "jeera".
 
 ## Known gaps and approximations
 

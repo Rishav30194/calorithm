@@ -179,6 +179,7 @@ describe('BackupView', () => {
             protein_g: 10,
             carbs_g: null,
             fat_g: null,
+            catalog_id: null,
             archived_at: null,
             updated_at: weight.updated_at,
             client_updated_at: weight.client_updated_at,
