@@ -7,7 +7,7 @@ import { formatAmount } from '@/domain/format'
 import { strings } from '@/strings'
 
 import { emptyFoodValues, FoodForm } from '../food/FoodForm'
-import { editableNumber } from '../food/forms'
+import { editableNumber, type FoodFormValues } from '../food/forms'
 import { macroText } from '../macros'
 import { OpenFoodFactsCredit } from '../OpenFoodFactsCredit'
 import { TextField } from '../TextField'
@@ -85,6 +85,8 @@ export const BarcodePanel = ({
   const [busy, setBusy] = useState(false)
   // Only the latest lookup counts, and none after the panel closes.
   const latest = useRef(0)
+  // What was typed in the form, kept while the label panel replaces it.
+  const draft = useRef<FoodFormValues | null>(null)
   useEffect(
     () => () => {
       latest.current += 1
@@ -94,6 +96,7 @@ export const BarcodePanel = ({
 
   const lookUp = async (value: string) => {
     const request = ++latest.current
+    draft.current = null
     setFailed(null)
     setStep({ kind: 'looking' })
     const result = await onLookup(value).catch(() => null)
@@ -262,7 +265,10 @@ export const BarcodePanel = ({
             </button>
           )}
           <FoodForm
-            initial={formValues(step.barcode, step.product, locale)}
+            initial={draft.current ?? formValues(step.barcode, step.product, locale)}
+            onValuesChange={(values) => {
+              draft.current = values
+            }}
             savedBarcode={null}
             note={step.product && <OpenFoodFactsCredit />}
             submitLabel={text.saveAndLog}
@@ -275,8 +281,9 @@ export const BarcodePanel = ({
       {step.kind === 'label' && (
         <LabelPanel
           barcode={step.barcode}
+          {...(draft.current ? { draft: draft.current } : {})}
           locale={locale}
-          onLogNew={logNew}
+          onLogNew={onLogNew}
           backLabel={text.backToForm}
           onBack={() =>
             setStep({ kind: 'form', barcode: step.barcode, product: null, message: step.message })

@@ -780,12 +780,16 @@ Phase 12 waits for the user's MacroFactor subscription, so this phase runs first
 
 **Implementation notes:**
 - PR 1 (0.8.0): `parseNutritionLabel` (`src/domain/label.ts`, decision 0030) reads a row
-  only when the nutrient's name comes before its first number, prefers the per-100 column
-  (a header naming a serving before 100 g makes it the second), reads kcal beside kJ and
-  falls back to kJ ÷ 4.184, fixes a letter O beside digits, and treats a comma as a decimal
-  mark except in energy values such as 1,569. It leaves empty a "<" amount, a row missing
-  the chosen column, and values no food can have (over 100 g, or 900 kcal, per 100 g).
+  only when the nutrient's name comes before its first number, starting at the table (a
+  "Nutrition information" title or the per-100 header), so a claim such as "High protein
+  20g" above it is skipped. It takes the column the header's "per 100 g" names among its
+  "per …" columns (not a "Serving size 100 g" line), joins a name with values that text
+  recognition put on the next lines, reads kcal beside kJ and falls back to kJ ÷ 4.184,
+  fixes a letter O beside digits (not in "1oz"), and treats a comma as a decimal mark except
+  in energy values such as 1,569 or 1.569. It leaves empty a "<" amount, a row missing the
+  chosen column, and values no food can have (over 100 g, or 900 kcal, per 100 g).
 - **Read nutrition label** in the picker opens `LabelPanel`: paste, **Read label**, then
   `FoodForm` filled for naming and checking, with a message naming any values left empty.
-  **Read the label** on the barcode flow's not-found and unreachable form keeps the barcode.
+  **Read the label** on the barcode flow's not-found and unreachable form keeps the barcode
+  and anything already typed, and values read from the label replace only what they cover.
   `TextField` takes `rows` for a text area.

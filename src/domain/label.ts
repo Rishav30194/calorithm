@@ -23,12 +23,14 @@ const MAX_GRAMS = 1_000
 
 type Amount = { value: number | null; unit: string }
 
-// Text recognition reads a 0 as the letter O beside other digits.
-const fixDigits = (line: string): string => line.replace(/(?<=\d)[oO]|[oO](?=[.,]?\d)/g, '0')
+// Text recognition reads a 0 as the letter O beside other digits. An O after a digit is
+// changed only before a digit, a decimal mark, a unit, or the line's end, so "1oz" stays.
+const fixDigits = (line: string): string =>
+  line.replace(/(?<=\d)[oO](?=[\d.,]|\s*(?:g|mg|ml|kcal|kj)\b|$)|[oO](?=[.,]?\d)/g, '0')
 
 const toNumber = (text: string, thousands: boolean): number => {
-  // In an energy value "1,569" is thousands; elsewhere a comma is a decimal mark.
-  if (thousands && /^\d{1,2},\d{3}$/.test(text)) return Number(text.replace(',', ''))
+  // In an energy value "1,569" or "1.569" is thousands; elsewhere a comma is a decimal mark.
+  if (thousands && /^[1-9]\d?[.,]\d{3}$/.test(text)) return Number(text.replace(/[.,]/, ''))
   return Number(text.replace(',', '.'))
 }
 
@@ -50,18 +52,23 @@ const isCarbs = (name: string) =>
 const isFat = (name: string) =>
   /\bfats?\b/.test(name) && !/saturat|trans|mono|poly|of which|from fat|cholesterol/.test(name)
 
-// The header naming the per-100 column: whether a per-serving column sits beside it, and
-// which of the two comes first.
+// The header naming the per-100 column: how many "per …" columns it names, and which one is
+// per 100 g or 100 ml. A "Serving size 100 g" line is a serving, not a header.
 const per100Header = (lines: string[]) => {
-  for (const line of lines) {
+  for (const [index, line] of lines.entries()) {
     const lower = line.toLowerCase()
-    const at = lower.search(/100\s*(g|ml)\b/)
-    if (at < 0) continue
-    const serving = lower.search(/serving|portion/)
+    if (!/100\s*(g|ml)\b/.test(lower) || /serving size/.test(lower)) continue
+    const perColumns = lower.split(/\bper\b/).slice(1)
+    const columns = perColumns.length > 0 ? perColumns : [lower]
+    const column = columns.findIndex(
+      (text) => /^\W*100\s*(g|ml)\b/.test(text) || columns.length === 1,
+    )
+    if (column < 0) continue
     return {
+      index,
       unit: /100\s*ml\b/.test(lower) ? ('ml' as const) : ('g' as const),
-      columns: serving >= 0 ? 2 : 1,
-      column: serving >= 0 && serving < at ? 1 : 0,
+      columns: columns.length,
+      column,
     }
   }
   return null
@@ -83,18 +90,23 @@ const pick = (amounts: Amount[], column: number, columns: number): number | null
   return amounts[columns > 1 ? column : 0]?.value ?? null
 }
 
+// The first row for the nutrient that gives a value; a claim such as "Low fat" gives none.
 const gramsRow = (
   lines: string[],
   matches: (name: string) => boolean,
   column: number,
   columns: number,
-) => {
-  const line = lines.find((candidate) => matches(nameOf(candidate)) && /\d/.test(candidate))
-  if (line === undefined) return null
-  const amounts = amountsIn(line.slice(nameOf(line).length), false).filter(
-    (amount) => amount.unit === '' || amount.unit === 'g',
-  )
-  return pick(amounts, column, columns)
+): number | null => {
+  for (const line of lines) {
+    const name = nameOf(line)
+    if (!matches(name) || !/\d/.test(line)) continue
+    const amounts = amountsIn(line.slice(name.length), false).filter(
+      (amount) => amount.unit === '' || amount.unit === 'g',
+    )
+    const value = pick(amounts, column, columns)
+    if (value !== null) return value
+  }
+  return null
 }
 
 const energy = (lines: string[], column: number, columns: number): number | null => {
@@ -124,12 +136,38 @@ const within = (value: number | null, max: number): number | null =>
 const hundredths = (value: number | null): number | null =>
   value === null ? null : Math.round(value * 100) / 100
 
+// A name on its own line, with its values on the lines after it (as text recognition can
+// read a table), becomes one row.
+const joinRows = (lines: string[]): string[] => {
+  const rows: string[] = []
+  // Whether the last row is a name still taking values from the lines that follow.
+  let open = false
+  for (const line of lines) {
+    const last = rows.length - 1
+    if (open && last >= 0 && nameOf(line).trim() === '') {
+      rows[last] = `${rows[last]} ${line}`
+      continue
+    }
+    rows.push(line)
+    open = !/[\d<]/.test(line) && nameOf(line).trim() !== ''
+  }
+  return rows
+}
+
+// Where the table starts, so a claim above it ("High protein 20g") isn't read as a row.
+const TITLE = /nutrition facts|nutrition(al)? information|typical values/i
+
 export const parseNutritionLabel = (text: string): LabelReading => {
-  const lines = text
-    .split(/\r?\n/)
-    .map((line) => fixDigits(line.trim()))
-    .filter((line) => line !== '')
-  const header = per100Header(lines)
+  const all = joinRows(
+    text
+      .split(/\r?\n/)
+      .map((line) => fixDigits(line.trim()))
+      .filter((line) => line !== ''),
+  )
+  const header = per100Header(all)
+  const title = all.findIndex((line) => TITLE.test(line))
+  const starts = [header?.index ?? -1, title].filter((index) => index >= 0)
+  const lines = all.slice(starts.length > 0 ? Math.min(...starts) : 0)
   const basis: LabelBasis | null = header ? { size: 100, unit: header.unit } : servingBasis(text)
   const column = header?.column ?? 0
   const columns = header?.columns ?? 1

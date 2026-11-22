@@ -12,6 +12,8 @@ import { TextField } from '../TextField'
 type Props = {
   // Kept on the saved food when the label is read after an unknown barcode.
   barcode: string | null
+  // What was typed in the form before reading the label; values read from it replace these.
+  draft?: FoodFormValues
   locale: string
   onLogNew: (input: FoodInput) => Promise<boolean>
   onBack: () => void
@@ -22,18 +24,22 @@ type Props = {
 
 type Step = { kind: 'paste' } | { kind: 'form'; reading: LabelReading | null }
 
-const valuesOf = (reading: LabelReading | null, barcode: string | null, locale: string) => {
-  const show = (value: number | null) => (value === null ? '' : editableNumber(value, locale))
-  const values: FoodFormValues = { ...emptyFoodValues, barcode: barcode ?? '' }
-  if (!reading) return values
+const valuesOf = (
+  reading: LabelReading | null,
+  base: FoodFormValues,
+  locale: string,
+): FoodFormValues => {
+  if (!reading) return base
+  const show = (value: number | null, typed: string) =>
+    value === null ? typed : editableNumber(value, locale)
   return {
-    ...values,
-    servingSize: reading.basis ? show(reading.basis.size) : '',
-    servingUnit: reading.basis?.unit ?? '',
-    kcal: show(reading.kcal),
-    proteinG: show(reading.proteinG),
-    carbsG: show(reading.carbsG),
-    fatG: show(reading.fatG),
+    ...base,
+    servingSize: reading.basis ? editableNumber(reading.basis.size, locale) : base.servingSize,
+    servingUnit: reading.basis?.unit ?? base.servingUnit,
+    kcal: show(reading.kcal, base.kcal),
+    proteinG: show(reading.proteinG, base.proteinG),
+    carbsG: show(reading.carbsG, base.carbsG),
+    fatG: show(reading.fatG, base.fatG),
   }
 }
 
@@ -42,7 +48,15 @@ const valuesRead = (reading: LabelReading) =>
     .length
 
 // Reads a nutrition label's text into the food form, for the user to name and check.
-export const LabelPanel = ({ barcode, locale, onLogNew, onBack, backLabel, onDone }: Props) => {
+export const LabelPanel = ({
+  barcode,
+  draft,
+  locale,
+  onLogNew,
+  onBack,
+  backLabel,
+  onDone,
+}: Props) => {
   const text = strings.log.label
   const [step, setStep] = useState<Step>({ kind: 'paste' })
   const [labelText, setLabelText] = useState('')
@@ -81,7 +95,10 @@ export const LabelPanel = ({ barcode, locale, onLogNew, onBack, backLabel, onDon
             label={text.text}
             hint={text.textHint}
             value={labelText}
-            onChange={setLabelText}
+            onChange={(value) => {
+              setLabelText(value)
+              setError(undefined)
+            }}
             error={error}
             rows={8}
           />
@@ -113,7 +130,11 @@ export const LabelPanel = ({ barcode, locale, onLogNew, onBack, backLabel, onDon
             </p>
           )}
           <FoodForm
-            initial={valuesOf(step.reading, barcode, locale)}
+            initial={valuesOf(
+              step.reading,
+              draft ?? { ...emptyFoodValues, barcode: barcode ?? '' },
+              locale,
+            )}
             savedBarcode={null}
             submitLabel={strings.log.barcode.saveAndLog}
             onSave={logNew}

@@ -39,11 +39,20 @@ type Props = {
   // Shown under the serving fields, such as where the values came from.
   note?: ReactNode
   submitLabel?: string
+  // Told of every edit, so a screen can keep what was typed when it swaps the form out.
+  onValuesChange?: (values: FoodFormValues) => void
   onSave: (input: FoodInput) => Promise<boolean>
 }
 
 // The food fields, shared by the food editor and the picker's barcode flow.
-export const FoodForm = ({ initial, savedBarcode, note, submitLabel, onSave }: Props) => {
+export const FoodForm = ({
+  initial,
+  savedBarcode,
+  note,
+  submitLabel,
+  onValuesChange,
+  onSave,
+}: Props) => {
   const text = strings.foods.editor
   const [values, setValues] = useState(initial)
   const [errors, setErrors] = useState<Partial<Record<FoodField, string>>>({})
@@ -58,7 +67,11 @@ export const FoodForm = ({ initial, savedBarcode, note, submitLabel, onSave }: P
     form.current?.querySelector<HTMLInputElement>('[aria-invalid="true"]')?.focus()
   }, [attempt])
 
-  const set = (key: FoodField) => (value: string) => setValues((old) => ({ ...old, [key]: value }))
+  const set = (key: FoodField) => (value: string) => {
+    const next = { ...values, [key]: value }
+    setValues(next)
+    onValuesChange?.(next)
+  }
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()

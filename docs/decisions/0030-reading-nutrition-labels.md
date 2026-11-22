@@ -16,7 +16,8 @@ number that looks right is worse than an empty field, because the user may not c
 
 A pure parser, `parseNutritionLabel` in `src/domain/label.ts`, reads label text into a basis
 (100 g, 100 ml, or the label's serving weight) and kcal, protein, carbs, and fat. It reads a
-row only when the nutrient's name comes before its first number, prefers the per-100 column,
+row only when the nutrient's name comes before its first number, starts at the label's table
+so a claim above it isn't read, prefers the per-100 column,
 converts kJ to kcal only when the label gives no kcal, skips sub-rows, % Daily Value, and
 footnotes, and leaves empty any value it can't read: a "<" amount, a row missing the chosen
 column, or a value no food can have (over 100 g per 100 g, or over 900 kcal per 100 g). Text
@@ -36,7 +37,7 @@ recognition (phase 13, PR 2). Nothing is sent to a server, and no AI reads the l
 
 - The form is filled for checking, never saved without the user's tap; the message says
   which values were left empty.
-- A label whose rows are split from their numbers, as text recognition sometimes reads a
-  table column by column, leaves those values empty. PR 2's tests with real photos show how
-  often.
+- A name whose values text recognition puts on the following lines is joined back into
+  one row. A table read wholly column by column, all names first and then all numbers,
+  still leaves values empty; PR 2's checks with real photos show how often.
 - Revisit if text recognition proves too weak on the user's labels.

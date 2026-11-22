@@ -93,6 +93,49 @@ Fat 3 g 12 g`
     })
   })
 
+  it('finds the per-100 column however the other column is named', () => {
+    const label = 'Per bar (45g) Per 100g\nEnergy 200kcal 444kcal\nFat 9g 20g\nProtein 5g 11.1g'
+    expect(parseNutritionLabel(label)).toMatchObject({ kcal: 444, fatG: 20, proteinG: 11.1 })
+  })
+
+  it('reads a single-column label whose serving is 100 g as one column', () => {
+    const label =
+      'Serving size 100g\nCalories 250\nTotal Fat 8g 10%\nTotal Carbohydrate 37g 13%\nProtein 3g'
+    expect(parseNutritionLabel(label)).toEqual({
+      basis: { size: 100, unit: 'g' },
+      kcal: 250,
+      proteinG: 3,
+      carbsG: 37,
+      fatG: 8,
+    })
+  })
+
+  it('reads a thousands point in a kJ value', () => {
+    expect(parseNutritionLabel('Per 100g\nEnergy 1.569 kJ\nFat 6.8g')).toMatchObject({ kcal: 375 })
+  })
+
+  it('reads past a product claim that names a nutrient before the table', () => {
+    const milk =
+      'Low fat 1.5% milk\nPer 100ml\nEnergy 46kcal\nFat 1.5g\nProtein 3.4g\nCarbohydrate 4.8g'
+    expect(parseNutritionLabel(milk)).toMatchObject({ fatG: 1.5, proteinG: 3.4 })
+    const bar =
+      'High protein 20g per bar\nNutrition information\nPer 100g\nEnergy 400kcal\nProtein 11g'
+    expect(parseNutritionLabel(bar)).toMatchObject({ proteinG: 11 })
+  })
+
+  it('reads a row whose values text recognition put on the following lines', () => {
+    const label = 'Per 100g\nEnergy\n1569kJ\n373kcal\nProtein\n11.2g\nFat 6.8g'
+    expect(parseNutritionLabel(label)).toMatchObject({ kcal: 373, proteinG: 11.2, fatG: 6.8 })
+  })
+
+  it('leaves an O that isn’t a digit alone, as in 1oz', () => {
+    expect(parseNutritionLabel('Serving size 1oz (28g)\nProtein 1O g').basis).toEqual({
+      size: 28,
+      unit: 'g',
+    })
+    expect(parseNutritionLabel('Serving size 1oz (28g)\nProtein 1O g').proteinG).toBe(10)
+  })
+
   it('works out kcal from kJ when the label gives only kJ', () => {
     expect(parseNutritionLabel('Per 100g\nEnergy 2252 kJ\nProtein 6.3g')).toMatchObject({
       kcal: 538,

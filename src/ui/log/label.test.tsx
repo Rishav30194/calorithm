@@ -110,4 +110,42 @@ describe('reading the label after an unknown barcode', () => {
       expect.objectContaining({ barcode: '96385074', kcal: 373 }),
     )
   })
+
+  it('keeps what you typed when you switch to the label and back, and closes once', async () => {
+    const onDone = vi.fn()
+    render(
+      <BarcodePanel
+        start="enter"
+        locale="en-US"
+        onLookup={vi.fn(async () => ({ kind: 'not_found' as const, barcode: '96385074' }))}
+        onLogSaved={vi.fn()}
+        onLogNew={vi.fn(async () => true)}
+        onBack={vi.fn()}
+        onDone={onDone}
+      />,
+    )
+    await userEvent.type(screen.getByLabelText(strings.log.barcode.code), '96385074')
+    await userEvent.click(screen.getByRole('button', { name: strings.log.barcode.lookUp }))
+    await userEvent.type(screen.getByLabelText(editor.name), 'Muesli')
+
+    await userEvent.click(screen.getByRole('button', { name: strings.log.barcode.readLabel }))
+    await userEvent.click(screen.getByRole('button', { name: strings.log.barcode.backToForm }))
+    expect(screen.getByLabelText(editor.name)).toHaveValue('Muesli')
+
+    await userEvent.click(screen.getByRole('button', { name: strings.log.barcode.readLabel }))
+    await paste(label)
+    expect(screen.getByLabelText(editor.name)).toHaveValue('Muesli')
+    await userEvent.click(screen.getByRole('button', { name: strings.log.barcode.saveAndLog }))
+    expect(onDone).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('LabelPanel errors', () => {
+  it('clears the nothing-read message once the text changes', async () => {
+    renderPanel()
+    await paste('Best before 12/2027')
+    await userEvent.type(screen.getByLabelText(text.text), 'x')
+    expect(screen.getByLabelText(text.text)).not.toHaveAttribute('aria-invalid')
+    expect(screen.queryByRole('button', { name: text.enterByHand })).toBeNull()
+  })
 })
