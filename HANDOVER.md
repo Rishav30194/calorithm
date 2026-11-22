@@ -13,6 +13,11 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
    the six checks. Record each result in `docs/phases.md` and mark the phase done when all
    pass. Deploy runs after #27's merge fail at the secret check until the secrets are set;
    that's expected. Then run **Deploy** by hand from `main`.
+   Done by the user on 2026-11-21: repository public, **Pages** source set to **GitHub
+   Actions**, hosted project `calorithm` created, sign-ups off. Pending: **Secure password
+   change** (inside the **Email** provider panel), **Site URL** (the dashboard refused the
+   trailing-slash form; the guide now gives it without one), then migrations, secrets, and
+   the checks.
 2. If the outbox query fails, `useOutbox` throws during render and the signed-in shell has
    no error state with a retry for it (found in the review of PR #15). Fix it in a small PR.
 3. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
