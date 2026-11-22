@@ -5,7 +5,7 @@ yourself: Claude never touches the hosted project or the repository settings.
 
 | Piece | Where |
 |---|---|
-| App | GitHub Pages at `https://rishav30194.github.io/calorithm/`, deployed by `.github/workflows/deploy.yml` after CI passes on `main` |
+| App | GitHub Pages at `https://rishav30194.github.io/calorithm/`, deployed by `.github/workflows/deploy.yml` on every push to `main` (after CI passes, once CI is back on) |
 | Database and sign-in | A hosted Supabase project on the free plan |
 | Keep-awake | `.github/workflows/keep-awake.yml`, Mondays and Thursdays, so one failed run still leaves a request inside the week |
 

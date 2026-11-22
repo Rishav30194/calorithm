@@ -43,6 +43,10 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 
 ## Watch out for
 
+- CI is paused (2026-11-21, the user's request, to speed up feature work): `ci.yml` runs only
+  by hand, and `deploy.yml` deploys every push to `main`. `npm run check:full` before each
+  PR is the only gate, so never skip it. Turn CI back on when the app moves to maintenance:
+  restore the triggers in `ci.yml` and the `workflow_run` trigger in `deploy.yml`.
 - `e2e/account.spec.ts` deletes `delete.me@calorithm.test`; `e2e/database.ts` puts it back
   first with `docker exec supabase_db_calorithm psql`. The container name comes from
   `project_id` in `supabase/config.toml`.

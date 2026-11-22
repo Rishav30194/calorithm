@@ -1,9 +1,13 @@
 name: CI
 
+# Paused during feature development (2026-11-21) to save time: `npm run check:full` runs the
+# same checks locally before every PR opens (`guard-bash.sh`). To turn CI back on, restore
+# these triggers and switch deploy.yml back to workflow_run, as its comments say.
 on:
-  pull_request:
-  push:
-    branches: [main]
+  # pull_request:
+  # push:
+  #   branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
