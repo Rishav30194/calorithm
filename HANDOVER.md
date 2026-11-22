@@ -74,6 +74,9 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
   (PR #15) didn't stop it. Read the trace CI records on the first retry before changing it.
 - An editor formatter reformatted the Markdown tables in `docs/architecture.md` outside
   any edit during PR 1; check `git diff` for unrelated doc changes before committing.
+- Supabase CLI 3.x commands such as `db push` and `migration list` target the local
+  database unless given `--remote`, even with a project linked. The first hosted push
+  (2026-11-21) went to local Docker for this reason.
 - `/security-review` needs `origin/HEAD`; in a fresh setup run `git remote set-head origin main`.
 - npm 11 holds back `fsevents`'s install script; it's optional and not needed.
 - 4 moderate `npm audit` findings sit in `vite-plugin-pwa`'s build-time dependencies (`glob`
