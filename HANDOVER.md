@@ -98,7 +98,7 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 188.2 kB of the 200 kB budget (0.12.0, 2026-11-22); the log,
+- First-load JavaScript is 187.7 kB of the 200 kB budget (0.12.0, 2026-11-22); the log,
   food, and backup screens and the built-in food list load on demand. A new screen of any
   size, and the barcode scanner, should too.
 - The built-in food list is rebuilt from USDA CSV downloads that aren't committed;
