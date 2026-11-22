@@ -292,6 +292,25 @@ the result in `checkins` when you save it. Decision 0021 holds the rules.
 - On start, the app calls `navigator.storage.persist()` so the browser doesn't evict the local
   database.
 - The app reads `min_app_version` on each sync and blocks syncing when it's too old.
+- The precache includes the barcode scanner's WebAssembly decoder (947 kB), so a saved pack
+  scans offline.
+
+## Barcode scanning
+
+Phase 11, decisions 0028 and 0029.
+
+- **Scan** opens the back camera in the picker. `src/ui/log/detector.ts` loads on demand:
+  the `barcode-detector` ponyfill on `zxing-wasm`, with its WebAssembly served from the app
+  rather than the library's default CDN. iPhone Safari has no built-in `BarcodeDetector`, so
+  every browser uses this one. **Enter barcode** takes the same code typed.
+- `lookupBarcode` (`src/data/barcodeLookup.ts`) parses the code into its stored form, checks
+  your foods through the Dexie index, and only then asks Open Food Facts.
+- `src/data/openFoodFacts/lookup.ts` is the app's only network call outside Supabase. It
+  sends only the barcode, with no cookies, to the pinned v3.4 API, names the app in an
+  `X-User-Agent` header, and gives up after 8 seconds. Any failure counts as unreachable.
+- A found product fills the food form per 100 g for the user to check. **Save and log**
+  saves the food with its barcode and `catalog_id = 'openfoodfacts'`, so the food keeps the
+  ODbL credit, and logs one serving.
 
 ## Hosting and environments
 

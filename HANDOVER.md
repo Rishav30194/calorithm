@@ -6,18 +6,19 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-1. **Phase 11 PR 1 (0.6.0, optional barcode on foods) is built on `feature/food-barcode`**,
-   with `/code-review` and `/security-review` done (code review fixes are in the second
-   commit). Next: run `npm run check:full`, then push and open the PR when the user asks.
-   It holds migration `20261122040000_foods_barcode`, so it merges only after the user
-   applies that migration to the hosted project. The user approved both plan points on
-   2026-11-22: `barcode-detector@3.2.3`, and the project's GitHub address as the Open Food
-   Facts contact. PR 2 (scanner and Open Food Facts lookup, 0.7.0, decision 0029) follows.
-   Where things stand: phases 1 to 10 are done. The app is live at
-   `https://rishav30194.github.io/calorithm/` as 0.5.0 (tag `v0.5.0`), with built-in
+1. **Phase 11 PR 2 (0.7.0, barcode scanning) is built on `feature/barcode-scan`**, with
+   `check:full`, `/code-review` (fixes in its last commit), and `/security-review` (no
+   findings) done. No migration. Next: push and open the PR when the user asks, then, after
+   the deploy, the user checks on the iPhone: scan a real pack (Indian brands too), scan a
+   saved pack offline, and deny the camera once. Then mark phase 11 done in
+   `docs/phases.md`. The user approved `barcode-detector@3.2.3` and precaching its
+   WebAssembly (`wasm` in `globPatterns`) on 2026-11-22.
+   Where things stand: phases 1 to 10 are done, and phase 11 PR 1 (an optional
+   barcode on foods, #41) is merged. The app is live at
+   `https://rishav30194.github.io/calorithm/` as 0.6.0 (tag `v0.6.0`), with built-in
    foods, recent and frequent foods, and carbs and fat. The hosted project has migrations
-   through `20261122030000`, and `min_app_version` is 0.3.0. The user's phone and laptop
-   run 0.5.0. Phase 12 (review against MacroFactor) waits for the user's subscription.
+   through `20261122040000`, and `min_app_version` is 0.3.0. The user's phone and laptop
+   ran 0.5.0 before this deploy; they update on next open. Phase 12 (review against MacroFactor) waits for the user's subscription.
    The user wants macros only (kcal, protein, carbs, fat), no AI logging, no bulk food
    database, and Indian foods with no beef or pork.
    How releases go: bump the version for each user-facing release (`docs/development.md`,
@@ -51,11 +52,10 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
   searching offline before the list is cached, then online.
 - Does Supabase's free plan include downloadable backups? The user checks in the dashboard.
 - Exact rate limit of Supabase's built-in email sending. Matters only before friends join.
-- Open Food Facts asks API users to name their app and a contact in the User-Agent, which
-  browsers can't set, and its docs don't cover browser apps. Its API allows an
-  `X-User-Agent` header from any origin (checked 2026-11-22); PR 2 plans to use it, but that
-  isn't confirmed as their recommended practice. Their docs also ask apps to fill in a usage
-  form; that's the user's call.
+- Open Food Facts asks apps to name themselves in the User-Agent, which browsers can't set;
+  the app sends `X-User-Agent` instead (decision 0029), which their API accepts from any
+  origin but their docs don't mention. Their docs also ask apps to fill in a usage form;
+  that's the user's call.
 - How well Open Food Facts covers Indian brands (for example Swad or Amul paneer) is
   unknown; phase 11 starts by trying real packages.
 
@@ -72,10 +72,15 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
   first with `docker exec supabase_db_calorithm psql`. The container name comes from
   `project_id` in `supabase/config.toml`.
 
+- The camera tests (`e2e/camera.spec.ts`) run on the full Chromium build
+  (`channel: 'chromium'`), because Playwright's headless shell has no camera capture. CI's
+  `playwright install chromium` should install both; unverified while CI is paused.
+- Open Food Facts allows 15 product reads a minute per IP address; probing it by hand during
+  development hits that quickly.
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 185.0 kB of the 200 kB budget (0.5.0, 2026-11-22); the log,
+- First-load JavaScript is 186.4 kB of the 200 kB budget (0.7.0, 2026-11-22); the log,
   food, and backup screens and the built-in food list load on demand. A new screen of any
   size, and the barcode scanner, should too.
 - The built-in food list is rebuilt from USDA CSV downloads that aren't committed;

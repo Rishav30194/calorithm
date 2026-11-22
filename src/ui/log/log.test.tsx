@@ -85,6 +85,9 @@ describe('LogPicker', () => {
         onPickBuiltIn={vi.fn()}
         onSearch={vi.fn()}
         onRetryBuiltIn={vi.fn()}
+        onLookup={vi.fn()}
+        onLogScanned={vi.fn()}
+        onLogNew={vi.fn()}
         onPick={onPick}
         onClose={onClose}
       />,
@@ -132,6 +135,9 @@ describe('LogPicker', () => {
           builtIn={builtIn}
           locale="en-US"
           onPick={vi.fn()}
+          onLookup={vi.fn()}
+          onLogScanned={vi.fn()}
+          onLogNew={vi.fn()}
           onClose={vi.fn()}
           {...handlers}
         />,
@@ -218,6 +224,9 @@ describe('LogPicker', () => {
         onPickBuiltIn={vi.fn()}
         onSearch={vi.fn()}
         onRetryBuiltIn={vi.fn()}
+        onLookup={vi.fn()}
+        onLogScanned={vi.fn()}
+        onLogNew={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -249,6 +258,9 @@ describe('LogPicker', () => {
         onPickBuiltIn={vi.fn()}
         onSearch={vi.fn()}
         onRetryBuiltIn={vi.fn()}
+        onLookup={vi.fn()}
+        onLogScanned={vi.fn()}
+        onLogNew={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -266,6 +278,9 @@ describe('LogPicker', () => {
         onPickBuiltIn={vi.fn()}
         onSearch={vi.fn()}
         onRetryBuiltIn={vi.fn()}
+        onLookup={vi.fn()}
+        onLogScanned={vi.fn()}
+        onLogNew={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,

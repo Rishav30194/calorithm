@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import type { BarcodeLookup } from '@/data/barcodeLookup'
 import type { CatalogFood } from '@/data/catalog/search'
 import { searchCatalog } from '@/data/catalog/search'
-import type { FoodView, RecipeView } from '@/data/foods'
+import type { CatalogCopy, FoodInput, FoodView, RecipeView } from '@/data/foods'
 import type { QuickPicks } from '@/data/log'
 import type { CatalogState } from '@/data/logHooks'
 import { formatAmount } from '@/domain/format'
@@ -10,6 +11,7 @@ import { strings } from '@/strings'
 import { Modal } from '../Modal'
 import { macroText } from '../macros'
 import { TextField } from '../TextField'
+import { BarcodePanel } from './BarcodePanel'
 
 type Props = {
   meal: Meal
@@ -23,6 +25,9 @@ type Props = {
   onPickBuiltIn: (item: CatalogFood) => Promise<boolean>
   onSearch: () => void
   onRetryBuiltIn: () => void
+  onLookup: (code: string) => Promise<BarcodeLookup>
+  onLogScanned: (foodId: string) => Promise<boolean>
+  onLogNew: (input: FoodInput | CatalogCopy) => Promise<boolean>
   onClose: () => void
 }
 
@@ -76,9 +81,13 @@ export const LogPicker = ({
   onPickBuiltIn,
   onSearch,
   onRetryBuiltIn,
+  onLookup,
+  onLogScanned,
+  onLogNew,
   onClose,
 }: Props) => {
   const text = strings.log.picker
+  const [barcode, setBarcode] = useState<'scan' | 'enter' | null>(null)
   const [query, setQuery] = useState('')
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -174,48 +183,88 @@ export const LogPicker = ({
         </button>
       }
     >
-      {failed && (
-        <p role="alert" className="text-danger">
-          {text.failed}
-        </p>
-      )}
-      {loading ? (
-        <p className="text-muted">{strings.loading}</p>
+      {barcode !== null ? (
+        <BarcodePanel
+          start={barcode}
+          locale={locale}
+          onLookup={onLookup}
+          onLogSaved={onLogScanned}
+          onLogNew={onLogNew}
+          onBack={() => setBarcode(null)}
+          onDone={onClose}
+        />
       ) : (
         <>
-          {nothingSaved && <p className="text-muted">{text.empty}</p>}
-          {needle === '' && (
+          {failed && (
+            <p role="alert" className="text-danger">
+              {text.failed}
+            </p>
+          )}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setBarcode('scan')}
+              className="min-h-11 rounded-lg border border-border px-3 font-medium"
+            >
+              {text.scan}
+            </button>
+            <button
+              type="button"
+              onClick={() => setBarcode('enter')}
+              className="min-h-11 rounded-lg border border-border px-3 font-medium"
+            >
+              {text.enter}
+            </button>
+          </div>
+          {loading ? (
+            <p className="text-muted">{strings.loading}</p>
+          ) : (
             <>
-              <PickList title={text.recent} rows={quick('recent', picks?.recent)} onPick={pick} />
-              <PickList title={text.mostUsed} rows={quick('most', picks?.mostUsed)} onPick={pick} />
+              {nothingSaved && <p className="text-muted">{text.empty}</p>}
+              {needle === '' && (
+                <>
+                  <PickList
+                    title={text.recent}
+                    rows={quick('recent', picks?.recent)}
+                    onPick={pick}
+                  />
+                  <PickList
+                    title={text.mostUsed}
+                    rows={quick('most', picks?.mostUsed)}
+                    onPick={pick}
+                  />
+                </>
+              )}
+              <TextField label={text.search} value={query} onChange={search} type="search" />
+              {saved.length > 0 && <PickList title={text.all} rows={saved} onPick={pick} />}
+              {needle !== '' && (
+                <section aria-label={text.builtIn} className="flex flex-col gap-1">
+                  {builtIn === 'loading' && <p className="text-muted">{text.builtInLoading}</p>}
+                  {builtIn === 'failed' && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-muted">{text.builtInFailed}</p>
+                      <button
+                        type="button"
+                        onClick={onRetryBuiltIn}
+                        className="min-h-11 rounded-lg border border-border px-3 font-medium"
+                      >
+                        {text.builtInRetry}
+                      </button>
+                    </div>
+                  )}
+                  <PickList title={text.builtIn} rows={builtInRows} onPick={pick} />
+                  {builtInRows.length > 0 && (
+                    <p className="text-xs text-muted">{text.builtInSource}</p>
+                  )}
+                </section>
+              )}
+              {needle !== '' &&
+                saved.length === 0 &&
+                builtInRows.length === 0 &&
+                // Only once the list has loaded: not while loading, nor beside its error.
+                Array.isArray(builtIn) && <p className="text-muted">{text.noMatch}</p>}
             </>
           )}
-          <TextField label={text.search} value={query} onChange={search} type="search" />
-          {saved.length > 0 && <PickList title={text.all} rows={saved} onPick={pick} />}
-          {needle !== '' && (
-            <section aria-label={text.builtIn} className="flex flex-col gap-1">
-              {builtIn === 'loading' && <p className="text-muted">{text.builtInLoading}</p>}
-              {builtIn === 'failed' && (
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-muted">{text.builtInFailed}</p>
-                  <button
-                    type="button"
-                    onClick={onRetryBuiltIn}
-                    className="min-h-11 rounded-lg border border-border px-3 font-medium"
-                  >
-                    {text.builtInRetry}
-                  </button>
-                </div>
-              )}
-              <PickList title={text.builtIn} rows={builtInRows} onPick={pick} />
-              {builtInRows.length > 0 && <p className="text-xs text-muted">{text.builtInSource}</p>}
-            </section>
-          )}
-          {needle !== '' &&
-            saved.length === 0 &&
-            builtInRows.length === 0 &&
-            // Only once the list has loaded: not while loading, nor beside its error.
-            Array.isArray(builtIn) && <p className="text-muted">{text.noMatch}</p>}
         </>
       )}
     </Modal>

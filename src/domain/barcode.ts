@@ -1,5 +1,5 @@
-// Product barcodes (GTINs): EAN-8, UPC-A, EAN-13, and GTIN-14. UPC-E isn't read here: its
-// check digit is computed on the expanded UPC-A code, so an 8-digit UPC-E code fails as EAN-8.
+// Product barcodes (GTINs): EAN-8, UPC-A, EAN-13, and GTIN-14, and UPC-E, whose check digit is
+// computed on the UPC-A code it shortens. An 8-digit code valid as both is read as EAN-8.
 
 export type BarcodeResult =
   | { ok: true; barcode: string }
@@ -31,8 +31,32 @@ const canonical = (code: string): string => {
 export const parseBarcode = (input: string): BarcodeResult => {
   const code = input.replace(/[\s-]/g, '')
   if (!/^[0-9]{8}$|^[0-9]{12,14}$/.test(code)) return { ok: false, reason: 'format' }
-  if (gtinCheckDigit(code.slice(0, -1)) !== code.slice(-1)) {
-    return { ok: false, reason: 'check_digit' }
+  if (gtinCheckDigit(code.slice(0, -1)) === code.slice(-1)) {
+    return { ok: true, barcode: canonical(code) }
   }
-  return { ok: true, barcode: canonical(code) }
+  // A typed UPC-E code, as small packs print it: read as the UPC-A code a scan expands it to.
+  const upcA = code.length === 8 ? upcEToUpcA(code) : null
+  if (upcA !== null && gtinCheckDigit(upcA.slice(0, -1)) === upcA.slice(-1)) {
+    return { ok: true, barcode: canonical(upcA) }
+  }
+  return { ok: false, reason: 'check_digit' }
+}
+
+// A UPC-E code (8 digits, number system 0 or 1) as the 12-digit UPC-A code it shortens, so
+// it parses and matches like any other code. The last of its six middle digits picks how
+// the zeros it left out go back in.
+export const upcEToUpcA = (code: string): string | null => {
+  if (!/^[01][0-9]{7}$/.test(code)) return null
+  const system = code.slice(0, 1)
+  const [a, b, c, d, e, last] = code.slice(1, 7)
+  const check = code.slice(7)
+  const body =
+    last === '0' || last === '1' || last === '2'
+      ? `${a}${b}${last}0000${c}${d}${e}`
+      : last === '3'
+        ? `${a}${b}${c}00000${d}${e}`
+        : last === '4'
+          ? `${a}${b}${c}${d}00000${e}`
+          : `${a}${b}${c}${d}${e}0000${last}`
+  return `${system}${body}${check}`
 }

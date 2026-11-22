@@ -625,7 +625,7 @@ the general formula.
 
 ## Phase 11 — Barcode scanning
 
-**Status:** In progress (PR 1 of 2)
+**Status:** In progress (PRs 1 and 2 built; the iPhone check is left)
 
 **Goal:** scan a packaged food's barcode to add it.
 
@@ -646,10 +646,10 @@ the general formula.
 **Acceptance criteria:**
 - [ ] Scanning a known product on the iPhone fills in its name and four numbers.
 - [ ] A second scan of a saved product works offline.
-- [ ] An unknown barcode, a denied camera, and no network each show a clear message and a
+- [x] An unknown barcode, a denied camera, and no network each show a clear message and a
   way to enter the food by hand.
-- [ ] The scanner loads on demand and leaves first-load JavaScript within budget.
-- [ ] End-to-end tests cover the lookup with a recorded Open Food Facts response, not the
+- [x] The scanner loads on demand and leaves first-load JavaScript within budget.
+- [x] End-to-end tests cover the lookup with a recorded Open Food Facts response, not the
   live service.
 
 **Open questions:**
@@ -692,8 +692,23 @@ the general formula.
 - 0.5.0 and earlier drop columns they don't know from pulled rows (as 0.5.0 did
   `catalog_id`), so Dexie version 8 clears the foods pull cursor, and the next pull reads
   every food again without counting as a resync.
-- Open Food Facts limits product reads to 15 a minute per IP address, and its v2 API is
-  deprecated in favor of v3.6; PR 2 picks the endpoint.
+- Open Food Facts limits product reads to 15 a minute per IP address. Its v2 API is
+  deprecated, and v3.5 and v3.6 replace `nutriments` with a shape that mixes label values
+  and estimates, so PR 2 pins v3.4 (decision 0029).
+- PR 2 (0.7.0): **Scan barcode** and **Enter barcode** in the picker (`BarcodePanel`). The
+  camera and decoder (`BarcodeCamera`, `detector.ts`) load on demand: a 15 kB chunk plus
+  the 947 kB WebAssembly, which the service worker precaches (the user approved adding
+  `wasm` to `globPatterns`). First-load JavaScript is 186.4 kB. UPC-E scans are expanded to
+  UPC-A. `lookupBarcode` checks your foods, then Open Food Facts; a found product fills
+  `FoodForm` (split out of `FoodEditor`) per 100 g, and **Save and log** saves the food with
+  `catalog_id = 'openfoodfacts'` and logs one serving. A saved archived food is restored
+  when logged from a scan.
+- The browser tests replay recorded Open Food Facts responses
+  (`src/data/openFoodFacts/fixtures`). `e2e/camera.spec.ts` feeds Chromium's fake camera a
+  generated EAN-13 video, so the real decoder runs; it needs the full Chromium build
+  (`channel: 'chromium'`), because Playwright's headless shell has no camera capture.
+- The second-scan-offline criterion is covered for a typed code in the browser tests; the
+  camera path offline, and scanning a real pack, wait for the iPhone check.
 
 ## Phase 12 — Review against MacroFactor
 

@@ -9,8 +9,10 @@ import {
   totalsByMeal,
 } from '@/domain/nutrition'
 
+import { type BarcodeLookup, lookupBarcode } from './barcodeLookup'
 import { type CatalogFood, loadCatalog } from './catalog/search'
 import { useData } from './DataProvider'
+import type { CatalogCopy, FoodInput } from './foods'
 import {
   changeServings,
   copyMealTo,
@@ -18,12 +20,15 @@ import {
   entriesOn,
   type LoggedEntry,
   logCatalogFood,
+  logNewFood,
+  logScannedFood,
   logSource,
   type QuickPicks,
   quickPicks,
   removeEntry,
   setDayComplete,
 } from './log'
+import { lookupProduct } from './openFoodFacts/lookup'
 
 export type DayView = {
   byMeal: Record<Meal, LoggedEntry[]>
@@ -72,6 +77,9 @@ type Slot = { date: string; meal: Meal }
 export type LogActions = {
   log: (slot: Slot, source: Source, servings: number) => Promise<boolean>
   logCatalog: (slot: Slot, item: CatalogFood) => Promise<boolean>
+  // A barcode scan's results: a saved food, or a new one saved from the form.
+  logScanned: (slot: Slot, foodId: string) => Promise<boolean>
+  logNew: (slot: Slot, input: FoodInput | CatalogCopy) => Promise<boolean>
   changeServings: (id: string, servings: number) => Promise<boolean>
   remove: (id: string) => Promise<void>
   copyMeal: (from: Slot, to: Slot) => Promise<number>
@@ -92,6 +100,12 @@ export const useLogActions = (): LogActions => {
         (await synced(logSource(ctx.db, ctx.clock, userId, { ...slot, source, servings }))).ok,
       logCatalog: async (slot, item) => {
         await synced(logCatalogFood(ctx.db, ctx.clock, userId, slot, item))
+        return true
+      },
+      logScanned: async (slot, foodId) =>
+        (await synced(logScannedFood(ctx.db, ctx.clock, userId, slot, foodId))).ok,
+      logNew: async (slot, input) => {
+        await synced(logNewFood(ctx.db, ctx.clock, userId, slot, input))
         return true
       },
       changeServings: async (id, servings) =>
@@ -120,4 +134,13 @@ export const useCatalog = (
     loadCatalog().then(setState, () => setState('failed'))
   }, [wanted, state])
   return { state, retry: () => setState(undefined) }
+}
+
+// Looks a scanned or typed code up in your foods, then in Open Food Facts.
+export const useBarcodeLookup = (): ((code: string) => Promise<BarcodeLookup>) => {
+  const { ctx } = useData()
+  return useMemo(
+    () => (code: string) => lookupBarcode(ctx.db, code, (barcode) => lookupProduct(barcode)),
+    [ctx.db],
+  )
 }

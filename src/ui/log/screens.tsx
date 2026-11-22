@@ -3,7 +3,14 @@ import { useState } from 'react'
 import { useTargets } from '@/data/checkinHooks'
 import { useFoods, useRecipes } from '@/data/foodHooks'
 import type { LoggedEntry } from '@/data/log'
-import { useCatalog, useDay, useLogActions, useMealCount, useQuickPicks } from '@/data/logHooks'
+import {
+  useBarcodeLookup,
+  useCatalog,
+  useDay,
+  useLogActions,
+  useMealCount,
+  useQuickPicks,
+} from '@/data/logHooks'
 import { addDays, isDay } from '@/domain/dates'
 import type { Meal } from '@/domain/nutrition'
 import { strings } from '@/strings'
@@ -41,6 +48,7 @@ const Picker = ({
   // The built-in list loads on the first search, not when the picker opens.
   const [searched, setSearched] = useState(false)
   const builtIn = useCatalog(searched)
+  const lookUp = useBarcodeLookup()
   return (
     <LogPicker
       meal={meal}
@@ -53,6 +61,9 @@ const Picker = ({
       onPick={(source, servings) => actions.log({ date, meal }, source, servings)}
       onPickBuiltIn={(item) => actions.logCatalog({ date, meal }, item)}
       onSearch={() => setSearched(true)}
+      onLookup={lookUp}
+      onLogScanned={(foodId) => actions.logScanned({ date, meal }, foodId)}
+      onLogNew={(input) => actions.logNew({ date, meal }, input)}
       onClose={onClose}
     />
   )

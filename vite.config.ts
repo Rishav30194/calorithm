@@ -44,7 +44,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+        // wasm: the barcode scanner's decoder, so a saved pack scans offline (phase 11).
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,wasm}'],
         cleanupOutdatedCaches: true,
       },
     }),

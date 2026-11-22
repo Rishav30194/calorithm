@@ -11,7 +11,9 @@ import {
   entriesOn,
   logCatalogFood,
   logFood,
+  logNewFood,
   logRecipe,
+  logScannedFood,
   logSource,
   quickPicks,
   removeEntry,
@@ -656,5 +658,52 @@ describe('logCatalogFood (decision 0027)', () => {
 
     expect(second.food_id).toBe(first.food_id)
     expect(await listFoods(db)).toEqual([expect.objectContaining({ archived: false })])
+  })
+})
+
+describe('logging from a barcode scan', () => {
+  const at = { date: '2026-11-22', meal: 'snacks' } as const
+  const paneer = {
+    name: 'Paneer',
+    servingSize: 100,
+    servingUnit: 'g',
+    kcal: 265,
+    proteinG: 18.3,
+    carbsG: 1.2,
+    fatG: 20.8,
+    barcode: '8901234567890',
+  }
+
+  it('saves a new food with its barcode and logs one serving, in one write', async () => {
+    const entry = await logNewFood(db, time.clock, userId, at, paneer)
+
+    const [food] = await listFoods(db)
+    expect(food).toMatchObject({ name: 'Paneer', barcode: '8901234567890' })
+    expect(entry).toMatchObject({ ...at, food_id: food?.id, servings: 1, kcal: 265 })
+    expect((await db.outbox.toArray()).map((item) => item.table).sort()).toEqual([
+      'foods',
+      'log_entries',
+    ])
+  })
+
+  it('logs one serving of a saved food, restoring it when it was archived', async () => {
+    const food = await createFood(db, time.clock, userId, paneer)
+    await setFoodArchived(db, time.clock, food.id, true)
+
+    const result = await logScannedFood(db, time.clock, userId, at, food.id)
+
+    expect(result).toMatchObject({ ok: true, row: { food_id: food.id, servings: 1 } })
+    expect((await listFoods(db))[0]).toMatchObject({ id: food.id, archived: false })
+  })
+
+  it('reports a food removed since the scan found it', async () => {
+    const food = await createFood(db, time.clock, userId, paneer)
+    await db.rows('foods').update(food.id, { deleted_at: '2026-11-22T10:00:00.000Z' })
+
+    expect(await logScannedFood(db, time.clock, userId, at, food.id)).toEqual({
+      ok: false,
+      reason: 'not_found',
+    })
+    expect(await entriesOn(db, at.date)).toEqual([])
   })
 })
