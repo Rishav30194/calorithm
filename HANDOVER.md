@@ -15,7 +15,12 @@ since editing the entry's amount recalculates the totals. The hosted project has
 `20261122050000`, and `min_app_version` is 0.3.0. The README matches 0.12.1 (2026-11-22);
 update its features and status when a phase changes what users get.
 
-1. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
+1. **Phases 15 to 20** (added 2026-11-22 from MacroFactor's "Getting Started" video, the user's
+   picks): a plate and meal suggestions, quick add, log navigation and selection, goal weight
+   and maintenance mode, higher-calorie days, and progress views. Kcal and protein stay the
+   only targets. Start with phase 15's plan when the user says so; phases 18 and 19 each
+   begin with a decision record.
+2. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
    iPhone but needs a close photo and sometimes misses fat, carbs, protein, or the serving
    size. Plan when resumed: the user puts 5 to 10 failing photos in `~/Downloads/labels`
    (used locally only, never committed); measure each change on them and keep what helps:
@@ -25,12 +30,12 @@ update its features and status when a phase changes what users get.
    read separately, "g" read as "9"), show the read text beside the form with **Fix the
    text**, and maybe a crop step. Workaround meanwhile: crop to the table in Photos first.
    The first photo downloads about 4.5 MB (checked on the live site).
-2. Optional iPhone check: **Export changes** in the sign-out warning. It shows only when
+3. Optional iPhone check: **Export changes** in the sign-out warning. It shows only when
    signing out with changes that haven't synced (for example, log an entry offline, then
    sign out). **Export data** in settings and **Import data** passed on the user's iPhone
    (2026-11-22).
-3. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
-4. **Phase 12** (review against MacroFactor) stays on hold until the user has the
+4. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+5. **Phase 12** (review against MacroFactor) stays on hold until the user has the
    subscription.
 
 How the user works: macros only (kcal, protein, carbs, fat), no AI logging, no bulk food

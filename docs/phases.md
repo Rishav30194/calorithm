@@ -733,7 +733,12 @@ the general formula.
 - [ ] Each proposed improvement has a size and a reason, and the user has ranked them.
 - [ ] The approved improvements are written up as phases here.
 
-**Implementation notes:** none yet.
+**Implementation notes:**
+- First pass, 2026-11-22, from MacroFactor's own "Getting Started" video (transcript and
+  about 30 screenshots; no subscription yet). The user chose what to build: phases 15 to 20.
+  Left out: AI logging, micronutrients, a branded food database, Apple Health, body photos
+  and measurements, coaching modules, and carbs and fat targets (kcal and protein stay the
+  only targets, decision 0025). The hands-on month stays open, to revisit once these ship.
 
 ## Phase 13 — Nutrition label
 
@@ -893,3 +898,184 @@ wherever you pick a food.
   "(estimate)", from USDA values as `scripts/catalog/other.json` records. Hing is left out,
   as CoFID lacks its energy and carbs. `build-catalog.mjs --keep-usda` rebuilds without the
   USDA downloads. The picker's source line credits CoFID with the licence's statement.
+
+## Phase 15 — A plate, and smarter suggestions
+
+**Status:** Not started
+
+**Goal:** log a whole meal in one go, with the foods you usually eat for it on top.
+
+From the first MacroFactor pass (2026-11-22, phase 12's implementation notes). Kcal and
+protein stay the only targets (decision 0025); carbs and fat show as totals throughout
+phases 15 to 20.
+
+**Scope:**
+- **A plate.** Each row in the log picker gets an add button that puts the food or recipe on
+  a plate without leaving the list; a tap on the row still logs it at once, as now. The plate
+  shows each item with its amount (editable in servings, or in grams for a weighed food), the
+  plate's total kcal and protein, and **Log all**, which writes every entry and its outbox
+  entry in one Dexie transaction. Items can be removed. The plate lives only while the
+  picker is open; closing it with items asks first.
+- **Usual for this meal.** The picker, opened from a meal, lists the foods you most often log
+  in that meal over the last 60 days, above **Recent**. Calorithm logs by meal rather than by
+  the hour, so it ranks by meal, not by time of day. A pure function in `src/domain/`.
+- **Grouped search.** Results come in three groups, in this order: foods and recipes you've
+  logged before, your other foods and recipes, then built-in foods. Each group keeps the
+  current ranking (most used, then name).
+
+**Acceptance criteria:**
+- [ ] Three foods put on the plate, one changed to 150 g, log as three entries in that meal
+  with the right values, in one transaction (a failed write logs none).
+- [ ] Closing the picker with a non-empty plate asks before discarding it.
+- [ ] The meal list ranks by count in that meal, ties by name; property tests cover it.
+- [ ] Search groups appear in order, and a food never shows in two groups.
+- [ ] Browser tests with axe cover the plate at 360 pixels in both themes.
+
+**Implementation notes:** none yet.
+
+## Phase 16 — Quick add, and recipes logged as ingredients
+
+**Status:** Not started
+
+**Goal:** log a one-off meal by its numbers, and adjust a recipe's ingredients for one
+meal without editing the recipe.
+
+**Scope:**
+- **Quick add.** A picker panel with a name, kcal, protein, and optional carbs and fat logs
+  an entry with no food or recipe behind it. It never shows in search or suggestions; it can
+  be edited and copied like any entry.
+- **Schema change in two releases** (`docs/architecture.md`, "Schema versions"): a migration
+  replaces `log_entries_one_source` so an entry may have neither source (still never both),
+  with pgTAP tests. Clients before this release drop such rows from the day view
+  (`toEntry`), so their totals would be short: the second release raises `min_app_version`
+  once every device runs the first.
+- **Log as ingredients.** A recipe in the picker offers **Log as ingredients**: its
+  ingredients go on the plate (phase 15), scaled to the servings chosen, to edit before
+  logging.
+
+**Acceptance criteria:**
+- [ ] A quick add of 450 kcal and 30 g protein counts in the day and meal totals, syncs, and
+  survives export and import.
+- [ ] The database refuses an entry with both a food and a recipe, and accepts one with
+  neither (pgTAP).
+- [ ] A quick add never appears in search, **Recent**, or the meal list.
+- [ ] Half a recipe of 4 servings logged as ingredients puts each ingredient on the plate at
+  one eighth of its recipe amount.
+
+**Implementation notes:** none yet.
+
+## Phase 17 — Moving around and editing the log
+
+**Status:** Not started
+
+**Goal:** get to any day fast, see what's left, and fix several entries at once.
+
+**Scope:**
+- **Week strip.** The log screen shows the current week, Monday to Sunday, with each day's kcal
+  against its target as a small ring; a tap opens that day. Swiping left or right moves a
+  day. The date title still opens any day.
+- **Eaten and left.** A toggle on the target bars switches kcal and protein between eaten and
+  left (target minus eaten, shown as "over" past the target). The choice is remembered on the
+  device.
+- **Select entries.** A **Select** action on the log turns entries into checkboxes, with a
+  toolbar: **Copy to…** (a day and meal), **Move to…** (a day and meal), **Remove**, and
+  **Make a recipe** (food entries only, each at its logged servings; recipe and quick-add
+  entries can't be ingredients, and the button says why).
+- **Copy a day.** Copies every meal of a day to another day, like copying a meal.
+
+**Acceptance criteria:**
+- [ ] The strip marks today, and its rings match the day totals.
+- [ ] Moving three entries to tomorrow's dinner keeps their values and order, in one
+  transaction.
+- [ ] **Make a recipe** from two food entries creates a recipe of those foods and servings.
+- [ ] Copying a day copies each meal into the same meal on the other day.
+- [ ] Swiping never fires while a dialog is open, and every action works without swiping.
+
+**Implementation notes:** none yet.
+
+## Phase 18 — Goal weight and maintenance mode
+
+**Status:** Not started
+
+**Goal:** aim at a weight, see when you'll reach it, then hold it there.
+
+**Scope:**
+- **Goal weight.** Losing or gaining takes a goal weight. The profile form shows, as you
+  change the rate, the daily kcal it gives (from the latest maintenance estimate) and the
+  projected date the trend reaches the goal weight. The check-in shows the projected date
+  too.
+- **Maintenance mode.** "Keep my weight" holds the trend inside a band around a target
+  weight (by default the trend weight when chosen). Inside the band the rate is 0. When the
+  trend leaves the band, the check-in sets a slow rate back toward it and says so; once back
+  inside, the rate returns to 0. The band width and the slow rate are decided at the phase's
+  start in a decision record (proposal: plus or minus 1.5% of the target, at least 1 kg, and
+  0.25% of trend weight a week).
+- **Reaching the goal.** When the trend reaches the goal weight, the check-in switches to
+  maintenance mode at that weight and says so; you can change it in the profile.
+- **Schema change:** `target_weight_kg` on `profile` (nullable, 20 to 400) and the check-in's
+  mode on `checkins`, with pgTAP tests, shipped in two releases as the architecture requires.
+- All calculations in `src/domain/` with property tests, including every safety limit that
+  already applies (the 1% rate cap and the calorie floor).
+
+**Acceptance criteria:**
+- [ ] A synthetic history drifting 2 kg above the band gets a loss rate back toward it, then
+  0 once inside, and the check-in explains each step.
+- [ ] Inside the band, the targets equal maintenance (and the floor still applies).
+- [ ] The projected date moves when the rate changes, and is absent while maintaining.
+- [ ] Reaching the goal weight switches to maintenance mode at that weight.
+- [ ] A device on the release before keeps syncing the profile without losing the goal
+  weight.
+
+**Implementation notes:** none yet.
+
+## Phase 19 — Higher-calorie days
+
+**Status:** Not started
+
+**Goal:** eat more on the days you choose, with the same weekly total.
+
+**Scope:**
+- The profile picks which weekdays get more kcal and how many more (a whole number). The other
+  days get less, so the week's total stays seven times the daily target. Protein stays the
+  same every day.
+- The log screen, the week strip (phase 17), and the check-in show each day's own kcal
+  target; the check-in shows the week's targets day by day.
+- The calorie floor applies to every day: when a lower day would go below it, the app shows
+  how much extra it can give the higher days, and limits the setting to that.
+- **Schema change:** the chosen days and the extra amount on `profile`, with pgTAP tests, in two
+  releases. The split is computed in `src/domain/`, so the database stores the choice, not
+  each day's target. Decision record at the phase's start.
+
+**Acceptance criteria:**
+- [ ] For any choice of days and amount, the seven day targets add up to seven times the
+  weekly daily target, within rounding to whole kcal (property test).
+- [ ] No day goes below the calorie floor (property test).
+- [ ] With no days chosen, every day's target equals today's single target.
+
+**Implementation notes:** none yet.
+
+## Phase 20 — Progress views
+
+**Status:** Not started
+
+**Goal:** see the week, the month, and your logging habits at a glance.
+
+**Scope:**
+- **This week.** Each day's kcal and protein against its targets, Monday to Sunday, with the
+  week's average.
+- **Intake against targets and maintenance.** The last 30 days of kcal as bars, with the
+  target and the maintenance estimate as lines, and the average difference from each.
+- **Habits.** The last 30 days as two grids: days with a weigh-in, and days marked
+  complete, with "n of 7 this week" for each.
+- **Weight ranges.** The weight chart gets 1 week, 1 month, 3 months, 6 months, 1 year, and
+  all, replacing the 90-day switch, with the average and the change over the range.
+- Where these live is decided at the phase's start: a **Progress** tab (five tabs fit at
+  360 pixels) or sections on the existing tabs. Loaded on demand, within the bundle budget.
+
+**Acceptance criteria:**
+- [ ] Every number on these views comes from a tested function in `src/domain/`.
+- [ ] Empty, partial, and full histories each show sensibly (no division by zero, no empty
+  chart without a message).
+- [ ] Charts have text alternatives, and axe passes in both themes at 360 pixels.
+
+**Implementation notes:** none yet.
