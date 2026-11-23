@@ -20,8 +20,10 @@ update its features and status when a phase changes what users get.
    (migration `20261122060000_profile_higher_kcal_days.sql`, Dexie version 10), and
    `feature/phase-19-screens` (0.13.0), on top of `chore/plan-phases-15-to-20`. The migration
    must reach the hosted project (`docs/production.md`, step 6) before the columns PR merges,
-   since every push to `main` deploys. After deploy: check on the iPhone that the profile
-   saves weekend days and the log shows that day's target, then set phase 19 to Done.
+   since every push to `main` deploys. `/code-review` found 8 issues: 7 are fixed, and the
+   extra-kcal field keeps the numeric keypad of the calorie floor field. `/security-review`
+   found nothing. After deploy: check on the iPhone that the profile saves weekend days and
+   the log shows that day's target, then set phase 19 to Done.
 2. **The other phases, 15 to 18 and 20** (added 2026-11-22 from MacroFactor's "Getting Started" video, the user's
    picks): a plate and meal suggestions, quick add, log navigation and selection, goal weight
    and maintenance mode, higher-calorie days, and progress views. Kcal and protein stay the
