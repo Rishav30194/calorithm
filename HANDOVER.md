@@ -7,21 +7,20 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 ## Next
 
 Where things stand (session ended 2026-11-22): the app is live at
-`https://rishav30194.github.io/calorithm/` as **0.13.0** (tag `v0.13.0`). Phases 1 to 11 are
-done; phases 14 and 19 are done (the user's iPhone checks passed, 2026-11-22); phase 13 is parked; phase 12
+`https://rishav30194.github.io/calorithm/` as **0.15.0** (tag `v0.15.0`). Phases 1 to 11 are
+done; phases 14, 15, and 19 are done (the user's iPhone checks passed, 2026-11-22); phase 13 is parked; phase 12
 waits for the user's MacroFactor subscription. Foods from a barcode scan or a nutrition
 label log one serving without the amount step (decision 0031); the user is fine with that,
 since editing the entry's amount recalculates the totals. The hosted project has migrations through
-`20261122060000`, and `min_app_version` is 0.3.0. The README matches 0.13.0 (2026-11-22);
+`20261122060000`, and `min_app_version` is 0.3.0. The README matches 0.15.0 (2026-11-22);
 update its features and status when a phase changes what users get.
 
 1. **Phase 19 (higher-calorie days) is done:** deployed in 0.13.0 (PRs #53 to #55, decision
    0033), and the user's iPhone check passed on 2026-11-22 (the profile saves the days, and
    the log shows that weekday's target).
-2. **Phase 15 (a plate, and smarter suggestions) is built** as two stacked PRs: usual foods
-   for each meal and grouped search (0.14.0), then the plate (0.15.0). No migration. After
-   deploy, the user tries it on the iPhone (build a plate, change one item's grams, log all;
-   close with a plate and see the question), then phase 15 goes to Done.
+2. **Phase 15 (a plate, and smarter suggestions) is done:** deployed in 0.15.0 (PRs #57 and
+   #58), and the user's iPhone check passed on 2026-11-22 (usual foods for the meal, grouped
+   search, a plate logged with one item in grams, and the question before closing).
 3. **The other phases, 16 to 18 and 20** (added 2026-11-22 from MacroFactor's "Getting
    Started" video, the user's picks): quick add, log navigation and selection, goal weight and
    maintenance mode (band plus or minus 1.5% of the target weight), and progress views (a

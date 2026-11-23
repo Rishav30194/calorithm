@@ -901,7 +901,7 @@ wherever you pick a food.
 
 ## Phase 15 — A plate, and smarter suggestions
 
-**Status:** In progress
+**Status:** Done (2026-11-22): deployed in 0.15.0, and the user's iPhone check passed
 
 **Goal:** log a whole meal in one go, with the foods you usually eat for it on top.
 
