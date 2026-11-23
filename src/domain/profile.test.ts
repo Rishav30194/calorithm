@@ -21,6 +21,7 @@ const valid: ProfileSettings = {
   goalRateKgPerWeek: -0.5,
   proteinGPerKg: 1.8,
   calorieFloorKcal: 1200,
+  calorieDays: { days: 96, extraKcal: 400 },
 }
 
 describe('height in feet and inches', () => {
@@ -75,6 +76,27 @@ describe('goal rate', () => {
 })
 
 describe('profileErrors', () => {
+  // Phase 19: the database's ranges (decision 0033).
+  it('accepts higher-calorie days in range, none, or not set', () => {
+    expect(profileErrors({ ...valid, calorieDays: { days: 0, extraKcal: 0 } }, today)).toEqual([])
+    expect(profileErrors({ ...valid, calorieDays: { days: 126, extraKcal: 5000 } }, today)).toEqual(
+      [],
+    )
+    expect(profileErrors({ ...valid, calorieDays: null }, today)).toEqual([])
+  })
+
+  it('refuses all seven days, a fractional or negative extra, or one over 5000', () => {
+    for (const calorieDays of [
+      { days: 127, extraKcal: 400 },
+      { days: -1, extraKcal: 400 },
+      { days: 96, extraKcal: 400.5 },
+      { days: 96, extraKcal: -1 },
+      { days: 96, extraKcal: 5001 },
+    ]) {
+      expect(profileErrors({ ...valid, calorieDays }, today)).toEqual(['calorieDays'])
+    }
+  })
+
   it('accepts a complete, valid profile, and one with the body fields left empty', () => {
     expect(profileErrors(valid, today)).toEqual([])
     expect(

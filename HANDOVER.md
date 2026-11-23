@@ -7,20 +7,26 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 ## Next
 
 Where things stand (session ended 2026-11-22): the app is live at
-`https://rishav30194.github.io/calorithm/` as **0.12.1** (tag `v0.12.1`). Phases 1 to 11 are
+`https://rishav30194.github.io/calorithm/` as **0.13.0** (tag `v0.13.0`). Phases 1 to 11 are
 done; phase 14 is done (the user's iPhone check passed, 2026-11-22); phase 13 is parked; phase 12
 waits for the user's MacroFactor subscription. Foods from a barcode scan or a nutrition
 label log one serving without the amount step (decision 0031); the user is fine with that,
 since editing the entry's amount recalculates the totals. The hosted project has migrations through
-`20261122050000`, and `min_app_version` is 0.3.0. The README matches 0.12.1 (2026-11-22);
+`20261122060000`, and `min_app_version` is 0.3.0. The README matches 0.13.0 (2026-11-22);
 update its features and status when a phase changes what users get.
 
-1. **Phases 15 to 20** (added 2026-11-22 from MacroFactor's "Getting Started" video, the user's
+1. **Phase 19 (higher-calorie days) is deployed in 0.13.0** (PRs #53 to #55, decision 0033;
+   the user applied migration `20261122060000` to the hosted project on 2026-11-22, checked
+   through the public API). `/code-review` found 8 issues: 7 fixed, and the extra-kcal field
+   keeps the numeric keypad of the calorie floor field. `/security-review` found nothing.
+   Left: the user checks on the iPhone that the profile saves weekend days and the log shows
+   that day's target, then phase 19 goes to Done in `docs/phases.md`.
+2. **The other phases, 15 to 18 and 20** (added 2026-11-22 from MacroFactor's "Getting Started" video, the user's
    picks): a plate and meal suggestions, quick add, log navigation and selection, goal weight
    and maintenance mode, higher-calorie days, and progress views. Kcal and protein stay the
    only targets. Start with phase 15's plan when the user says so; phases 18 and 19 each
    begin with a decision record.
-2. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
+3. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
    iPhone but needs a close photo and sometimes misses fat, carbs, protein, or the serving
    size. Plan when resumed: the user puts 5 to 10 failing photos in `~/Downloads/labels`
    (used locally only, never committed); measure each change on them and keep what helps:
@@ -30,12 +36,12 @@ update its features and status when a phase changes what users get.
    read separately, "g" read as "9"), show the read text beside the form with **Fix the
    text**, and maybe a crop step. Workaround meanwhile: crop to the table in Photos first.
    The first photo downloads about 4.5 MB (checked on the live site).
-3. Optional iPhone check: **Export changes** in the sign-out warning. It shows only when
+4. Optional iPhone check: **Export changes** in the sign-out warning. It shows only when
    signing out with changes that haven't synced (for example, log an entry offline, then
    sign out). **Export data** in settings and **Import data** passed on the user's iPhone
    (2026-11-22).
-4. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
-5. **Phase 12** (review against MacroFactor) stays on hold until the user has the
+5. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+6. **Phase 12** (review against MacroFactor) stays on hold until the user has the
    subscription.
 
 How the user works: macros only (kcal, protein, carbs, fat), no AI logging, no bulk food
@@ -95,7 +101,7 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 188.0 kB of the 200 kB budget (0.12.1, 2026-11-22); the log,
+- First-load JavaScript is 188.8 kB of the 200 kB budget (0.13.0, 2026-11-22); the log,
   food, and backup screens and the built-in food list load on demand. A new screen of any
   size, and the barcode scanner, should too.
 - The built-in food list is rebuilt from USDA CSV downloads that aren't committed;

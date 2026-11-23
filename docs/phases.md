@@ -1048,10 +1048,11 @@ meal without editing the recipe.
   choice, not each day's target (decision 0033).
 
 **Acceptance criteria:**
-- [ ] For any choice of days and amount, the seven day targets add up to seven times the
-  weekly daily target, within rounding to whole kcal (property test).
-- [ ] No day goes below the calorie floor (property test).
-- [ ] With no days chosen, every day's target equals today's single target.
+- [x] For any choice of days and amount, the seven day targets add up to seven times the
+  weekly daily target, within rounding to whole kcal (property test). (`src/domain/calorieDays.test.ts`)
+- [x] No day goes below the calorie floor (property test). (`src/domain/calorieDays.test.ts`)
+- [x] With no days chosen, every day's target equals today's single target.
+  (`src/domain/calorieDays.test.ts`, and `src/ui/checkin/checkin.test.tsx` shows no week)
 
 **Plan** (approved 2026-11-22): three PRs.
 
@@ -1064,7 +1065,20 @@ meal without editing the recipe.
 3. **Screens:** the profile form (day checkboxes, the extra, and a week preview), today's own
    target on the log screen, and the week's targets on the check-in. Version 0.13.0.
 
-**Implementation notes:** none yet.
+**Implementation notes:**
+- Each day's kcal target is worked out when shown (`dayTargets`, `weekPlan` in
+  `src/data/checkins.ts`, and `useTargets(date)`), from the latest check-in's target and the
+  higher of its floor and the profile's, the same floor the profile form checks. Check-ins
+  and the maintenance estimate are unchanged. When the floor trims the extra, the log's
+  target bars and the check-in say so.
+- The columns are nullable (not set) rather than defaulting to 0, like carbs and fat
+  (decision 0025), so a device that never had them can't clear another's setting; Dexie
+  version 10 reads the profile again from the start, since older versions dropped the
+  columns from the profile they pulled. No days chosen saves as `0` and `0`.
+- The profile form refuses an extra above what the floor allows at the latest target, and
+  says the most it can be. A later check-in that lowers the target trims the extra for that
+  week, and the check-in says so; the saved setting stays.
+- `src/data/limits.integration.test.ts` checks both ranges against the database.
 
 ## Phase 20 — Progress views
 

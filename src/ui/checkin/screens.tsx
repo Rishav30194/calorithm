@@ -1,4 +1,4 @@
-import { useCheckinState, useSaveCheckin } from '@/data/checkinHooks'
+import { useCalorieDays, useCheckinState, useSaveCheckin } from '@/data/checkinHooks'
 import { useExportReminder } from '@/data/exportReminderHooks'
 import { strings } from '@/strings'
 
@@ -12,10 +12,17 @@ const Checkin = ({ locale }: { locale: string }) => {
   const state = useCheckinState(today)
   const save = useSaveCheckin()
   const reminder = useExportReminder(today)
-  if (!state) return <p className="text-muted">{strings.loading}</p>
+  const calorieDays = useCalorieDays()
+  // The week list needs the setting, so the summary waits for it rather than shift later.
+  if (!state || calorieDays === undefined) return <p className="text-muted">{strings.loading}</p>
   return (
     <div className="flex flex-col gap-6">
-      <CheckinView state={state} locale={locale} onSave={save} />
+      <CheckinView
+        state={state}
+        locale={locale}
+        onSave={save}
+        {...(calorieDays && { calorieDays })}
+      />
       {reminder && <ExportReminder reminder={reminder} locale={locale} />}
     </div>
   )

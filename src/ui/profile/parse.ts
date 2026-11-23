@@ -1,6 +1,7 @@
 import { z } from 'zod/mini'
 
 import { profileSettings } from '@/data/profile'
+import type { CalorieDays } from '@/domain/calorieDays'
 import type { ActivityLevel, Sex } from '@/domain/maintenance'
 import { roundTo } from '@/domain/nutrition'
 import {
@@ -29,10 +30,13 @@ export type ProfileFormValues = {
   goalAmount: string
   proteinGPerKg: string
   calorieFloorKcal: string
+  // Higher-calorie days (decision 0033): the chosen weekdays as a mask, Monday as bit 0.
+  higherDays: number
+  higherExtra: string
 }
 
 export type ProfileFormErrors = Partial<
-  Record<'height' | 'birthDate' | 'goalRate' | 'protein' | 'calorieFloor', true>
+  Record<'height' | 'birthDate' | 'goalRate' | 'protein' | 'calorieFloor' | 'calorieDays', true>
 >
 
 export type ProfileFormResult =
@@ -75,6 +79,14 @@ const parseGoalRate = (values: ProfileFormValues, unit: WeightUnit): number => {
   return kg === 0 ? Number.NaN : kg
 }
 
+// No days chosen saves no extra. With days chosen the extra must be at least 1 kcal; NaN fails
+// the profile's range check.
+const parseCalorieDays = (values: ProfileFormValues): CalorieDays => {
+  if (values.higherDays === 0) return { days: 0, extraKcal: 0 }
+  const extra = parsed(wholeNumber, toNumber(values.higherExtra))
+  return { days: values.higherDays, extraKcal: extra >= 1 ? extra : Number.NaN }
+}
+
 const changed = (
   values: ProfileFormValues,
   shown: ProfileFormValues,
@@ -87,6 +99,7 @@ const errorFor: Record<ProfileField, keyof ProfileFormErrors | null> = {
   goalRateKgPerWeek: 'goalRate',
   proteinGPerKg: 'protein',
   calorieFloorKcal: 'calorieFloor',
+  calorieDays: 'calorieDays',
   // Sex and activity come from fixed choices.
   sex: null,
   activityLevel: null,
@@ -118,6 +131,9 @@ const changedSettings = (
   }
   if (changed(values, shown, ['calorieFloorKcal'])) {
     changes.calorieFloorKcal = parsed(wholeNumber, toNumber(values.calorieFloorKcal))
+  }
+  if (changed(values, shown, ['higherDays', 'higherExtra'])) {
+    changes.calorieDays = parseCalorieDays(values)
   }
   return changes
 }
@@ -158,5 +174,10 @@ export const profileFormValues = (
     goalAmount: goal.direction === 'maintain' ? '' : editableNumber(goal.amount, locale),
     proteinGPerKg: String(settings.proteinGPerKg),
     calorieFloorKcal: String(settings.calorieFloorKcal),
+    higherDays: settings.calorieDays?.days ?? 0,
+    higherExtra:
+      settings.calorieDays && settings.calorieDays.days !== 0
+        ? String(settings.calorieDays.extraKcal)
+        : '',
   }
 }

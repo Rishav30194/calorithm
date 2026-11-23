@@ -15,6 +15,8 @@ const metric: ProfileFormValues = {
   goalAmount: '0.5',
   proteinGPerKg: '1.8',
   calorieFloorKcal: '1200',
+  higherDays: 0,
+  higherExtra: '',
 }
 
 const imperial: ProfileFormValues = {
@@ -37,6 +39,8 @@ const blank: ProfileFormValues = {
   goalAmount: '',
   proteinGPerKg: '',
   calorieFloorKcal: '',
+  higherDays: 0,
+  higherExtra: '',
 }
 
 describe('parseProfileForm', () => {
@@ -152,6 +156,7 @@ describe('profileFormValues', () => {
       goalRateKgPerWeek: -0.45,
       proteinGPerKg: 1.8,
       calorieFloorKcal: 1200,
+      calorieDays: null,
     } as const
     expect(profileFormValues(settings, 'lb', 'en-US')).toEqual({
       ...imperial,
@@ -175,6 +180,7 @@ describe('profileFormValues', () => {
       goalRateKgPerWeek: 0,
       proteinGPerKg: 2.1,
       calorieFloorKcal: 1500,
+      calorieDays: null,
     } as const
     expect(
       parseProfileForm(profileFormValues(settings, 'kg', 'en-US'), blank, 'kg', today),
@@ -186,6 +192,51 @@ describe('profileFormValues', () => {
         proteinGPerKg: 2.1,
         calorieFloorKcal: 1500,
       },
+    })
+  })
+})
+
+// Phase 19 (decision 0033): weekdays as a mask, Monday as bit 0, and a whole-kcal extra.
+describe('higher-calorie days', () => {
+  it('reads the chosen days and the extra', () => {
+    expect(
+      parseProfileForm({ ...metric, higherDays: 96, higherExtra: '400' }, metric, 'kg', today),
+    ).toEqual({ ok: true, changes: { calorieDays: { days: 96, extraKcal: 400 } } })
+  })
+
+  it('saves no days with no extra, whatever the extra field holds', () => {
+    const shown = { ...metric, higherDays: 96, higherExtra: '400' }
+    expect(parseProfileForm({ ...shown, higherDays: 0 }, shown, 'kg', today)).toEqual({
+      ok: true,
+      changes: { calorieDays: { days: 0, extraKcal: 0 } },
+    })
+  })
+
+  it.each(['', '0', '400.5', '5001', 'lots'])(
+    'refuses an extra of %j with days chosen',
+    (higherExtra) => {
+      expect(
+        parseProfileForm({ ...metric, higherDays: 96, higherExtra }, metric, 'kg', today),
+      ).toEqual({ ok: false, errors: { calorieDays: true } })
+    },
+  )
+
+  it('shows the stored setting, and none when not set', () => {
+    const settings = {
+      heightCm: null,
+      birthDate: null,
+      sex: null,
+      activityLevel: null,
+      goalRateKgPerWeek: 0,
+      proteinGPerKg: 1.8,
+      calorieFloorKcal: 1200,
+    }
+    expect(
+      profileFormValues({ ...settings, calorieDays: { days: 96, extraKcal: 400 } }, 'kg', 'en-GB'),
+    ).toMatchObject({ higherDays: 96, higherExtra: '400' })
+    expect(profileFormValues({ ...settings, calorieDays: null }, 'kg', 'en-GB')).toMatchObject({
+      higherDays: 0,
+      higherExtra: '',
     })
   })
 })

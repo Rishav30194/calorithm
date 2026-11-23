@@ -1,9 +1,18 @@
+import { type CalorieDays, weekTargets } from '@/domain/calorieDays'
 import type { CheckinFields } from '@/domain/checkin'
 import { formatKcal, formatProtein, formatWeight } from '@/domain/format'
 import { fromKg, type WeightUnit } from '@/domain/weight'
 import { strings } from '@/strings'
 
-type Props = { checkin: CheckinFields; unit: WeightUnit; locale: string }
+import { WeekTargets } from '../WeekTargets'
+
+type Props = {
+  checkin: CheckinFields
+  unit: WeightUnit
+  locale: string
+  // The profile's higher-calorie days (decision 0033); none when left out.
+  calorieDays?: CalorieDays
+}
 
 const estimateChange = (checkin: CheckinFields, locale: string): string => {
   const text = strings.checkin
@@ -46,8 +55,12 @@ const howEstimated = (checkin: CheckinFields, unit: WeightUnit, locale: string):
 
 // A check-in's estimate, how it changed and was made, its targets, and any limit applied; or,
 // for a skipped week, why the targets stayed the same.
-export const CheckinSummary = ({ checkin, unit, locale }: Props) => {
+export const CheckinSummary = ({ checkin, unit, locale, calorieDays }: Props) => {
   const text = strings.checkin
+  const week = calorieDays
+    ? weekTargets(checkin.kcalTarget, checkin.calorieFloorKcal, calorieDays)
+    : null
+  const varies = week !== null && (week.extraKcal > 0 || week.trimmed)
   return (
     <div className="flex flex-col gap-4">
       {checkin.status === 'skipped' ? (
@@ -79,6 +92,20 @@ export const CheckinSummary = ({ checkin, unit, locale }: Props) => {
           <p>{text.rateCapped(cappedRate(checkin.goalRateAppliedKgPerWeek, unit, locale))}</p>
         )}
       </section>
+      {varies && (
+        <section aria-label={text.week} className="flex flex-col gap-2">
+          <h3 className="font-semibold">{text.week}</h3>
+          {week.extraKcal === 0 ? (
+            <p>{text.weekNone}</p>
+          ) : (
+            <>
+              <p className="text-sm text-muted">{text.weekHint}</p>
+              <WeekTargets kcal={week.kcal} locale={locale} />
+              {week.trimmed && <p>{text.weekTrimmed(formatKcal(week.extraKcal, locale))}</p>}
+            </>
+          )}
+        </section>
+      )}
     </div>
   )
 }

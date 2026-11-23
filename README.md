@@ -23,6 +23,8 @@ label photos) is parked, and phase 12 (a review against MacroFactor) is on hold;
   swings.
 - **Adaptive targets:** a weekly check-in estimates maintenance from your own data and adjusts
   calorie and protein targets, within safety limits.
+- **Higher-calorie days:** pick weekdays that get more kcal; the other days get less, so the
+  week's total stays the same.
 - **Offline first:** everything works without a connection and syncs between devices when one
   returns.
 - **Your data:** export everything as JSON, import it back, or delete your account.
