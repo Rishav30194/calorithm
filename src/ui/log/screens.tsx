@@ -61,6 +61,7 @@ const Picker = ({
       onPick={(source, servings) => actions.log({ date, meal }, source, servings)}
       onPickBuiltIn={(item, servings) => actions.logCatalog({ date, meal }, item, servings)}
       onLogPlate={(items) => actions.logPlate({ date, meal }, items)}
+      onQuickAdd={(input) => actions.quickAdd({ date, meal }, input)}
       onSearch={() => setSearched(true)}
       onLookup={lookUp}
       onLogScanned={(foodId) => actions.logScanned({ date, meal }, foodId)}

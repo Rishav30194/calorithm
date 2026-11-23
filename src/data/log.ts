@@ -81,8 +81,9 @@ const newEntry = (
     loggedAt?: string
   },
 ): Promise<LogEntryRow> => {
-  // Callers check entryFits first: the log screens, logSource, changeServings, and
-  // copyMealTo. One serving of a saved or built-in food always fits, so reaching this is a bug.
+  // Callers check entryFits first: the log screens, logSource, changeServings, copyMealTo, and
+  // logPlate. One serving of a saved or built-in food always fits, and a quick add is held to a
+  // food serving's ranges by its form, so reaching this is a bug.
   if (!entryFits(fields.perServing, fields.servings)) {
     return Promise.reject(new Error('newEntry: the entry is past the database’s limits'))
   }
@@ -584,3 +585,24 @@ export const logPlate = (
       return { ok: true, rows }
     },
   )
+
+// A meal logged by its numbers (phase 16): one serving with its own name and values, never
+// saved as a food, so nothing offers it again.
+export type QuickAdd = { name: string } & Nutrients
+
+export const logQuickAdd = (
+  db: LocalDb,
+  clock: Clock,
+  userId: string,
+  target: Target,
+  { name, ...perServing }: QuickAdd,
+): Promise<LogEntryRow> =>
+  newEntry(db, clock, userId, {
+    ...target,
+    foodId: null,
+    recipeId: null,
+    name,
+    servings: 1,
+    perServing,
+    serving: null,
+  })

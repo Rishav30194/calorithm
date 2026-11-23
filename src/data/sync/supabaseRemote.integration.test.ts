@@ -221,9 +221,9 @@ describe('createSupabaseRemote', () => {
 
 describe('fetchMinAppVersion', () => {
   it('reads the minimum app version, even signed out', async () => {
-    // Set by migration 20261122030000 (phase 8, release 2).
-    expect(await fetchMinAppVersion(client)).toEqual({ ok: true, value: '0.3.0' })
-    expect(await fetchMinAppVersion(newClient())).toEqual({ ok: true, value: '0.3.0' })
+    // Set by migration 20261122080000 (phase 16, release 2).
+    expect(await fetchMinAppVersion(client)).toEqual({ ok: true, value: '0.17.0' })
+    expect(await fetchMinAppVersion(newClient())).toEqual({ ok: true, value: '0.17.0' })
   })
 
   it('classes an unreachable server as a network error', async () => {

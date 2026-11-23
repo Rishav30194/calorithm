@@ -13,6 +13,7 @@ import {
   logFood,
   logNewFood,
   logPlate,
+  logQuickAdd,
   logRecipe,
   logScannedFood,
   logSource,
@@ -1050,5 +1051,34 @@ describe('logPlate', () => {
     ).toEqual({ ok: false, reason: 'not_found', index: 1 })
     expect(await entriesOn(db, at.date)).toEqual([])
     expect(await db.rows('foods').count()).toBe(0)
+  })
+})
+
+// Phase 16: a meal logged by its numbers, with no food or recipe behind it.
+describe('logQuickAdd', () => {
+  const at = { date: '2026-11-22', meal: 'dinner' } as const
+
+  it('logs one serving with its own name and values, and nothing to pick again', async () => {
+    const row = await logQuickAdd(db, time.clock, userId, at, {
+      name: 'Restaurant thali',
+      kcal: 850,
+      proteinG: 30,
+      carbsG: null,
+      fatG: 25.5,
+    })
+
+    expect(row).toMatchObject({
+      food_id: null,
+      recipe_id: null,
+      servings: 1,
+      kcal: 850,
+      protein_g: 30,
+      carbs_g: null,
+      fat_g: 25.5,
+      serving_size: null,
+    })
+    expect(await entriesOn(db, at.date)).toMatchObject([{ name: 'Restaurant thali', source: null }])
+    const picks = await quickPicks(db, at.date)
+    expect([...picks.recent, ...picks.mostUsed, ...picks.byMeal.dinner]).toEqual([])
   })
 })

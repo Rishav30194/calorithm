@@ -102,6 +102,7 @@ describe('LogPicker', () => {
         onLogScanned={vi.fn()}
         onLogNew={vi.fn()}
         onLogPlate={vi.fn()}
+        onQuickAdd={vi.fn()}
         onPick={onPick}
         onClose={onClose}
       />,
@@ -150,6 +151,7 @@ describe('LogPicker', () => {
         onLogScanned={vi.fn()}
         onLogNew={vi.fn()}
         onLogPlate={vi.fn()}
+        onQuickAdd={vi.fn()}
         onPick={onPick}
         onClose={vi.fn()}
       />,
@@ -234,6 +236,7 @@ describe('LogPicker', () => {
           onLogScanned={vi.fn()}
           onLogNew={vi.fn()}
           onLogPlate={vi.fn()}
+          onQuickAdd={vi.fn()}
           onClose={vi.fn()}
           {...handlers}
         />,
@@ -353,6 +356,7 @@ describe('LogPicker', () => {
         onLogScanned={vi.fn()}
         onLogNew={vi.fn()}
         onLogPlate={vi.fn()}
+        onQuickAdd={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -392,6 +396,7 @@ describe('LogPicker', () => {
         onLogScanned={vi.fn()}
         onLogNew={vi.fn()}
         onLogPlate={vi.fn()}
+        onQuickAdd={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -418,6 +423,7 @@ describe('LogPicker', () => {
         onLogScanned={vi.fn()}
         onLogNew={vi.fn()}
         onLogPlate={vi.fn()}
+        onQuickAdd={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -449,6 +455,7 @@ describe('LogPicker plate', () => {
         onLogScanned={vi.fn()}
         onLogNew={vi.fn()}
         onLogPlate={onLogPlate}
+        onQuickAdd={vi.fn()}
         onPick={onPick}
         onClose={onClose}
       />,
@@ -521,6 +528,7 @@ describe('LogPicker plate', () => {
         onLogScanned={vi.fn()}
         onLogNew={vi.fn()}
         onLogPlate={vi.fn()}
+        onQuickAdd={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -616,6 +624,79 @@ describe('LogPicker plate', () => {
     )
     await add('Oats')
     await userEvent.click(screen.getByRole('button', { name: text.plate.logAll }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(text.picker.failed)
+    expect(onClose).not.toHaveBeenCalled()
+  })
+})
+
+// Phase 16.
+describe('LogPicker quick add', () => {
+  const renderQuick = (onQuickAdd = vi.fn(async () => true)) => {
+    const onClose = vi.fn()
+    render(
+      <LogPicker
+        meal="dinner"
+        picks={{ recent: [], mostUsed: [], byMeal: emptyMeals, scores: new Map() }}
+        foods={[oats]}
+        recipes={[]}
+        builtIn={undefined}
+        locale="en-US"
+        onPickBuiltIn={vi.fn()}
+        onSearch={vi.fn()}
+        onRetryBuiltIn={vi.fn()}
+        onLookup={vi.fn()}
+        onLogScanned={vi.fn()}
+        onLogNew={vi.fn()}
+        onLogPlate={vi.fn()}
+        onQuickAdd={onQuickAdd}
+        onPick={vi.fn()}
+        onClose={onClose}
+      />,
+    )
+    return { onQuickAdd, onClose }
+  }
+
+  it('logs a meal by its numbers, then closes', async () => {
+    const { onQuickAdd, onClose } = renderQuick()
+    await userEvent.click(screen.getByRole('button', { name: text.quickAdd.open }))
+    await userEvent.type(screen.getByLabelText(text.quickAdd.name), 'Restaurant thali')
+    await userEvent.type(screen.getByLabelText(text.quickAdd.kcal), '850')
+    await userEvent.type(screen.getByLabelText(text.quickAdd.protein), '30')
+    await userEvent.click(screen.getByRole('button', { name: text.quickAdd.log }))
+
+    expect(onQuickAdd).toHaveBeenCalledWith({
+      name: 'Restaurant thali',
+      kcal: 850,
+      proteinG: 30,
+      carbsG: null,
+      fatG: null,
+    })
+    expect(onClose).toHaveBeenCalled()
+  })
+
+  it('names the fields to fix, and logs nothing', async () => {
+    const { onQuickAdd } = renderQuick()
+    await userEvent.click(screen.getByRole('button', { name: text.quickAdd.open }))
+    await userEvent.type(screen.getByLabelText(text.quickAdd.kcal), '20000')
+    await userEvent.click(screen.getByRole('button', { name: text.quickAdd.log }))
+
+    expect(onQuickAdd).not.toHaveBeenCalled()
+    expect(screen.getByLabelText(text.quickAdd.name)).toHaveAccessibleDescription(
+      text.quickAdd.errors.name,
+    )
+    expect(screen.getByLabelText(text.quickAdd.kcal)).toHaveAccessibleDescription(
+      text.quickAdd.errors.kcal,
+    )
+  })
+
+  it('stays open and says so when it fails to log', async () => {
+    const { onClose } = renderQuick(vi.fn(async () => false))
+    await userEvent.click(screen.getByRole('button', { name: text.quickAdd.open }))
+    await userEvent.type(screen.getByLabelText(text.quickAdd.name), 'Thali')
+    await userEvent.type(screen.getByLabelText(text.quickAdd.kcal), '850')
+    await userEvent.type(screen.getByLabelText(text.quickAdd.protein), '30')
+    await userEvent.click(screen.getByRole('button', { name: text.quickAdd.log }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(text.picker.failed)
     expect(onClose).not.toHaveBeenCalled()
@@ -766,6 +847,7 @@ describe('EntryDialog', () => {
         onLogScanned={vi.fn(async () => true)}
         onLogNew={vi.fn(async () => true)}
         onLogPlate={vi.fn()}
+        onQuickAdd={vi.fn()}
         onClose={vi.fn()}
       />,
     )
