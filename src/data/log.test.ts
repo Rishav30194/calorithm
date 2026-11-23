@@ -545,6 +545,11 @@ describe('quickPicks', () => {
       picks.scores.get(`food:${oats.id}`) ?? 0,
     )
     expect(picks.scores.has(`food:${old.id}`)).toBe(false)
+    // Phase 15: each meal's usual foods, from the last 60 days, without archived ones.
+    expect(picks.byMeal.dinner.map((pick) => [pick.name, pick.count])).toEqual([['Rice', 2]])
+    expect(picks.byMeal.breakfast.map((pick) => pick.name)).toEqual(['Oats'])
+    expect(picks.byMeal.lunch).toEqual([])
+    expect(picks.byMeal.snacks).toEqual([])
   })
 
   it('leaves out entries more than 180 days before the day', async () => {

@@ -361,6 +361,11 @@ export const LogPicker = ({
               {needle === '' && (
                 <>
                   <PickList
+                    title={text.usual[meal]}
+                    rows={quick('usual', picks?.byMeal[meal])}
+                    onPick={pick}
+                  />
+                  <PickList
                     title={text.recent}
                     rows={quick('recent', picks?.recent)}
                     onPick={pick}
@@ -373,7 +378,24 @@ export const LogPicker = ({
                 </>
               )}
               <TextField label={text.search} value={query} onChange={search} type="search" />
-              {saved.length > 0 && <PickList title={text.all} rows={saved} onPick={pick} />}
+              {needle === '' ? (
+                saved.length > 0 && <PickList title={text.all} rows={saved} onPick={pick} />
+              ) : (
+                // Search results in groups (phase 15): what you've logged, then the rest of
+                // yours; built-in foods follow.
+                <>
+                  <PickList
+                    title={text.loggedBefore}
+                    rows={saved.filter((row) => scoreOf(row.source) > 0)}
+                    onPick={pick}
+                  />
+                  <PickList
+                    title={text.yours}
+                    rows={saved.filter((row) => scoreOf(row.source) === 0)}
+                    onPick={pick}
+                  />
+                </>
+              )}
               {needle !== '' && (
                 <section aria-label={text.builtIn} className="flex flex-col gap-1">
                   {builtIn === 'loading' && <p className="text-muted">{text.builtInLoading}</p>}

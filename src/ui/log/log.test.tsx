@@ -49,6 +49,12 @@ const chili: RecipeView = {
 const picks: QuickPicks = {
   recent: [{ source: { kind: 'food', id: 'f1' }, name: 'Oats', servings: 2, count: 1 }],
   mostUsed: [],
+  byMeal: {
+    breakfast: [{ source: { kind: 'recipe', id: 'r1' }, name: 'Chili', servings: 1, count: 3 }],
+    lunch: [],
+    dinner: [],
+    snacks: [],
+  },
   scores: new Map([
     ['food:f1', 1],
     ['recipe:r1', 0.5],
@@ -124,6 +130,7 @@ describe('LogPicker', () => {
         picks={{
           recent: [{ source: { kind: 'food', id: 'f9' }, name: 'Roti', servings: 2, count: 1 }],
           mostUsed: [],
+          byMeal: { breakfast: [], lunch: [], dinner: [], snacks: [] },
           scores: new Map(),
         }}
         foods={[roti]}
@@ -265,6 +272,31 @@ describe('LogPicker', () => {
     })
   })
 
+  // Phase 15.
+  it('lists what the meal usually holds above the recent foods', () => {
+    renderPicker()
+    const usual = screen.getByRole('heading', { name: text.picker.usual.breakfast })
+    const section = usual.closest('section')
+    if (!section) throw new Error('no usual section')
+    expect(within(section).getByRole('button', { name: /Chili/ })).toBeInTheDocument()
+    const headings = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
+    expect(headings.indexOf(text.picker.usual.breakfast)).toBeLessThan(
+      headings.indexOf(text.picker.recent),
+    )
+  })
+
+  it('groups search results: logged before, then your other foods', async () => {
+    renderPicker()
+    // Butter is archived, so a second, unlogged food joins the search.
+    await userEvent.type(screen.getByLabelText(text.picker.search), 'o')
+    const logged = screen
+      .getByRole('heading', { name: text.picker.loggedBefore })
+      .closest('section')
+    if (!logged) throw new Error('no logged-before section')
+    expect(within(logged).getByRole('button', { name: /Oats/ })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: text.picker.all })).toBeNull()
+  })
+
   it('logs one serving from search, and leaves archived foods out', async () => {
     const { onPick } = renderPicker()
     await userEvent.type(screen.getByLabelText(text.picker.search), 'chi')
@@ -316,17 +348,19 @@ describe('LogPicker', () => {
     )
     await userEvent.type(screen.getByLabelText(text.picker.search), 'oat')
 
-    const all = screen.getByRole('heading', { name: text.picker.all }).closest('section')
-    if (!all) throw new Error('no list of all foods')
-    expect(
-      within(all)
+    // Searching groups them (phase 15): the logged ones by use, then the rest by name.
+    const names = (heading: string) => {
+      const section = screen.getByRole('heading', { name: heading }).closest('section')
+      if (!section) throw new Error(`no ${heading} list`)
+      return within(section)
         .getAllByRole('button')
-        .map((button) => button.textContent),
-    ).toEqual([
+        .map((button) => button.textContent)
+    }
+    expect(names(text.picker.loggedBefore)).toEqual([
       expect.stringContaining('Oat bran'),
       expect.stringContaining('Oats'),
-      expect.stringContaining('Oat cookie'),
     ])
+    expect(names(text.picker.yours)).toEqual([expect.stringContaining('Oat cookie')])
   })
 
   it('shows loading, then the empty state when nothing is saved', () => {
@@ -353,7 +387,12 @@ describe('LogPicker', () => {
     rerender(
       <LogPicker
         meal="lunch"
-        picks={{ recent: [], mostUsed: [], scores: new Map() }}
+        picks={{
+          recent: [],
+          mostUsed: [],
+          byMeal: { breakfast: [], lunch: [], dinner: [], snacks: [] },
+          scores: new Map(),
+        }}
         foods={[]}
         recipes={[]}
         builtIn={undefined}

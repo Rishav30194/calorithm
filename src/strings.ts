@@ -63,6 +63,15 @@ export const strings = {
     picker: {
       recent: 'Recent',
       mostUsed: 'Most used',
+      // Phase 15: what the meal being added to usually holds.
+      usual: {
+        breakfast: 'Usually for breakfast',
+        lunch: 'Usually for lunch',
+        dinner: 'Usually for dinner',
+        snacks: 'Usual snacks',
+      },
+      loggedBefore: 'Logged before',
+      yours: 'Your other foods and recipes',
       search: 'Search foods and recipes',
       all: 'All foods and recipes',
       recipe: 'Recipe',

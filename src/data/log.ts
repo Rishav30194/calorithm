@@ -14,6 +14,7 @@ import {
   scaleNutrients,
   sourceKey,
   useScores,
+  usualForMeal,
 } from '@/domain/nutrition'
 import { type Portion, weightPerServing } from '@/domain/portion'
 import type { CatalogFood } from './catalog/search'
@@ -407,6 +408,8 @@ export const entriesBetween = async (
 export type QuickPicks = {
   recent: QuickPick[]
   mostUsed: QuickPick[]
+  // What each meal usually holds (phase 15).
+  byMeal: Record<Meal, QuickPick[]>
   // Use scores by source key (`sourceKey`), for ranking search results. Only foods and
   // recipes that are neither archived nor deleted have one.
   scores: ReadonlyMap<string, number>
@@ -440,9 +443,17 @@ export const quickPicks = async (db: LocalDb, today: string): Promise<QuickPicks
       return name === undefined ? [] : [{ ...pick, name }]
     })
   const scores = new Map([...useScores(entries, today)].filter(([key]) => names.has(key)))
+  const usual = (meal: Meal): QuickPick[] =>
+    available(usualForMeal(entries, meal, today, Number.POSITIVE_INFINITY)).slice(0, PICK_LIMIT)
   return {
     recent: available(recentPicks(entries, Number.POSITIVE_INFINITY)).slice(0, PICK_LIMIT),
     mostUsed: available(mostUsed(entries, today, Number.POSITIVE_INFINITY)).slice(0, PICK_LIMIT),
+    byMeal: {
+      breakfast: usual('breakfast'),
+      lunch: usual('lunch'),
+      dinner: usual('dinner'),
+      snacks: usual('snacks'),
+    },
     scores,
   }
 }
