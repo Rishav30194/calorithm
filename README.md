@@ -1,17 +1,24 @@
 # Calorithm
 
-A calorie and protein tracker that installs on your phone and works offline. Every week it
-estimates your maintenance calories from what you ate and how your weight trended, then sets
-your targets for the next week.
+A calorie and macro tracker (kcal, protein, carbs, and fat) that installs on your phone and
+works offline. Every week it estimates your maintenance calories from what you ate and how
+your weight trended, then sets your kcal and protein targets for the next week.
 
 **Status:** live at [rishav30194.github.io/calorithm](https://rishav30194.github.io/calorithm/)
-for invited accounts; sign-ups are off. All build phases are done; see
+for invited accounts; sign-ups are off. Phases 1 to 11 and 14 are done, phase 13 (reading
+label photos) is parked, and phase 12 (a review against MacroFactor) is on hold; see
 [the phase plan](docs/phases.md).
 
 ## Features
 
-- **Food log:** log foods and recipes by kcal and protein, re-log with one tap, and copy meals
-  from earlier days.
+- **Food log:** log foods and recipes with kcal, protein, carbs, and fat, by serving or by
+  weight. Re-log recent and frequent foods with one tap, and copy meals from earlier days.
+- **Built-in foods:** common Indian home foods, gym staples, groceries, and spices, ready to
+  pick without typing numbers. Values come from USDA FoodData Central and CoFID, and the
+  few estimates are labelled.
+- **Barcode scanning:** scan a packaged food to fill it in from Open Food Facts.
+- **Nutrition labels:** paste a label's text, or read a photo of it on the device, to fill
+  in the food form.
 - **Weight trend:** daily weigh-ins with a smoothed trend line that ignores day-to-day water
   swings.
 - **Adaptive targets:** a weekly check-in estimates maintenance from your own data and adjusts
@@ -26,6 +33,8 @@ for invited accounts; sign-ups are off. All build phases are done; see
 |---|---|
 | App | React, TypeScript (strict), Vite, Tailwind v4, `vite-plugin-pwa` |
 | On the device | Dexie (IndexedDB) as the source of truth, Zod at every boundary |
+| Scanning and reading | `barcode-detector` (ZXing WebAssembly), `tesseract.js` for label photos |
+| Food data | Built-in list from USDA FoodData Central and CoFID; Open Food Facts for barcodes |
 | Backend | Supabase: Postgres with row-level security, and Auth |
 | Tests | Vitest, fast-check, pgTAP, Playwright with axe |
 | Delivery | GitHub Actions, GitHub Pages |
@@ -67,6 +76,7 @@ must pass.
 | [docs/architecture.md](docs/architecture.md) | How the app is built, and how sync works |
 | [docs/phases.md](docs/phases.md) | Build phases, acceptance criteria, and status |
 | [docs/decisions/](docs/decisions/) | Architecture decision records |
+| [docs/catalog.md](docs/catalog.md) | How the built-in food list is built, and its sources |
 | [docs/development.md](docs/development.md) | Commands, branches, commits, PRs, and releases |
 | [docs/production.md](docs/production.md) | Hosted setup, deployment, and the live checks |
 | [docs/testing.md](docs/testing.md) | Test strategy and the cases each layer covers |
