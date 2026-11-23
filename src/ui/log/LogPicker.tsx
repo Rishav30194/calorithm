@@ -304,7 +304,11 @@ export const LogPicker = ({
   // Swaps a recipe on the plate for its ingredients, each scaled to the servings typed, so one
   // meal's amounts can change without editing the recipe (phase 16).
   const splitRecipe = () => {
-    if (!editing || servings === null || !('source' in editing.row.pick)) return
+    if (!editing || !('source' in editing.row.pick)) return
+    if (servings === null) {
+      setAmountError(strings.log.amount.error)
+      return
+    }
     const recipe = recipeById.get(editing.row.pick.source.id)
     if (!recipe) return
     const amounts = ingredientServings(recipe.servings, servings, recipe.ingredients)
@@ -320,6 +324,18 @@ export const LogPicker = ({
         },
       ]
     })
+    // A recipe whose foods are all gone would leave nothing in its place, so it stays.
+    if (entries.length === 0) {
+      setAmountError(strings.log.plate.noIngredients)
+      return
+    }
+    const tooLarge = entries.find(
+      (entry) => entry.row.perServing && !entryFits(entry.row.perServing, entry.servings),
+    )
+    if (tooLarge) {
+      setAmountError(strings.log.plate.tooLarge(tooLarge.row.name))
+      return
+    }
     setPlate((current) => current.flatMap((entry) => (entry.id === editing.id ? entries : [entry])))
     setEditing(null)
   }

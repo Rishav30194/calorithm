@@ -505,6 +505,48 @@ describe('LogPicker plate', () => {
     ])
   })
 
+  it('keeps a recipe whose foods are all gone, and says why', async () => {
+    render(
+      <LogPicker
+        meal="lunch"
+        picks={{ recent: [], mostUsed: [], byMeal: emptyMeals, scores: new Map() }}
+        foods={[]}
+        recipes={[chili]}
+        builtIn={undefined}
+        locale="en-US"
+        onPickBuiltIn={vi.fn()}
+        onSearch={vi.fn()}
+        onRetryBuiltIn={vi.fn()}
+        onLookup={vi.fn()}
+        onLogScanned={vi.fn()}
+        onLogNew={vi.fn()}
+        onLogPlate={vi.fn()}
+        onPick={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+    // Chili's foods are Oats and Roti, and neither is loaded here.
+    await userEvent.click(screen.getByRole('button', { name: text.plate.add('Chili') }))
+    await userEvent.click(screen.getByRole('button', { name: text.plate.edit('Chili') }))
+    await userEvent.click(screen.getByRole('button', { name: text.plate.useIngredients }))
+
+    expect(screen.getByLabelText(text.amount.servings)).toHaveAccessibleDescription(
+      text.plate.noIngredients,
+    )
+  })
+
+  it('says when the servings for the ingredients can’t be read', async () => {
+    const { add } = renderPlate()
+    await add('Chili')
+    await userEvent.click(screen.getByRole('button', { name: text.plate.edit('Chili') }))
+    await userEvent.clear(screen.getByLabelText(text.amount.servings))
+    await userEvent.click(screen.getByRole('button', { name: text.plate.useIngredients }))
+
+    expect(screen.getByLabelText(text.amount.servings)).toHaveAccessibleDescription(
+      text.amount.error,
+    )
+  })
+
   it('offers the ingredients only for a recipe', async () => {
     const { add } = renderPlate()
     await add('Oats')
