@@ -1007,9 +1007,9 @@ meal without editing the recipe.
 - **Maintenance mode.** "Keep my weight" holds the trend inside a band around a target
   weight (by default the trend weight when chosen). Inside the band the rate is 0. When the
   trend leaves the band, the check-in sets a slow rate back toward it and says so; once back
-  inside, the rate returns to 0. The band width and the slow rate are decided at the phase's
-  start in a decision record (proposal: plus or minus 1.5% of the target, at least 1 kg, and
-  0.25% of trend weight a week).
+  inside, the rate returns to 0. The band is plus or minus 1.5% of the target weight (the
+  user's choice, 2026-11-22); the minimum width and the slow rate are settled at the phase's
+  start in a decision record (proposal: at least 1 kg, and 0.25% of trend weight a week).
 - **Reaching the goal.** When the trend reaches the goal weight, the check-in switches to
   maintenance mode at that weight and says so; you can change it in the profile.
 - **Schema change:** `target_weight_kg` on `profile` (nullable, 20 to 400) and the check-in's
@@ -1069,8 +1069,9 @@ meal without editing the recipe.
   complete, with "n of 7 this week" for each.
 - **Weight ranges.** The weight chart gets 1 week, 1 month, 3 months, 6 months, 1 year, and
   all, replacing the 90-day switch, with the average and the change over the range.
-- Where these live is decided at the phase's start: a **Progress** tab (five tabs fit at
-  360 pixels) or sections on the existing tabs. Loaded on demand, within the bundle budget.
+- They live on a new **Progress** tab, the fifth (decided 2026-11-22: five tabs fit at 360
+  pixels with 44-pixel targets, and the views need a screen of their own). Loaded on demand,
+  within the bundle budget.
 
 **Acceptance criteria:**
 - [ ] Every number on these views comes from a tested function in `src/domain/`.
