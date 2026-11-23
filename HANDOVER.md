@@ -7,23 +7,20 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 ## Next
 
 Where things stand (session ended 2026-11-22): the app is live at
-`https://rishav30194.github.io/calorithm/` as **0.12.1** (tag `v0.12.1`). Phases 1 to 11 are
+`https://rishav30194.github.io/calorithm/` as **0.13.0** (tag `v0.13.0`). Phases 1 to 11 are
 done; phase 14 is done (the user's iPhone check passed, 2026-11-22); phase 13 is parked; phase 12
 waits for the user's MacroFactor subscription. Foods from a barcode scan or a nutrition
 label log one serving without the amount step (decision 0031); the user is fine with that,
 since editing the entry's amount recalculates the totals. The hosted project has migrations through
-`20261122050000`, and `min_app_version` is 0.3.0. The README matches 0.12.1 (2026-11-22);
+`20261122060000`, and `min_app_version` is 0.3.0. The README matches 0.13.0 (2026-11-22);
 update its features and status when a phase changes what users get.
 
-1. **Phase 19 (higher-calorie days) is built, in three stacked branches:**
-   `feature/phase-19-calorie-days` (calculation, decision 0033), `feature/phase-19-profile-columns`
-   (migration `20261122060000_profile_higher_kcal_days.sql`, Dexie version 10), and
-   `feature/phase-19-screens` (0.13.0), on top of `chore/plan-phases-15-to-20`. The migration
-   must reach the hosted project (`docs/production.md`, step 6) before the columns PR merges,
-   since every push to `main` deploys. `/code-review` found 8 issues: 7 are fixed, and the
-   extra-kcal field keeps the numeric keypad of the calorie floor field. `/security-review`
-   found nothing. After deploy: check on the iPhone that the profile saves weekend days and
-   the log shows that day's target, then set phase 19 to Done.
+1. **Phase 19 (higher-calorie days) is deployed in 0.13.0** (PRs #53 to #55, decision 0033;
+   the user applied migration `20261122060000` to the hosted project on 2026-11-22, checked
+   through the public API). `/code-review` found 8 issues: 7 fixed, and the extra-kcal field
+   keeps the numeric keypad of the calorie floor field. `/security-review` found nothing.
+   Left: the user checks on the iPhone that the profile saves weekend days and the log shows
+   that day's target, then phase 19 goes to Done in `docs/phases.md`.
 2. **The other phases, 15 to 18 and 20** (added 2026-11-22 from MacroFactor's "Getting Started" video, the user's
    picks): a plate and meal suggestions, quick add, log navigation and selection, goal weight
    and maintenance mode, higher-calorie days, and progress views. Kcal and protein stay the
