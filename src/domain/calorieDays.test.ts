@@ -129,14 +129,23 @@ describe('dayTargets', () => {
   const plan = { kcalTarget: 2000, proteinTargetG: 150, floorKcal: 1200, calorieDays: weekend }
 
   it('gives a day its weekday’s kcal and the same protein every day', () => {
-    expect(dayTargets(plan, '2026-11-28')).toEqual({ kcal: 2400, proteinG: 150 })
-    expect(dayTargets(plan, '2026-11-23')).toEqual({ kcal: 1840, proteinG: 150 })
+    expect(dayTargets(plan, '2026-11-28')).toEqual({ kcal: 2400, proteinG: 150, trimmed: false })
+    expect(dayTargets(plan, '2026-11-23')).toEqual({ kcal: 1840, proteinG: 150, trimmed: false })
+  })
+
+  it('says when the floor trimmed the week', () => {
+    expect(dayTargets({ ...plan, kcalTarget: 1300 }, '2026-11-28')).toEqual({
+      kcal: 1550,
+      proteinG: 150,
+      trimmed: true,
+    })
   })
 
   it('gives every day the check-in’s target with no days chosen', () => {
     expect(dayTargets({ ...plan, calorieDays: none }, '2026-11-28')).toEqual({
       kcal: 2000,
       proteinG: 150,
+      trimmed: false,
     })
   })
 })

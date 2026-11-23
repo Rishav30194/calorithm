@@ -95,9 +95,15 @@ export const CheckinSummary = ({ checkin, unit, locale, calorieDays }: Props) =>
       {varies && (
         <section aria-label={text.week} className="flex flex-col gap-2">
           <h3 className="font-semibold">{text.week}</h3>
-          <p className="text-sm text-muted">{text.weekHint}</p>
-          <WeekTargets kcal={week.kcal} locale={locale} />
-          {week.trimmed && <p>{text.weekTrimmed(formatKcal(week.extraKcal, locale))}</p>}
+          {week.extraKcal === 0 ? (
+            <p>{text.weekNone}</p>
+          ) : (
+            <>
+              <p className="text-sm text-muted">{text.weekHint}</p>
+              <WeekTargets kcal={week.kcal} locale={locale} />
+              {week.trimmed && <p>{text.weekTrimmed(formatKcal(week.extraKcal, locale))}</p>}
+            </>
+          )}
         </section>
       )}
     </div>

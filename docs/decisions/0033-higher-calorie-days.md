@@ -19,8 +19,10 @@ in whole kcal for each chosen day, the user's choice over a percentage. Each day
 worked out from the latest check-in's target whenever it's shown (`src/domain/calorieDays.ts`):
 the chosen days get the extra, and the other days share its cost evenly, with any leftover
 kcal taken one each from the earliest lower days, so every 7 days in a row add up to exactly
-7 times the target. At most 6 days can be chosen. When the floor allows less than the saved
-extra, the extra is trimmed for that target and the app says so; the setting itself is kept.
+7 times the target. At most 6 days can be chosen. The floor is the higher of the latest
+check-in's and the profile's, so the profile form and the targets agree. When the floor allows
+less than the saved extra, the extra is trimmed for that target and the app says so; the
+setting itself is kept.
 Check-ins still store one daily target, and protein is the same every day.
 
 ## Alternatives

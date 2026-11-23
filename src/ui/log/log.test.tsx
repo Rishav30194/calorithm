@@ -727,6 +727,26 @@ describe('LogDay', () => {
     expect(screen.queryByRole('region', { name: strings.targets.title })).toBeNull()
   })
 
+  // Phase 19: a floor that trims the higher-calorie days says so where the target shows.
+  it('says when the calorie floor trims today’s higher-calorie days', () => {
+    render(
+      <LogDay
+        date="2026-11-21"
+        today="2026-11-21"
+        day={day}
+        targets={{ kcal: 1550, proteinG: 147.6, trimmed: true }}
+        locale="en-US"
+        onAdd={vi.fn()}
+        onCopy={vi.fn()}
+        onOpenEntry={vi.fn()}
+        onSetComplete={vi.fn(async () => {})}
+      />,
+    )
+    expect(screen.getByRole('region', { name: strings.targets.title })).toHaveTextContent(
+      strings.targets.trimmed,
+    )
+  })
+
   it('adds to, copies into, and opens entries of a meal', async () => {
     const handlers = renderDay()
     await userEvent.click(screen.getByRole('button', { name: text.addTo(text.meals.dinner) }))

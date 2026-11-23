@@ -95,9 +95,12 @@ export const ProfileForm = ({ settings, unit, today, locale, plan, onSave }: Pro
       setStatus('idle')
       return
     }
-    const allowed = allowedExtra(parsed.changes.calorieFloorKcal)
-    const days = parsed.changes.calorieDays
-    if (days && allowed !== null && days.extraKcal > allowed) {
+    // A new floor can also leave the saved extra too large, so either change is checked.
+    const { calorieDays, calorieFloorKcal } = parsed.changes
+    const days = calorieDays ?? settings.calorieDays
+    const allowed = allowedExtra(calorieFloorKcal)
+    const checked = calorieDays !== undefined || calorieFloorKcal !== undefined
+    if (checked && days && allowed !== null && days.extraKcal > allowed) {
       setErrors({ calorieDays: true })
       setDaysLimit(allowed)
       setStatus('idle')
@@ -119,7 +122,10 @@ export const ProfileForm = ({ settings, unit, today, locale, plan, onSave }: Pro
     }
   }
 
-  const floorNow = (floor: number | undefined): number => floor ?? settings.calorieFloorKcal
+  // The floor the targets will use: the plan's (the higher of the check-in's and the saved
+  // profile's), or a new one typed above it.
+  const floorNow = (floor: number | undefined): number =>
+    Math.max(plan?.floorKcal ?? settings.calorieFloorKcal, floor ?? 0)
   // The most extra the floor allows at the latest target, or null before the first check-in.
   const allowedExtra = (floor: number | undefined): number | null =>
     plan === null
@@ -129,13 +135,16 @@ export const ProfileForm = ({ settings, unit, today, locale, plan, onSave }: Pro
   const toggleDay = (weekday: number) => set('higherDays', values.higherDays ^ (1 << weekday))
 
   const extra = Number(values.higherExtra)
+  const typedExtra = values.higherDays !== 0 && Number.isInteger(extra) && extra > 0
   const preview =
-    plan !== null && values.higherDays !== 0 && Number.isInteger(extra) && extra > 0
+    plan !== null && typedExtra
       ? weekTargets(plan.kcalTarget, floorNow(undefined), {
           days: values.higherDays,
           extraKcal: extra,
-        }).kcal
+        })
       : null
+  // While typing, before any save: the preview shows the trimmed week, so say why.
+  const previewLimit = preview?.trimmed ? allowedExtra(undefined) : null
   const daysError = errors.calorieDays
     ? daysLimit === null
       ? text.errors.calorieDays
@@ -326,7 +335,18 @@ export const ProfileForm = ({ settings, unit, today, locale, plan, onSave }: Pro
               {plan === null ? (
                 <p className="text-sm text-muted">{text.weekLater}</p>
               ) : (
-                preview && <WeekTargets kcal={preview} locale={locale} />
+                preview && (
+                  <>
+                    <WeekTargets kcal={preview.kcal} locale={locale} />
+                    {previewLimit !== null && (
+                      <p className="text-sm text-muted">
+                        {previewLimit === 0
+                          ? text.errors.calorieDaysNone
+                          : text.errors.calorieDaysMax(formatKcal(previewLimit, locale))}
+                      </p>
+                    )}
+                  </>
+                )
               )}
             </section>
           </>

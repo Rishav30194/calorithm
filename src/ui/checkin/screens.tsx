@@ -13,7 +13,8 @@ const Checkin = ({ locale }: { locale: string }) => {
   const save = useSaveCheckin()
   const reminder = useExportReminder(today)
   const calorieDays = useCalorieDays()
-  if (!state) return <p className="text-muted">{strings.loading}</p>
+  // The week list needs the setting, so the summary waits for it rather than shift later.
+  if (!state || calorieDays === undefined) return <p className="text-muted">{strings.loading}</p>
   return (
     <div className="flex flex-col gap-6">
       <CheckinView

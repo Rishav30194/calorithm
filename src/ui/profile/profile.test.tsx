@@ -187,6 +187,32 @@ describe('ProfileForm higher-calorie days', () => {
     expect(extra).toHaveAccessibleDescription(text.errors.calorieDaysMax('2,000 kcal'))
   })
 
+  it('refuses a higher floor that leaves the saved extra too large', async () => {
+    const saved = { ...defaults, calorieDays: { days: 96, extraKcal: 1500 } }
+    const { onSave, user } = setup(saved, 'kg', { ok: true }, plan)
+    const floor = screen.getByLabelText(text.calorieFloor)
+    await user.clear(floor)
+    // At 1600, five days with 400 above the floor give 2000: 1000 for each of two days.
+    await user.type(floor, '1600')
+    await user.click(screen.getByRole('button', { name: text.save }))
+
+    expect(onSave).not.toHaveBeenCalled()
+    expect(screen.getByLabelText(text.higherExtra)).toHaveAccessibleDescription(
+      text.errors.calorieDaysMax('1,000 kcal'),
+    )
+  })
+
+  it('says how much the floor allows while the extra is typed', async () => {
+    const { user } = setup(defaults, 'kg', { ok: true }, plan)
+    await user.click(screen.getByRole('checkbox', { name: 'Saturday' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Sunday' }))
+    await user.type(screen.getByLabelText(text.higherExtra), '3000')
+
+    expect(screen.getByRole('region', { name: text.week })).toHaveTextContent(
+      text.errors.calorieDaysMax('2,000 kcal'),
+    )
+  })
+
   it('keeps the seventh day from being picked', async () => {
     const { user } = setup(defaults, 'kg', { ok: true }, plan)
     for (const day of ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']) {

@@ -1068,7 +1068,9 @@ meal without editing the recipe.
 **Implementation notes:**
 - Each day's kcal target is worked out when shown (`dayTargets`, `weekPlan` in
   `src/data/checkins.ts`, and `useTargets(date)`), from the latest check-in's target and the
-  floor it used. Check-ins and the maintenance estimate are unchanged.
+  higher of its floor and the profile's, the same floor the profile form checks. Check-ins
+  and the maintenance estimate are unchanged. When the floor trims the extra, the log's
+  target bars and the check-in say so.
 - The columns are nullable (not set) rather than defaulting to 0, like carbs and fat
   (decision 0025), so a device that never had them can't clear another's setting; Dexie
   version 10 reads the profile again from the start, since older versions dropped the

@@ -64,8 +64,8 @@ export const kcalTargetOn = (
   setting: CalorieDays,
 ): number => weekTargets(targetKcal, floorKcal, setting).kcal[weekdayOf(day)] ?? targetKcal
 
-// What a day's targets are worked out from: the latest check-in's targets and the floor it
-// used, and the profile's setting.
+// What a day's targets are worked out from: the latest check-in's targets, the higher of its
+// floor and the profile's (so the profile form checks the same floor), and the setting.
 export type WeekPlan = {
   kcalTarget: number
   proteinTargetG: number
@@ -73,7 +73,14 @@ export type WeekPlan = {
   calorieDays: CalorieDays
 }
 
-export const dayTargets = (plan: WeekPlan, day: string): { kcal: number; proteinG: number } => ({
-  kcal: kcalTargetOn(day, plan.kcalTarget, plan.floorKcal, plan.calorieDays),
-  proteinG: plan.proteinTargetG,
-})
+export type DayTargets = { kcal: number; proteinG: number; trimmed: boolean }
+
+// A day's targets, and whether the floor trimmed this week's higher-calorie days.
+export const dayTargets = (plan: WeekPlan, day: string): DayTargets => {
+  const week = weekTargets(plan.kcalTarget, plan.floorKcal, plan.calorieDays)
+  return {
+    kcal: week.kcal[weekdayOf(day)] ?? plan.kcalTarget,
+    proteinG: plan.proteinTargetG,
+    trimmed: week.trimmed,
+  }
+}

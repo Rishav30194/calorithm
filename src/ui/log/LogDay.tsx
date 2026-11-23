@@ -4,12 +4,12 @@ import type { LoggedEntry } from '@/data/log'
 import type { DayView } from '@/data/logHooks'
 import { addDays, EARLIEST_DAY } from '@/domain/dates'
 import { formatAmount } from '@/domain/format'
-import { type DailyTargets, type Meal, meals, missingCarbsOrFat } from '@/domain/nutrition'
+import { type Meal, meals, missingCarbsOrFat } from '@/domain/nutrition'
 import { strings } from '@/strings'
 
 import { macroText } from '../macros'
 import { routeHref } from '../routes'
-import { TargetProgress } from './TargetProgress'
+import { type ShownTargets, TargetProgress } from './TargetProgress'
 
 type Props = {
   date: string
@@ -17,7 +17,7 @@ type Props = {
   day: DayView
   // The latest check-in's targets, with this weekday's kcal (decision 0033), shown on today
   // only; null before the first, undefined while loading.
-  targets?: DailyTargets | null | undefined
+  targets?: ShownTargets | null | undefined
   locale: string
   onAdd: (meal: Meal) => void
   onCopy: (meal: Meal) => void

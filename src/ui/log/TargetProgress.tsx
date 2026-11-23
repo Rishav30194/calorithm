@@ -4,7 +4,10 @@ import { strings } from '@/strings'
 
 import { routeHref } from '../routes'
 
-type Props = { total: DailyTargets; targets: DailyTargets | null; locale: string }
+// trimmed: the calorie floor left the higher-calorie days less than set (decision 0033).
+export type ShownTargets = DailyTargets & { trimmed?: boolean }
+
+type Props = { total: DailyTargets; targets: ShownTargets | null; locale: string }
 
 // The bar repeats the text beside it, so it's hidden from screen readers.
 const Bar = ({ label, text, share }: { label: string; text: string; share: number }) => (
@@ -53,6 +56,7 @@ export const TargetProgress = ({ total, targets, locale }: Props) => {
         )}
         share={total.proteinG / targets.proteinG}
       />
+      {targets.trimmed && <p className="text-sm text-muted">{text.trimmed}</p>}
     </section>
   )
 }

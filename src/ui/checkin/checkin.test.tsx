@@ -198,6 +198,20 @@ describe('CheckinView with higher-calorie days', () => {
     expect(screen.getByText(text.weekTrimmed('250 kcal'))).toBeInTheDocument()
   })
 
+  it('says every day is the same when the target sits on the floor', () => {
+    render(
+      <CheckinView
+        state={due({ ...updated, kcalTarget: 1200, floorApplied: true })}
+        locale="en-GB"
+        onSave={vi.fn()}
+        calorieDays={{ days: 96, extraKcal: 400 }}
+      />,
+    )
+    const week = screen.getByRole('region', { name: text.week })
+    expect(week).toHaveTextContent(text.weekNone)
+    expect(week).not.toHaveTextContent('Mon')
+  })
+
   it('shows no week with no days chosen', () => {
     render(
       <CheckinView

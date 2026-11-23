@@ -11,6 +11,8 @@ export const ProfileSettingsScreen = ({ locale }: { locale: string }) => {
   const state = useProfileView()
   const save = useSaveProfile()
   const plan = useWeekPlan()
+  // The week plan sets the extra's limit, so the form waits for it as for the profile.
+  if (plan === undefined) return <p className="text-muted">{strings.loading}</p>
   switch (state.kind) {
     case 'loading':
       return <p className="text-muted">{strings.loading}</p>
@@ -39,7 +41,7 @@ export const ProfileSettingsScreen = ({ locale }: { locale: string }) => {
           unit={state.view.unit}
           today={today}
           locale={locale}
-          plan={plan ?? null}
+          plan={plan}
           onSave={save}
         />
       )

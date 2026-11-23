@@ -1,9 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useCallback } from 'react'
 
-import { type CalorieDays, dayTargets, type WeekPlan } from '@/domain/calorieDays'
+import { type CalorieDays, type DayTargets, dayTargets, type WeekPlan } from '@/domain/calorieDays'
 import type { CheckinFields } from '@/domain/checkin'
-import type { DailyTargets } from '@/domain/nutrition'
 
 import { type CheckinState, checkinState, saveCheckin, weekPlan } from './checkins'
 import { useData } from './DataProvider'
@@ -47,7 +46,7 @@ export const useCalorieDays = (): CalorieDays | undefined => {
 
 // A day's targets: the latest check-in's, with that weekday's kcal (decision 0033); null
 // before the first check-in, undefined while loading.
-export const useTargets = (date: string): DailyTargets | null | undefined => {
+export const useTargets = (date: string): DayTargets | null | undefined => {
   const plan = useWeekPlan()
   return plan ? dayTargets(plan, date) : plan
 }

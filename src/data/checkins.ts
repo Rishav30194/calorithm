@@ -100,17 +100,18 @@ export const latestCheckin = async (db: LocalDb): Promise<CheckinFields | null> 
   return readable.sort((a, b) => b.date.localeCompare(a.date))[0] ?? null
 }
 
-// What each day's targets are worked out from (decision 0033): the latest check-in's targets
-// and the floor it used, and the profile's higher-calorie days. Null before the first
+// What each day's targets are worked out from (decision 0033): the latest check-in's targets,
+// the higher of its floor and the profile's, and the profile's higher-calorie days. Null before the first
 // check-in.
 export const weekPlan = async (db: LocalDb, userId: string): Promise<WeekPlan | null> => {
   const [latest, profile] = await Promise.all([latestCheckin(db), readProfile(db, userId)])
   if (!latest) return null
+  const settings = profileSettings(profile)
   return {
     kcalTarget: latest.kcalTarget,
     proteinTargetG: latest.proteinTargetG,
-    floorKcal: latest.calorieFloorKcal,
-    calorieDays: profileSettings(profile).calorieDays ?? { days: 0, extraKcal: 0 },
+    floorKcal: Math.max(latest.calorieFloorKcal, settings.calorieFloorKcal),
+    calorieDays: settings.calorieDays ?? { days: 0, extraKcal: 0 },
   }
 }
 

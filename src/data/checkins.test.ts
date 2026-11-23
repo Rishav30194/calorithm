@@ -184,6 +184,14 @@ describe('weekPlan', () => {
     })
   })
 
+  // The same floor the profile form checks against, so the two never disagree.
+  it('uses the higher of the check-in’s floor and the profile’s', async () => {
+    await saveCheckin(db, time.clock, userId, fields)
+    await saveProfileSettings(ctx(), userId, { calorieFloorKcal: 1500 }, today)
+
+    expect(await weekPlan(db, userId)).toMatchObject({ floorKcal: 1500 })
+  })
+
   it('takes the profile’s higher-calorie days', async () => {
     await saveCheckin(db, time.clock, userId, fields)
     await saveProfileSettings(ctx(), userId, { calorieDays: { days: 96, extraKcal: 300 } }, today)

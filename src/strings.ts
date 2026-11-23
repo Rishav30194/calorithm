@@ -350,6 +350,8 @@ export const strings = {
       `Your goal rate was capped at ${rate} a week, 1% of your trend weight.`,
     week: 'By day',
     weekHint: 'Your higher-calorie days get more; the week’s total is the same.',
+    weekNone:
+      'Your calorie target is at your calorie floor, so this week every day gets the same target, with no higher-calorie days.',
     weekTrimmed: (extra: string) =>
       `Your calorie floor allows ${extra} extra on each higher-calorie day at this target, less than you set.`,
     skipped: (complete: string) =>
@@ -366,6 +368,8 @@ export const strings = {
     progress: (eaten: string, target: string) => `${eaten} of ${target}`,
     none: 'Save a weekly check-in to set your daily targets.',
     goToCheckin: 'Go to Check-in',
+    trimmed:
+      'Your calorie floor leaves less for your higher-calorie days this week than you set. Check-in shows each day.',
   },
 
   profile: {
