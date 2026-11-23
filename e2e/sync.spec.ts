@@ -22,11 +22,15 @@ const newDevice = async (browser: Browser) => {
   return { context, page }
 }
 
-// The unit the profile doesn't use yet, so every run makes a real change.
-const otherUnit = async (page: Page): Promise<'Metric (kg)' | 'Imperial (lb)'> =>
-  (await page.getByRole('radio', { name: 'Metric (kg)' }).isChecked())
+// The unit the profile doesn't use yet, so every run makes a real change. Read only after the
+// first sync: before it, the screen shows the default units, and a pull landing just after the
+// read could set the unit picked, so checking it changed nothing (a trace showed this).
+const otherUnit = async (page: Page): Promise<'Metric (kg)' | 'Imperial (lb)'> => {
+  await expect(page.getByText('Everything is synced')).toBeVisible({ timeout: 15_000 })
+  return (await page.getByRole('radio', { name: 'Metric (kg)' }).isChecked())
     ? 'Imperial (lb)'
     : 'Metric (kg)'
+}
 
 test('a change on one device reaches another', async ({ browser }) => {
   const phone = await newDevice(browser)

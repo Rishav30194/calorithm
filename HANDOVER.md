@@ -106,9 +106,9 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
   at `localhost:4173/` can take over the page; use incognito or unregister it in DevTools.
 - The phase 3 log browser tests use a "bowl (40 g)" unit, a piece with a weight, so they
   still log in one tap; a food with a g or ml unit opens the amount step (decision 0031).
-- Three browser tests fail now and then: `e2e/weight.spec.ts` "switch without changing
-  stored values", `e2e/log.spec.ts` "a day is marked complete and stays so after a reload",
-  and `e2e/sync.spec.ts:52`. None failed in three full runs of the suite on 2026-11-22 (402
+- Two browser tests fail now and then: `e2e/weight.spec.ts` "switch without changing
+  stored values" and `e2e/log.spec.ts` "a day is marked complete and stays so after a
+  reload" (the third, in `sync.spec.ts`, is fixed; see its note). None failed in three full runs of the suite on 2026-11-22 (402
   passed each time). Local runs now keep a trace of every failure in `test-results/`
   (`playwright.config.ts`); when one recurs, open it with `npx playwright show-trace` and fix
   the cause from it, without weakening what the test asserts. Notes on each follow.
@@ -121,9 +121,11 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
   because the local database keeps rows between runs and both projects share users.
 - The sign-out end-to-end tests change `second.user@calorithm.test`'s profile and skip the
   phone project, as `sync.spec.ts` does for the seed user.
-- `e2e/sync.spec.ts:52` (an offline change reaches the server, desktop) failed once and passed
-  on retry in CI on PRs #11 to #15. It predates phase 4, and the `useOutbox` loading fix
-  (PR #15) didn't stop it.
+- `e2e/sync.spec.ts` "a change made offline reaches the server" failed now and then since
+  PR #11. Its first local trace (2026-11-22) showed the cause: the test read the units before
+  the first pull reached the screen, so the unit it picked was already the server's and the
+  check changed nothing. It now waits for "Everything is synced" first. If it fails again,
+  read the new trace.
 - An editor formatter reformatted the Markdown tables in `docs/architecture.md` outside
   any edit during PR 1; check `git diff` for unrelated doc changes before committing.
 - Every new table needs explicit grants in its migration: neither local (since
