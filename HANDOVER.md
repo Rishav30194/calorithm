@@ -7,12 +7,13 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 ## Next
 
 Where things stand (session ended 2026-11-22): the app is live at
-`https://rishav30194.github.io/calorithm/` as **0.12.0** (tag `v0.12.0`). Phases 1 to 11 are
+`https://rishav30194.github.io/calorithm/` as **0.12.1** (tag `v0.12.1`). Phases 1 to 11 are
 done; phase 14 is done (the user's iPhone check passed, 2026-11-22); phase 13 is parked; phase 12
 waits for the user's MacroFactor subscription. Foods from a barcode scan or a nutrition
 label log one serving without the amount step (decision 0031); the user is fine with that,
 since editing the entry's amount recalculates the totals. The hosted project has migrations through
-`20261122050000`, and `min_app_version` is 0.3.0.
+`20261122050000`, and `min_app_version` is 0.3.0. The README matches 0.12.1 (2026-11-22);
+update its features and status when a phase changes what users get.
 
 1. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
    iPhone but needs a close photo and sometimes misses fat, carbs, protein, or the serving
