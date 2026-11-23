@@ -232,6 +232,32 @@ test('a plate of three foods logs as three entries, one changed to grams', async
   )
 })
 
+// Phase 16: a meal logged by its numbers counts in the day and never shows in search.
+test('a quick add counts in the meal and the day, and is not offered again', async ({ page }) => {
+  const name = unique('Thali')
+  const day = randomDay()
+  await signIn(page)
+  await openDay(page, day)
+
+  await page.getByRole('button', { name: 'Add to Dinner' }).click()
+  const picker = page.getByRole('dialog', { name: 'Add to Dinner' })
+  await picker.getByRole('button', { name: 'Quick add' }).click()
+  await expectNoAxeViolations(page)
+  await picker.getByLabel('Name').fill(name)
+  await picker.getByLabel('kcal').fill('850')
+  await picker.getByLabel('Protein (g)').fill('30')
+  await picker.getByRole('button', { name: 'Log', exact: true }).click()
+  await expect(picker).toHaveCount(0)
+
+  await expect(meal(page, 'Dinner')).toContainText(name)
+  await expect(meal(page, 'Dinner')).toContainText('850 kcal')
+
+  await page.getByRole('button', { name: 'Add to Lunch' }).click()
+  const lunch = page.getByRole('dialog', { name: 'Add to Lunch' })
+  await lunch.getByLabel('Search foods and recipes').fill(name)
+  await expect(lunch.getByRole('button', { name: new RegExp(`^${name}`) })).toHaveCount(0)
+})
+
 test.describe('a log made at 00:30', () => {
   // Half past midnight in India is still the previous evening in UTC.
   test.use({ timezoneId: 'Asia/Kolkata' })

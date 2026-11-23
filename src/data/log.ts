@@ -584,3 +584,24 @@ export const logPlate = (
       return { ok: true, rows }
     },
   )
+
+// A meal logged by its numbers (phase 16): one serving with its own name and values, never
+// saved as a food, so nothing offers it again.
+export type QuickAdd = { name: string } & Nutrients
+
+export const logQuickAdd = (
+  db: LocalDb,
+  clock: Clock,
+  userId: string,
+  target: Target,
+  { name, ...perServing }: QuickAdd,
+): Promise<LogEntryRow> =>
+  newEntry(db, clock, userId, {
+    ...target,
+    foodId: null,
+    recipeId: null,
+    name,
+    servings: 1,
+    perServing,
+    serving: null,
+  })

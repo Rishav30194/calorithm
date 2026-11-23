@@ -24,8 +24,9 @@ update its features and status when a phase changes what users get.
 3. **Phase 16 (quick add, and recipes as ingredients) is in progress:** PR 1 (recipes as
    ingredients, 0.16.0) and PR 2 (entries without a food or recipe, 0.17.0, migration
    `20261122070000_log_entries_without_source.sql`) are built. The user applies that migration
-   before PR 2 merges. PR 3 (quick add) carries a second migration raising `min_app_version` to
-   0.17.0, applied only once 0.17.0 is live. See the plan in `docs/phases.md`.
+   before PR 2 merges. PR 3 (quick add, 0.18.0) is built too, with migration
+   `20261122080000_min_app_version_0_17_0.sql`, which the user applies only once 0.17.0 is
+   live on every device, and before PR 3 merges. See the plan in `docs/phases.md`.
 4. **The other phases, 17, 18, and 20** (added 2026-11-22 from MacroFactor's "Getting
    Started" video, the user's picks): log navigation and selection, goal weight and
    maintenance mode (band plus or minus 1.5% of the target weight), and progress views (a
@@ -106,7 +107,7 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 189.2 kB of the 200 kB budget (0.17.0, 2026-11-22); the log,
+- First-load JavaScript is 189.3 kB of the 200 kB budget (0.18.0, 2026-11-22); the log,
   food, and backup screens and the built-in food list load on demand. A new screen of any
   size, and the barcode scanner, should too.
 - The built-in food list is rebuilt from USDA CSV downloads that aren't committed;

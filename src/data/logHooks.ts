@@ -22,9 +22,11 @@ import {
   logCatalogFood,
   logNewFood,
   logPlate,
+  logQuickAdd,
   logScannedFood,
   logSource,
   type PlateItem,
+  type QuickAdd,
   type QuickPicks,
   quickPicks,
   removeEntry,
@@ -85,6 +87,7 @@ export type PlateOutcome =
 
 export type LogActions = {
   logPlate: (slot: Slot, items: PlateItem[]) => Promise<PlateOutcome>
+  quickAdd: (slot: Slot, input: QuickAdd) => Promise<boolean>
   log: (slot: Slot, source: Source, servings: number) => Promise<boolean>
   logCatalog: (slot: Slot, item: CatalogFood, servings?: number) => Promise<boolean>
   // A barcode scan's results: a saved food, or a new one saved from the form.
@@ -106,6 +109,10 @@ export const useLogActions = (): LogActions => {
       return result
     }
     return {
+      quickAdd: async (slot, input) => {
+        await synced(logQuickAdd(ctx.db, ctx.clock, userId, slot, input))
+        return true
+      },
       logPlate: async (slot, items) => {
         const result = await synced(logPlate(ctx.db, ctx.clock, userId, slot, items))
         return result.ok ? { kind: 'logged' } : { kind: result.reason, index: result.index }

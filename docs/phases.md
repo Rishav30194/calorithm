@@ -986,11 +986,13 @@ meal without editing the recipe.
   logging.
 
 **Acceptance criteria:**
-- [ ] A quick add of 450 kcal and 30 g protein counts in the day and meal totals, syncs, and
-  survives export and import.
+- [x] A quick add of 450 kcal and 30 g protein counts in the day and meal totals, syncs, and
+  survives export and import. (`logQuickAdd` and the quick add browser test; export and
+  import in `src/data/backup/format.test.ts`)
 - [x] The database refuses an entry with both a food and a recipe, and accepts one with
   neither (pgTAP). (`supabase/tests/log_entries_without_source.test.sql`)
-- [ ] A quick add never appears in search, **Recent**, or the meal list.
+- [x] A quick add never appears in search, **Recent**, or the meal list.
+  (`src/domain/nutrition.test.ts`, `src/data/log.test.ts`, and `e2e/log.spec.ts`)
 - [x] Half a recipe of 4 servings logged as ingredients puts each ingredient on the plate at
   one eighth of its recipe amount. (`ingredientServings` in `src/domain/nutrition.test.ts`,
   and the plate tests in `src/ui/log/log.test.tsx`)
@@ -1017,6 +1019,9 @@ meal without editing the recipe.
   and such entries count in totals, show, change servings, copy, export, and import, but are
   never suggested. `log_entries.test.sql`'s "neither is rejected" case now expects it to be
   accepted, since the rule changed on purpose.
+- PR 3: **Quick add** in the picker (`QuickAddPanel`, `parseQuickAdd`, `logQuickAdd`) logs
+  one serving with its own name and values, in a food serving's ranges; carbs and fat may be
+  left empty. Migration `20261122080000_min_app_version_0_17_0.sql` raises the minimum.
 
 ## Phase 17 — Moving around and editing the log
 

@@ -3,7 +3,7 @@ import type { BarcodeLookup } from '@/data/barcodeLookup'
 import type { CatalogFood } from '@/data/catalog/search'
 import { searchCatalog } from '@/data/catalog/search'
 import type { CatalogCopy, FoodInput, FoodView, RecipeView } from '@/data/foods'
-import type { PlateItem, QuickPicks } from '@/data/log'
+import type { PlateItem, QuickAdd, QuickPicks } from '@/data/log'
 import type { CatalogState, PlateOutcome } from '@/data/logHooks'
 import { formatAmount, formatKcal, formatProtein } from '@/domain/format'
 import { entryFits } from '@/domain/limits'
@@ -25,6 +25,7 @@ import { TextField } from '../TextField'
 import { AmountFields } from './AmountFields'
 import { BarcodePanel } from './BarcodePanel'
 import { LabelPanel } from './LabelPanel'
+import { QuickAddPanel } from './QuickAddPanel'
 
 type Props = {
   meal: Meal
@@ -43,6 +44,8 @@ type Props = {
   onLogNew: (input: FoodInput | CatalogCopy) => Promise<boolean>
   // Logs the plate's items in one go (phase 15).
   onLogPlate: (items: PlateItem[]) => Promise<PlateOutcome>
+  // Logs a meal by its numbers (phase 16).
+  onQuickAdd: (input: QuickAdd) => Promise<boolean>
   onClose: () => void
 }
 
@@ -134,10 +137,11 @@ export const LogPicker = ({
   onLogScanned,
   onLogNew,
   onLogPlate,
+  onQuickAdd,
   onClose,
 }: Props) => {
   const text = strings.log.picker
-  const [panel, setPanel] = useState<'scan' | 'enter' | 'label' | null>(null)
+  const [panel, setPanel] = useState<'scan' | 'enter' | 'label' | 'quick' | null>(null)
   const [query, setQuery] = useState('')
   const [busy, setBusy] = useState(false)
   // The alert shown after a pick wasn't logged.
@@ -549,6 +553,8 @@ export const LogPicker = ({
             </button>
           )}
         </form>
+      ) : panel === 'quick' ? (
+        <QuickAddPanel onLog={onQuickAdd} onBack={() => setPanel(null)} onDone={done} />
       ) : panel === 'label' ? (
         <LabelPanel
           barcode={null}
@@ -656,9 +662,16 @@ export const LogPicker = ({
             <button
               type="button"
               onClick={() => setPanel('label')}
-              className="col-span-2 min-h-11 rounded-lg border border-border px-3 font-medium"
+              className="min-h-11 rounded-lg border border-border px-3 font-medium"
             >
               {text.label}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPanel('quick')}
+              className="min-h-11 rounded-lg border border-border px-3 font-medium"
+            >
+              {strings.log.quickAdd.open}
             </button>
           </div>
           {loading ? (

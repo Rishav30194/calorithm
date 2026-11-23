@@ -60,6 +60,23 @@ export const strings = {
     complete: 'I logged everything I ate this day',
     completeHint: 'Only complete days count toward your weekly estimate.',
     completeFailed: 'Couldn’t save that. Try again.',
+    // Phase 16: a meal logged by its numbers.
+    quickAdd: {
+      open: 'Quick add',
+      title: 'Quick add',
+      hint: 'For a meal you won’t log again. It isn’t saved as a food, so it won’t show in search.',
+      name: 'Name',
+      kcal: 'kcal',
+      protein: 'Protein (g)',
+      carbs: 'Carbs (g), optional',
+      fat: 'Fat (g), optional',
+      log: 'Log',
+      errors: {
+        name: 'Enter a name of up to 100 characters.',
+        kcal: 'Enter a whole number from 0 to 10000.',
+        grams: 'Enter grams from 0 to 1000, with up to two decimals.',
+      },
+    },
     // Phase 15: a meal built up before logging it at once.
     plate: {
       title: 'Plate',
