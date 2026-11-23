@@ -12,7 +12,9 @@ export default defineConfig({
   use: {
     // The production build is served under the GitHub Pages path.
     baseURL: `http://localhost:${port}/calorithm/`,
-    trace: 'on-first-retry',
+    // Local runs don't retry, so they keep a trace of every failure instead; otherwise an
+    // intermittent failure leaves nothing to read. Traces land in test-results/.
+    trace: isCi ? 'on-first-retry' : 'retain-on-failure',
   },
   projects: [
     {
