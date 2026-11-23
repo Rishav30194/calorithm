@@ -1030,7 +1030,7 @@ meal without editing the recipe.
 
 ## Phase 19 — Higher-calorie days
 
-**Status:** In progress
+**Status:** Done (2026-11-22): deployed in 0.13.0, and the user's iPhone check passed
 
 **Goal:** eat more on the days you choose, with the same weekly total.
 
