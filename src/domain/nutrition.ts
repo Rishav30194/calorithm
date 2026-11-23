@@ -23,7 +23,8 @@ export type Source = { kind: 'food' | 'recipe'; id: string }
 export type Entry = {
   date: string
   meal: Meal
-  source: Source
+  // Null for a quick add (phase 16), logged by its numbers with nothing behind it.
+  source: Source | null
   name: string
   servings: number
   kcal: number
@@ -155,20 +156,26 @@ export const useScores = (entries: readonly Entry[], today: string): Map<string,
   const scores = new Map<string, number>()
   for (const entry of entries) {
     const age = daysBetween(entry.date, today)
-    if (age < 0) continue
+    if (age < 0 || entry.source === null) continue
     const key = sourceKey(entry.source)
     scores.set(key, (scores.get(key) ?? 0) + 0.5 ** (age / HALF_LIFE_DAYS))
   }
   return scores
 }
 
-type Seen = { latest: Entry; count: number; order: number }
+type Sourced = Entry & { source: Source }
+
+const hasSource = (entry: Entry): entry is Sourced => entry.source !== null
+
+type Seen = { latest: Sourced; count: number; order: number }
 
 // Each source once, with the name and servings from its latest entry: the latest date, and
 // on one date the later in the list, since entries come in the order they were logged.
 const bySource = (entries: readonly Entry[]): Map<string, Seen> => {
   const seen = new Map<string, Seen>()
+  // Quick adds have nothing to pick again, so they're left out.
   entries.forEach((entry, order) => {
+    if (!hasSource(entry)) return
     const key = sourceKey(entry.source)
     const previous = seen.get(key)
     const count = (previous?.count ?? 0) + 1

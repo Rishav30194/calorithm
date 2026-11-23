@@ -308,7 +308,9 @@ describe('copying and changing what isn’t there', () => {
       food,
       servings: 1,
     })
-    await db.table('log_entries').update(bad.id, { food_id: null })
+    // A meal from a newer version; since phase 16 a row without a food is shown, so it isn't
+    // this case any more.
+    await db.table('log_entries').update(bad.id, { meal: 'brunch' })
 
     const copies = await copyMealTo(db, time.clock, userId, {
       from: { date: '2026-11-19', meal: 'lunch' },
@@ -316,6 +318,28 @@ describe('copying and changing what isn’t there', () => {
     })
 
     expect(copies).toHaveLength(1)
+  })
+
+  // Phase 16: a quick add has no food or recipe, and is shown, changed, and copied like any.
+  it('shows, changes, and copies an entry without a food or recipe', async () => {
+    const food = await addOats()
+    const quick = await logFood(db, time.clock, userId, {
+      date: '2026-11-19',
+      meal: 'dinner',
+      food,
+      servings: 1,
+    })
+    await db.table('log_entries').update(quick.id, { food_id: null, name: 'Thali' })
+
+    expect(await entriesOn(db, '2026-11-19')).toMatchObject([{ name: 'Thali', source: null }])
+    expect(await changeServings(db, time.clock, quick.id, 2)).toEqual({ ok: true })
+    expect(await entriesOn(db, '2026-11-19')).toMatchObject([{ servings: 2, kcal: 300 }])
+
+    const copies = await copyMealTo(db, time.clock, userId, {
+      from: { date: '2026-11-19', meal: 'dinner' },
+      to: { date: '2026-11-20', meal: 'dinner' },
+    })
+    expect(copies).toMatchObject([{ name: 'Thali', food_id: null, recipe_id: null }])
   })
 
   it('reports changing the servings of an entry that isn’t stored', async () => {

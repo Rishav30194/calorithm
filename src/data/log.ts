@@ -180,12 +180,12 @@ export const logRecipe = async (
 const toEntry = (row: LogEntryRow): LoggedEntry | null => {
   // A meal this version doesn't know, from a newer app version, is left out rather than guessed.
   if (!isMeal(row.meal)) return null
+  // Neither a food nor a recipe is a quick add (phase 16), shown by its own name and values.
   const source = row.food_id
     ? ({ kind: 'food', id: row.food_id } as const)
     : row.recipe_id
       ? ({ kind: 'recipe', id: row.recipe_id } as const)
       : null
-  if (!source) return null
   return {
     id: row.id,
     date: row.date,
@@ -261,9 +261,9 @@ export const copyMealTo = (
   { from, to }: { from: Target; to: Target },
 ): Promise<LogEntryRow[]> =>
   db.transaction('rw', db.rows('log_entries'), db.outbox, async () => {
-    // The same rows the day's view and the copy preview count: a row with no food or recipe,
-    // or a meal this version doesn't know, is never copied. Nor is one stored past the
-    // database's limits before the log checked them: it can never sync, and nor could a copy.
+    // The same rows the day's view and the copy preview count: a meal this version doesn't
+    // know is never copied, while a quick add is. Nor is a row stored past the database's
+    // limits before the log checked them: it can never sync, and nor could a copy.
     const sources = (await liveRowsOn(db, from.date)).filter(
       (row) =>
         row.meal === from.meal &&
