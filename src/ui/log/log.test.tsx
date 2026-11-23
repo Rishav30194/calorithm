@@ -474,6 +474,57 @@ describe('EntryDialog', () => {
     expect(onSave).toHaveBeenCalledWith(200)
   })
 
+  it('says an entry whose one serving is past the limits can only be removed', async () => {
+    const onSave = vi.fn(async () => true)
+    const huge = entry({ perServing: { kcal: 150_000, proteinG: 5, carbsG: 27, fatG: 2.5 } })
+    render(
+      <EntryDialog
+        entry={huge}
+        locale="en-US"
+        onSave={onSave}
+        onRemove={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+    const field = screen.getByLabelText(text.entry.servings)
+
+    await userEvent.clear(field)
+    await userEvent.type(field, '0.5')
+    await userEvent.click(screen.getByRole('button', { name: text.entry.save }))
+
+    expect(onSave).not.toHaveBeenCalled()
+    expect(field).toHaveAccessibleDescription(text.amount.cannotKeep)
+  })
+
+  it('refuses a one-tap recipe whose serving is past what an entry holds', async () => {
+    const onPick = vi.fn(async () => true)
+    render(
+      <LogPicker
+        meal="breakfast"
+        picks={picks}
+        foods={[oats]}
+        recipes={[
+          { ...chili, perServing: { kcal: 150_000, proteinG: 1, carbsG: null, fatG: null } },
+        ]}
+        builtIn={undefined}
+        locale="en-US"
+        onPick={onPick}
+        onPickBuiltIn={vi.fn(async () => true)}
+        onSearch={vi.fn()}
+        onRetryBuiltIn={vi.fn()}
+        onLookup={vi.fn()}
+        onLogScanned={vi.fn(async () => true)}
+        onLogNew={vi.fn(async () => true)}
+        onClose={vi.fn()}
+      />,
+    )
+    await userEvent.type(screen.getByLabelText(text.picker.search), 'Chili')
+    await userEvent.click(screen.getByRole('button', { name: /Chili/ }))
+
+    expect(onPick).not.toHaveBeenCalled()
+    expect(screen.getByRole('alert')).toHaveTextContent(text.amount.tooLarge)
+  })
+
   it('offers servings only for an entry without a weight', () => {
     render(
       <EntryDialog

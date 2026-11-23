@@ -6,11 +6,12 @@ import type { Database, TablesInsert } from './database.types'
 
 // Checks each value in src/domain/limits.ts against the database's CHECK constraints: the
 // limit itself is accepted and the next step past it refused. Runs against local Supabase
-// through `npm run test:integration`, as the synthetic seed user. Rows are written already
-// deleted, so they never show in the seed user's app.
+// through `npm run test:integration`, as its own synthetic user, since nothing can remove
+// the rows it writes (the app has no delete grant) and other tests would pull them. Rows are
+// written already deleted.
 const url = process.env.VITE_SUPABASE_URL ?? ''
 const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? ''
-const seed = { email: 'seed.user@calorithm.test', password: 'Local-Seed-Pass-2026' }
+const user = { email: 'limits.user@calorithm.test', password: 'Local-Seed-Pass-2026' }
 
 let client: SupabaseClient<Database>
 let userId = ''
@@ -89,8 +90,8 @@ beforeAll(async () => {
   client = createClient<Database>(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   })
-  const { data, error } = await client.auth.signInWithPassword(seed)
-  if (error || !data.user) throw new Error(`seed sign-in failed: ${error?.message}`)
+  const { data, error } = await client.auth.signInWithPassword(user)
+  if (error || !data.user) throw new Error(`limits user sign-in failed: ${error?.message}`)
   userId = data.user.id
 
   const parentFood = food()

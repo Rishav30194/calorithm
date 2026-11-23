@@ -23,10 +23,14 @@ const gramsFit = (grams: number | null): boolean => grams === null || grams <= l
 const nutrientsFit = ({ kcal, proteinG, carbsG, fatG }: Nutrients): boolean =>
   kcal <= limits.entry.kcal && gramsFit(proteinG) && gramsFit(carbsG) && gramsFit(fatG)
 
+// True when one serving's values fit what an entry stores per serving. An entry whose serving
+// doesn't fit can't be saved at any servings.
+export const servingFits = (perServing: Nutrients): boolean => nutrientsFit(perServing)
+
 // True when an entry of these servings would pass the database's checks, so the log refuses
 // it up front instead of saving one that sync refuses later.
 export const entryFits = (perServing: Nutrients, servings: number): boolean =>
   servings >= MIN_SERVINGS &&
   servings <= limits.servings &&
-  nutrientsFit(perServing) &&
+  servingFits(perServing) &&
   nutrientsFit(scaleNutrients(perServing, servings))

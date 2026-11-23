@@ -1,7 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 
-import { entryFits, limits } from './limits'
+import { entryFits, limits, servingFits } from './limits'
 import type { Nutrients } from './nutrition'
 import { scaleNutrients } from './nutrition'
 
@@ -72,5 +72,14 @@ describe('entryFits', () => {
         },
       ),
     )
+  })
+})
+
+describe('servingFits', () => {
+  it('accepts a serving within the per-serving limits, and refuses one past them', () => {
+    expect(servingFits(food())).toBe(true)
+    expect(servingFits(food({ kcal: limits.entry.kcal }))).toBe(true)
+    expect(servingFits(food({ kcal: limits.entry.kcal + 1 }))).toBe(false)
+    expect(servingFits(food({ fatG: limits.entry.grams + 0.1 }))).toBe(false)
   })
 })

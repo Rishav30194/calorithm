@@ -1,7 +1,7 @@
 import { type FormEvent, useState } from 'react'
 
 import type { LoggedEntry } from '@/data/log'
-import { entryFits } from '@/domain/limits'
+import { entryFits, servingFits } from '@/domain/limits'
 import { strings } from '@/strings'
 import { Modal } from '../Modal'
 import { AmountFields } from './AmountFields'
@@ -43,7 +43,9 @@ export const EntryDialog = ({ entry, locale, onSave, onRemove, onClose }: Props)
       return
     }
     if (!entryFits(entry.perServing, servings)) {
-      setError(strings.log.amount.tooLarge)
+      setError(
+        servingFits(entry.perServing) ? strings.log.amount.tooLarge : strings.log.amount.cannotKeep,
+      )
       return
     }
     setError(undefined)
