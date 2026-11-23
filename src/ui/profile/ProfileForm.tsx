@@ -1,13 +1,23 @@
 import { type FormEvent, type ReactNode, useId, useState } from 'react'
 
 import type { SaveProfileResult } from '@/data/profile'
+import {
+  higherDayCount,
+  MAX_HIGHER_DAYS,
+  maxExtraKcal,
+  type WeekPlan,
+  weekTargets,
+} from '@/domain/calorieDays'
 import { addDays } from '@/domain/dates'
+import { formatKcal } from '@/domain/format'
 import { activityLevels } from '@/domain/maintenance'
 import { EARLIEST_BIRTH_DATE, type ProfileSettings, proteinOptions } from '@/domain/profile'
 import type { WeightUnit } from '@/domain/weight'
 import { strings } from '@/strings'
 
+import { weekdayNames } from '../dates'
 import { TextField } from '../TextField'
+import { WeekTargets } from '../WeekTargets'
 import {
   type ProfileFormErrors,
   type ProfileFormValues,
@@ -20,6 +30,9 @@ type Props = {
   unit: WeightUnit
   today: string
   locale: string
+  // The latest check-in's targets and the setting, for the week preview; null before the
+  // first check-in.
+  plan: WeekPlan | null
   onSave: (changes: Partial<ProfileSettings>, today: string) => Promise<SaveProfileResult>
 }
 
@@ -53,7 +66,7 @@ const Choices = ({
 
 // The profile the check-in reads. The parent remounts it with a `key` when the unit changes,
 // since typed text means something else in another unit.
-export const ProfileForm = ({ settings, unit, today, locale, onSave }: Props) => {
+export const ProfileForm = ({ settings, unit, today, locale, plan, onSave }: Props) => {
   const text = strings.profile
   const titleId = useId()
   const proteinId = useId()
@@ -65,6 +78,8 @@ export const ProfileForm = ({ settings, unit, today, locale, onSave }: Props) =>
   const [values, setValues] = useState<ProfileFormValues>(shown)
   const [errors, setErrors] = useState<ProfileFormErrors>({})
   const [status, setStatus] = useState<Status>('idle')
+  // Set when the extra is more than the calorie floor allows at the latest target.
+  const [daysLimit, setDaysLimit] = useState<number | null>(null)
 
   const set = <K extends keyof ProfileFormValues>(field: K, value: ProfileFormValues[K]) => {
     setValues((current) => ({ ...current, [field]: value }))
@@ -76,10 +91,20 @@ export const ProfileForm = ({ settings, unit, today, locale, onSave }: Props) =>
     const parsed = parseProfileForm(values, shown, unit, today)
     if (!parsed.ok) {
       setErrors(parsed.errors)
+      setDaysLimit(null)
+      setStatus('idle')
+      return
+    }
+    const allowed = allowedExtra(parsed.changes.calorieFloorKcal)
+    const days = parsed.changes.calorieDays
+    if (days && allowed !== null && days.extraKcal > allowed) {
+      setErrors({ calorieDays: true })
+      setDaysLimit(allowed)
       setStatus('idle')
       return
     }
     setErrors({})
+    setDaysLimit(null)
     setStatus('busy')
     try {
       const result = await onSave(parsed.changes, today)
@@ -93,6 +118,32 @@ export const ProfileForm = ({ settings, unit, today, locale, onSave }: Props) =>
       setStatus('failed')
     }
   }
+
+  const floorNow = (floor: number | undefined): number => floor ?? settings.calorieFloorKcal
+  // The most extra the floor allows at the latest target, or null before the first check-in.
+  const allowedExtra = (floor: number | undefined): number | null =>
+    plan === null
+      ? null
+      : maxExtraKcal(plan.kcalTarget, floorNow(floor), higherDayCount(values.higherDays))
+
+  const toggleDay = (weekday: number) => set('higherDays', values.higherDays ^ (1 << weekday))
+
+  const extra = Number(values.higherExtra)
+  const preview =
+    plan !== null && values.higherDays !== 0 && Number.isInteger(extra) && extra > 0
+      ? weekTargets(plan.kcalTarget, floorNow(undefined), {
+          days: values.higherDays,
+          extraKcal: extra,
+        }).kcal
+      : null
+  const daysError = errors.calorieDays
+    ? daysLimit === null
+      ? text.errors.calorieDays
+      : daysLimit === 0
+        ? text.errors.calorieDaysNone
+        : text.errors.calorieDaysMax(formatKcal(daysLimit, locale))
+    : undefined
+  const chosen = higherDayCount(values.higherDays)
 
   const heightError = errors.height
     ? unit === 'kg'
@@ -242,6 +293,44 @@ export const ProfileForm = ({ settings, unit, today, locale, onSave }: Props) =>
           inputMode="numeric"
           error={errors.calorieFloor ? text.errors.calorieFloor : undefined}
         />
+
+        <Choices legend={text.higherDays} hint={text.higherDaysHint}>
+          {weekdayNames(locale).map((name, weekday) => {
+            const checked = (values.higherDays & (1 << weekday)) !== 0
+            return (
+              <label key={name} className={choiceClass}>
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  // At least one day must give, so the seventh can't be picked.
+                  disabled={!checked && chosen >= MAX_HIGHER_DAYS}
+                  onChange={() => toggleDay(weekday)}
+                  className={radioClass}
+                />
+                {name}
+              </label>
+            )
+          })}
+        </Choices>
+        {values.higherDays !== 0 && (
+          <>
+            <TextField
+              label={text.higherExtra}
+              value={values.higherExtra}
+              onChange={(value) => set('higherExtra', value)}
+              inputMode="numeric"
+              error={daysError}
+            />
+            <section aria-label={text.week} className="flex flex-col gap-1">
+              <h3 className="font-medium">{text.week}</h3>
+              {plan === null ? (
+                <p className="text-sm text-muted">{text.weekLater}</p>
+              ) : (
+                preview && <WeekTargets kcal={preview} locale={locale} />
+              )}
+            </section>
+          </>
+        )}
 
         <button
           type="submit"

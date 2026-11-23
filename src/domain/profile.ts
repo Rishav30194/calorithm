@@ -1,3 +1,4 @@
+import { type CalorieDays, MAX_HIGHER_DAYS_MASK, MAX_HIGHER_KCAL_EXTRA } from './calorieDays'
 import { isDay } from './dates'
 import type { ActivityLevel, Sex } from './maintenance'
 import { roundTo } from './nutrition'
@@ -13,6 +14,8 @@ export type ProfileSettings = {
   goalRateKgPerWeek: number
   proteinGPerKg: number
   calorieFloorKcal: number
+  // Null until first saved (decision 0033); no days chosen is { days: 0, extraKcal: 0 }.
+  calorieDays: CalorieDays | null
 }
 
 export type ProfileField = keyof ProfileSettings
@@ -62,6 +65,18 @@ export const profileErrors = (settings: ProfileSettings, today: string): Profile
   const floor = settings.calorieFloorKcal
   if (!(Number.isInteger(floor) && between(floor, CALORIE_FLOOR_MIN, CALORIE_FLOOR_MAX))) {
     errors.push('calorieFloorKcal')
+  }
+  const days = settings.calorieDays
+  if (
+    days !== null &&
+    !(
+      Number.isInteger(days.days) &&
+      between(days.days, 0, MAX_HIGHER_DAYS_MASK) &&
+      Number.isInteger(days.extraKcal) &&
+      between(days.extraKcal, 0, MAX_HIGHER_KCAL_EXTRA)
+    )
+  ) {
+    errors.push('calorieDays')
   }
   return errors
 }

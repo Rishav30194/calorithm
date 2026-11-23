@@ -101,6 +101,10 @@ export const profileSettings = (row: ProfileRow | null): ProfileSettings => {
     goalRateKgPerWeek: profile.goal_rate_kg_per_week,
     proteinGPerKg: profile.protein_g_per_kg,
     calorieFloorKcal: profile.calorie_floor_kcal,
+    calorieDays:
+      profile.higher_kcal_days === null || profile.higher_kcal_extra === null
+        ? null
+        : { days: profile.higher_kcal_days, extraKcal: profile.higher_kcal_extra },
   }
 }
 
@@ -130,6 +134,11 @@ export const saveProfileSettings = async (
   }
   if (changes.proteinGPerKg !== undefined) row.protein_g_per_kg = changes.proteinGPerKg
   if (changes.calorieFloorKcal !== undefined) row.calorie_floor_kcal = changes.calorieFloorKcal
+  // Never written back as not set: push leaves null added columns out (decision 0025).
+  if (changes.calorieDays) {
+    row.higher_kcal_days = changes.calorieDays.days
+    row.higher_kcal_extra = changes.calorieDays.extraKcal
+  }
   await writeRow(ctx.db, profileSpec, row, ctx.clock)
   return { ok: true }
 }

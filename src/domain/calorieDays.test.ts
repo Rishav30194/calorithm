@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   type CalorieDays,
+  dayTargets,
   higherDayCount,
   kcalTargetOn,
   MAX_HIGHER_DAYS,
@@ -121,5 +122,21 @@ describe('the stored setting’s ranges', () => {
       expect(127 - (1 << left)).toBeLessThanOrEqual(MAX_HIGHER_DAYS_MASK)
     }
     expect(MAX_HIGHER_KCAL_EXTRA).toBe(5000)
+  })
+})
+
+describe('dayTargets', () => {
+  const plan = { kcalTarget: 2000, proteinTargetG: 150, floorKcal: 1200, calorieDays: weekend }
+
+  it('gives a day its weekday’s kcal and the same protein every day', () => {
+    expect(dayTargets(plan, '2026-11-28')).toEqual({ kcal: 2400, proteinG: 150 })
+    expect(dayTargets(plan, '2026-11-23')).toEqual({ kcal: 1840, proteinG: 150 })
+  })
+
+  it('gives every day the check-in’s target with no days chosen', () => {
+    expect(dayTargets({ ...plan, calorieDays: none }, '2026-11-28')).toEqual({
+      kcal: 2000,
+      proteinG: 150,
+    })
   })
 })

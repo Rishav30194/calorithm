@@ -15,8 +15,8 @@ type Props = {
   date: string
   today: string
   day: DayView
-  // The latest check-in's targets, shown on today only; null before the first, undefined
-  // while loading.
+  // The latest check-in's targets, with this weekday's kcal (decision 0033), shown on today
+  // only; null before the first, undefined while loading.
   targets?: DailyTargets | null | undefined
   locale: string
   onAdd: (meal: Meal) => void

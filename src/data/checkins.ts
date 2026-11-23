@@ -1,3 +1,4 @@
+import type { WeekPlan } from '@/domain/calorieDays'
 import {
   type CheckinFields,
   type CheckinOutcome,
@@ -97,6 +98,20 @@ export const latestCheckin = async (db: LocalDb): Promise<CheckinFields | null> 
     return fields ? [fields] : []
   })
   return readable.sort((a, b) => b.date.localeCompare(a.date))[0] ?? null
+}
+
+// What each day's targets are worked out from (decision 0033): the latest check-in's targets
+// and the floor it used, and the profile's higher-calorie days. Null before the first
+// check-in.
+export const weekPlan = async (db: LocalDb, userId: string): Promise<WeekPlan | null> => {
+  const [latest, profile] = await Promise.all([latestCheckin(db), readProfile(db, userId)])
+  if (!latest) return null
+  return {
+    kcalTarget: latest.kcalTarget,
+    proteinTargetG: latest.proteinTargetG,
+    floorKcal: latest.calorieFloorKcal,
+    calorieDays: profileSettings(profile).calorieDays ?? { days: 0, extraKcal: 0 },
+  }
 }
 
 // Stored when the user saves the check-in screen. A second save the same day, from any device,

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import type { CheckinState } from '@/data/checkins'
+import type { CalorieDays } from '@/domain/calorieDays'
 import type { CheckinFields } from '@/domain/checkin'
 import { addDays } from '@/domain/dates'
 import { strings } from '@/strings'
@@ -13,12 +14,13 @@ type Props = {
   state: CheckinState
   locale: string
   onSave: (checkin: CheckinFields) => Promise<void>
+  calorieDays?: CalorieDays
 }
 
 const linkClass =
   'inline-flex min-h-11 items-center self-start rounded-lg border border-border px-4 font-medium'
 
-export const CheckinView = ({ state, locale, onSave }: Props) => {
+export const CheckinView = ({ state, locale, onSave, calorieDays }: Props) => {
   const text = strings.checkin
   const [status, setStatus] = useState<'idle' | 'busy' | 'saved' | 'failed'>('idle')
   const { latest, outcome, unit } = state
@@ -61,7 +63,12 @@ export const CheckinView = ({ state, locale, onSave }: Props) => {
       return (
         <>
           <p>{text.due}</p>
-          <CheckinSummary checkin={outcome.checkin} unit={unit} locale={locale} />
+          <CheckinSummary
+            checkin={outcome.checkin}
+            unit={unit}
+            locale={locale}
+            {...(calorieDays && { calorieDays })}
+          />
           <button
             type="button"
             onClick={() => void save(outcome.checkin)}
@@ -81,7 +88,12 @@ export const CheckinView = ({ state, locale, onSave }: Props) => {
           <p>{text.last(longDate(latest.date, locale))}</p>
           <p>{text.next(longDate(addDays(latest.date, 7), locale))}</p>
         </div>
-        <CheckinSummary checkin={latest} unit={unit} locale={locale} />
+        <CheckinSummary
+          checkin={latest}
+          unit={unit}
+          locale={locale}
+          {...(calorieDays && { calorieDays })}
+        />
       </>
     )
   }

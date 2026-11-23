@@ -100,6 +100,7 @@ describe('profileSettings', () => {
       goalRateKgPerWeek: 0,
       proteinGPerKg: 1.8,
       calorieFloorKcal: 1200,
+      calorieDays: null,
     })
   })
 
@@ -112,7 +113,11 @@ describe('profileSettings', () => {
       goalRateKgPerWeek: -0.5,
       proteinGPerKg: 2,
       calorieFloorKcal: 1500,
+      calorieDays: null,
     })
+    expect(
+      profileSettings(serverProfile({ higher_kcal_days: 96, higher_kcal_extra: 400 })),
+    ).toMatchObject({ calorieDays: { days: 96, extraKcal: 400 } })
   })
 
   it('treats a sex or activity level this version doesn’t know as not set', () => {
@@ -135,6 +140,7 @@ describe('saveProfileSettings', () => {
     goalRateKgPerWeek: -0.25,
     proteinGPerKg: 1.6,
     calorieFloorKcal: 1300,
+    calorieDays: { days: 96, extraKcal: 400 },
   }
 
   it('writes every setting and keeps the units, through the outbox', async () => {
@@ -151,6 +157,8 @@ describe('saveProfileSettings', () => {
       goal_rate_kg_per_week: -0.25,
       protein_g_per_kg: 1.6,
       calorie_floor_kcal: 1300,
+      higher_kcal_days: 96,
+      higher_kcal_extra: 400,
       client_updated_at: clock().toISOString(),
     })
     expect(await db.outbox.count()).toBe(1)

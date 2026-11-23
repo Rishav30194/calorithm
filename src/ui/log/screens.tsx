@@ -110,7 +110,7 @@ const Copy = ({
 
 const Day = ({ date, today, locale }: { date: string; today: string; locale: string }) => {
   const day = useDay(date)
-  const targets = useTargets()
+  const targets = useTargets(date)
   const actions = useLogActions()
   const [dialog, setDialog] = useState<Dialog>({ kind: 'none' })
   const close = () => setDialog({ kind: 'none' })

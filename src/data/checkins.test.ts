@@ -6,7 +6,14 @@ import { addDays } from '@/domain/dates'
 import { activityLevels, type DayIntake } from '@/domain/maintenance'
 import type { WeighIn } from '@/domain/trend'
 
-import { checkinRow, checkinState, fieldsFromRow, latestCheckin, saveCheckin } from './checkins'
+import {
+  checkinRow,
+  checkinState,
+  fieldsFromRow,
+  latestCheckin,
+  saveCheckin,
+  weekPlan,
+} from './checkins'
 import { checkinId } from './dayId'
 import type { LocalDb } from './db'
 import { logFood, setDayComplete } from './log'
@@ -149,6 +156,41 @@ describe('saveCheckin and latestCheckin', () => {
 
     expect(await latestCheckin(db)).toEqual(fields)
     expect(await db.outbox.where('table').equals('checkins').count()).toBe(2)
+  })
+})
+
+// Phase 19: what each day's targets are worked out from (decision 0033).
+describe('weekPlan', () => {
+  const ctx = (): SyncContext => ({
+    db,
+    remote: new FakeRemote(userId),
+    tables: [profileSpec],
+    clock: time.clock,
+    random: () => 0,
+  })
+
+  it('is null before the first check-in', async () => {
+    expect(await weekPlan(db, userId)).toBeNull()
+  })
+
+  it('takes the latest check-in’s targets and floor, and no days when none are set', async () => {
+    await saveCheckin(db, time.clock, userId, fields)
+
+    expect(await weekPlan(db, userId)).toEqual({
+      kcalTarget: 1900,
+      proteinTargetG: 147.6,
+      floorKcal: 1200,
+      calorieDays: { days: 0, extraKcal: 0 },
+    })
+  })
+
+  it('takes the profile’s higher-calorie days', async () => {
+    await saveCheckin(db, time.clock, userId, fields)
+    await saveProfileSettings(ctx(), userId, { calorieDays: { days: 96, extraKcal: 300 } }, today)
+
+    expect(await weekPlan(db, userId)).toMatchObject({
+      calorieDays: { days: 96, extraKcal: 300 },
+    })
   })
 })
 

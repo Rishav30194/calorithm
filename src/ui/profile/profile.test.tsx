@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { SaveProfileResult } from '@/data/profile'
+import type { WeekPlan } from '@/domain/calorieDays'
 import type { ProfileSettings } from '@/domain/profile'
 import type { WeightUnit } from '@/domain/weight'
 import { strings } from '@/strings'
@@ -20,16 +21,25 @@ const defaults: ProfileSettings = {
   goalRateKgPerWeek: 0,
   proteinGPerKg: 1.8,
   calorieFloorKcal: 1200,
+  calorieDays: null,
 }
 
 const setup = (
   settings: ProfileSettings = defaults,
   unit: WeightUnit = 'kg',
   result: SaveProfileResult = { ok: true },
+  plan: WeekPlan | null = null,
 ) => {
   const onSave = vi.fn(async () => result)
   render(
-    <ProfileForm settings={settings} unit={unit} today={today} locale="en-GB" onSave={onSave} />,
+    <ProfileForm
+      settings={settings}
+      unit={unit}
+      today={today}
+      locale="en-GB"
+      plan={plan}
+      onSave={onSave}
+    />,
   )
   return { onSave, user: userEvent.setup() }
 }
@@ -138,5 +148,56 @@ describe('ProfileForm', () => {
     const { user } = setup(defaults, 'kg', { ok: false, reason: 'offline' })
     await user.click(screen.getByRole('button', { name: text.save }))
     expect(await screen.findByRole('alert')).toHaveTextContent(text.offline)
+  })
+})
+
+// Phase 19 (decision 0033).
+describe('ProfileForm higher-calorie days', () => {
+  const plan: WeekPlan = {
+    kcalTarget: 2000,
+    proteinTargetG: 150,
+    floorKcal: 1200,
+    calorieDays: { days: 0, extraKcal: 0 },
+  }
+
+  it('previews the week and saves the chosen days and extra', async () => {
+    const { onSave, user } = setup(defaults, 'kg', { ok: true }, plan)
+    await user.click(screen.getByRole('checkbox', { name: 'Saturday' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Sunday' }))
+    await user.type(screen.getByLabelText(text.higherExtra), '400')
+
+    const week = screen.getByRole('region', { name: text.week })
+    expect(week).toHaveTextContent('Mon1,840 kcal')
+    expect(week).toHaveTextContent('Sat2,400 kcal')
+
+    await user.click(screen.getByRole('button', { name: text.save }))
+    expect(onSave).toHaveBeenCalledWith({ calorieDays: { days: 96, extraKcal: 400 } }, today)
+  })
+
+  it('refuses more extra than the calorie floor allows, and says how much it can be', async () => {
+    const { onSave, user } = setup(defaults, 'kg', { ok: true }, plan)
+    await user.click(screen.getByRole('checkbox', { name: 'Saturday' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Sunday' }))
+    const extra = screen.getByLabelText(text.higherExtra)
+    // Five days with 800 kcal above the floor give 4000, shared by two days.
+    await user.type(extra, '2001')
+    await user.click(screen.getByRole('button', { name: text.save }))
+
+    expect(onSave).not.toHaveBeenCalled()
+    expect(extra).toHaveAccessibleDescription(text.errors.calorieDaysMax('2,000 kcal'))
+  })
+
+  it('keeps the seventh day from being picked', async () => {
+    const { user } = setup(defaults, 'kg', { ok: true }, plan)
+    for (const day of ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']) {
+      await user.click(screen.getByRole('checkbox', { name: day }))
+    }
+    expect(screen.getByRole('checkbox', { name: 'Sunday' })).toBeDisabled()
+  })
+
+  it('says the week shows after the first check-in', async () => {
+    const { user } = setup()
+    await user.click(screen.getByRole('checkbox', { name: 'Saturday' }))
+    expect(screen.getByRole('region', { name: text.week })).toHaveTextContent(text.weekLater)
   })
 })

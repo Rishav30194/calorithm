@@ -67,6 +67,27 @@ test.describe('the profile form', () => {
     await expect(page.getByLabel('Calorie floor (kcal)')).toHaveValue(floor)
   })
 
+  // Phase 19: higher-calorie days reach the server and come back.
+  test('saves higher-calorie days, and keeps them across a reload', async ({ page }) => {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    // A random day and extra, so values left by an earlier run can't make the test pass.
+    const day = days[Math.floor(Math.random() * 7)] ?? 'Saturday'
+    const extra = String(100 + Math.floor(Math.random() * 800))
+    await openSettings(page)
+
+    for (const name of days) await page.getByRole('checkbox', { name }).uncheck()
+    await page.getByRole('checkbox', { name: day }).check()
+    await page.getByLabel('Extra kcal on each of these days').fill(extra)
+    await page.getByRole('button', { name: 'Save profile' }).click()
+    await expect(page.getByRole('main').getByRole('status')).toHaveText('Saved.')
+    await waitForSync(page)
+
+    await page.reload()
+    await expect(page.getByRole('checkbox', { name: day })).toBeChecked()
+    await expect(page.getByRole('checkbox', { checked: true })).toHaveCount(1)
+    await expect(page.getByLabel('Extra kcal on each of these days')).toHaveValue(extra)
+  })
+
   test('a new device shows the saved profile, not defaults', async ({ page, browser }) => {
     const floor = String(1000 + Math.floor(Math.random() * 2000))
     await openSettings(page)
@@ -102,6 +123,13 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await page.getByLabel('Height (cm)').fill('20')
       await page.getByRole('button', { name: 'Save profile' }).click()
       await expect(page.getByText('Enter a height from 100 to 250 cm.')).toBeVisible()
+      await expectNoAxeViolations(page)
+      // The higher-calorie days section, open with an error; nothing is saved.
+      const saturday = page.getByRole('checkbox', { name: 'Saturday' })
+      if (!(await saturday.isChecked())) await saturday.check()
+      await page.getByLabel('Extra kcal on each of these days').fill('9999')
+      await page.getByRole('button', { name: 'Save profile' }).click()
+      await expect(page.getByText('Enter a whole number from 1 to 5000.')).toBeVisible()
       await expectNoAxeViolations(page)
     })
   })

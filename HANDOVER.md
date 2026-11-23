@@ -15,12 +15,19 @@ since editing the entry's amount recalculates the totals. The hosted project has
 `20261122050000`, and `min_app_version` is 0.3.0. The README matches 0.12.1 (2026-11-22);
 update its features and status when a phase changes what users get.
 
-1. **Phases 15 to 20** (added 2026-11-22 from MacroFactor's "Getting Started" video, the user's
+1. **Phase 19 (higher-calorie days) is built, in three stacked branches:**
+   `feature/phase-19-calorie-days` (calculation, decision 0033), `feature/phase-19-profile-columns`
+   (migration `20261122060000_profile_higher_kcal_days.sql`, Dexie version 10), and
+   `feature/phase-19-screens` (0.13.0), on top of `chore/plan-phases-15-to-20`. The migration
+   must reach the hosted project (`docs/production.md`, step 6) before the columns PR merges,
+   since every push to `main` deploys. After deploy: check on the iPhone that the profile
+   saves weekend days and the log shows that day's target, then set phase 19 to Done.
+2. **The other phases, 15 to 18 and 20** (added 2026-11-22 from MacroFactor's "Getting Started" video, the user's
    picks): a plate and meal suggestions, quick add, log navigation and selection, goal weight
    and maintenance mode, higher-calorie days, and progress views. Kcal and protein stay the
    only targets. Start with phase 15's plan when the user says so; phases 18 and 19 each
    begin with a decision record.
-2. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
+3. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
    iPhone but needs a close photo and sometimes misses fat, carbs, protein, or the serving
    size. Plan when resumed: the user puts 5 to 10 failing photos in `~/Downloads/labels`
    (used locally only, never committed); measure each change on them and keep what helps:
@@ -30,12 +37,12 @@ update its features and status when a phase changes what users get.
    read separately, "g" read as "9"), show the read text beside the form with **Fix the
    text**, and maybe a crop step. Workaround meanwhile: crop to the table in Photos first.
    The first photo downloads about 4.5 MB (checked on the live site).
-3. Optional iPhone check: **Export changes** in the sign-out warning. It shows only when
+4. Optional iPhone check: **Export changes** in the sign-out warning. It shows only when
    signing out with changes that haven't synced (for example, log an entry offline, then
    sign out). **Export data** in settings and **Import data** passed on the user's iPhone
    (2026-11-22).
-4. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
-5. **Phase 12** (review against MacroFactor) stays on hold until the user has the
+5. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+6. **Phase 12** (review against MacroFactor) stays on hold until the user has the
    subscription.
 
 How the user works: macros only (kcal, protein, carbs, fat), no AI logging, no bulk food
@@ -95,7 +102,7 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 188.0 kB of the 200 kB budget (0.12.1, 2026-11-22); the log,
+- First-load JavaScript is 188.8 kB of the 200 kB budget (0.13.0, 2026-11-22); the log,
   food, and backup screens and the built-in food list load on demand. A new screen of any
   size, and the barcode scanner, should too.
 - The built-in food list is rebuilt from USDA CSV downloads that aren't committed;

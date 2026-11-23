@@ -169,6 +169,48 @@ describe('CheckinView', () => {
   })
 })
 
+// Phase 19 (decision 0033).
+describe('CheckinView with higher-calorie days', () => {
+  it('lists the week’s targets by day', () => {
+    render(
+      <CheckinView
+        state={due(updated)}
+        locale="en-GB"
+        onSave={vi.fn()}
+        calorieDays={{ days: 96, extraKcal: 400 }}
+      />,
+    )
+    // 1850 with Saturday and Sunday at +400: the other five days give 160 each.
+    const week = screen.getByRole('region', { name: text.week })
+    expect(week).toHaveTextContent('Mon1,690 kcal')
+    expect(week).toHaveTextContent('Sun2,250 kcal')
+  })
+
+  it('says when the floor trims the extra', () => {
+    render(
+      <CheckinView
+        state={due({ ...updated, kcalTarget: 1300 })}
+        locale="en-GB"
+        onSave={vi.fn()}
+        calorieDays={{ days: 96, extraKcal: 400 }}
+      />,
+    )
+    expect(screen.getByText(text.weekTrimmed('250 kcal'))).toBeInTheDocument()
+  })
+
+  it('shows no week with no days chosen', () => {
+    render(
+      <CheckinView
+        state={due(updated)}
+        locale="en-GB"
+        onSave={vi.fn()}
+        calorieDays={{ days: 0, extraKcal: 0 }}
+      />,
+    )
+    expect(screen.queryByRole('region', { name: text.week })).toBeNull()
+  })
+})
+
 describe('TargetProgress', () => {
   it('shows the day’s intake against each target', () => {
     render(

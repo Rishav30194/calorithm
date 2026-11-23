@@ -348,6 +348,10 @@ export const strings = {
       `Your calorie target was raised to your calorie floor of ${floor}.`,
     rateCapped: (rate: string) =>
       `Your goal rate was capped at ${rate} a week, 1% of your trend weight.`,
+    week: 'By day',
+    weekHint: 'Your higher-calorie days get more; the week’s total is the same.',
+    weekTrimmed: (extra: string) =>
+      `Your calorie floor allows ${extra} extra on each higher-calorie day at this target, less than you set.`,
     skipped: (complete: string) =>
       `Skipped this week: only ${complete} of the last 7 days are marked complete, and the check-in needs at least 4. Your targets stay the same.`,
     noWeighIns: 'Weigh in first: the check-in needs at least one weigh-in.',
@@ -393,6 +397,12 @@ export const strings = {
     protein: 'Protein (g per kg of body weight)',
     calorieFloor: 'Calorie floor (kcal)',
     calorieFloorHint: 'Your calorie target never goes below this.',
+    higherDays: 'Higher-calorie days',
+    higherDaysHint:
+      'Eat more on the days you pick. The other days get less, so the week’s total stays the same. Protein stays the same every day.',
+    higherExtra: 'Extra kcal on each of these days',
+    week: 'Your week',
+    weekLater: 'Each day’s target shows here after your first check-in.',
     save: 'Save profile',
     saved: 'Saved.',
     failed: 'Couldn’t save that. Try again.',
@@ -409,6 +419,11 @@ export const strings = {
       },
       protein: 'Pick a setting from the list.',
       calorieFloor: 'Enter a whole number from 1000 to 3000.',
+      calorieDays: 'Enter a whole number from 1 to 5000.',
+      calorieDaysMax: (max: string) =>
+        `With your calorie floor, each of these days can get up to ${max} more.`,
+      calorieDaysNone:
+        'Your target is at your calorie floor, so no day can give up any kcal. Pick no days, or lower the floor.',
     },
   },
 

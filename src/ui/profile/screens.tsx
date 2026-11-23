@@ -1,3 +1,4 @@
+import { useWeekPlan } from '@/data/checkinHooks'
 import { useProfileView, useSaveProfile } from '@/data/profileHooks'
 import { strings } from '@/strings'
 
@@ -9,6 +10,7 @@ export const ProfileSettingsScreen = ({ locale }: { locale: string }) => {
   const today = useToday()
   const state = useProfileView()
   const save = useSaveProfile()
+  const plan = useWeekPlan()
   switch (state.kind) {
     case 'loading':
       return <p className="text-muted">{strings.loading}</p>
@@ -37,6 +39,7 @@ export const ProfileSettingsScreen = ({ locale }: { locale: string }) => {
           unit={state.view.unit}
           today={today}
           locale={locale}
+          plan={plan ?? null}
           onSave={save}
         />
       )
