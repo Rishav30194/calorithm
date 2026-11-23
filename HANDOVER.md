@@ -26,7 +26,11 @@ update its features and status when a phase changes what users get.
    `20261122070000_log_entries_without_source.sql`) are built. The user applies that migration
    before PR 2 merges. PR 3 (quick add, 0.18.0) is built too, with migration
    `20261122080000_min_app_version_0_17_0.sql`, which the user applies only once 0.17.0 is
-   live on every device, and before PR 3 merges. See the plan in `docs/phases.md`.
+   live on every device, and before PR 3 merges. See the plan in `docs/phases.md` and decision
+   0034. `/code-review` found 7 issues: the 4 code ones are fixed (the ingredients swap keeps a
+   recipe whose foods are gone, says when servings can't be read, and checks the limits), the
+   docs and decision record are added, and the three PRs ship as separate releases in order.
+   `/security-review` found nothing.
 4. **The other phases, 17, 18, and 20** (added 2026-11-22 from MacroFactor's "Getting
    Started" video, the user's picks): log navigation and selection, goal weight and
    maintenance mode (band plus or minus 1.5% of the target weight), and progress views (a
