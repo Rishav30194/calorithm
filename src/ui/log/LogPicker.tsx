@@ -260,7 +260,9 @@ export const LogPicker = ({
     else setProblem(text.failed)
   }
 
+  // While the plate is being logged it can't change, so nothing added meanwhile is lost.
   const addToPlate = (row: Row) => {
+    if (busy) return
     nextPlateId.current += 1
     const entry = { id: nextPlateId.current, row, servings: servingsOf(row) }
     setPlate((current) => [...current, entry])
@@ -269,11 +271,13 @@ export const LogPicker = ({
   }
 
   const removeFromPlate = (id: number) => {
+    if (busy) return
     setPlate((current) => current.filter((entry) => entry.id !== id))
     setProblem(null)
   }
 
   const editAmount = (entry: PlateEntry) => {
+    if (busy) return
     setEditing(entry)
     setServings(entry.servings)
     setAmountError(undefined)
@@ -312,15 +316,22 @@ export const LogPicker = ({
         ? { kind: 'builtIn', item: row.pick.builtIn, servings: amount }
         : { kind: 'saved', source: row.pick.source, servings: amount },
     )
-    const outcome = await onLogPlate(items).catch((): PlateOutcome => 'failed')
+    const outcome = await onLogPlate(items).catch((): PlateOutcome => ({ kind: 'failed' }))
     setBusy(false)
-    switch (outcome) {
+    switch (outcome.kind) {
       case 'logged':
         onClose()
         return
       case 'too_large':
-        setProblem(strings.log.amount.tooLarge)
+      case 'not_found': {
+        const name = plate[outcome.index]?.row.name ?? ''
+        setProblem(
+          outcome.kind === 'too_large'
+            ? strings.log.plate.tooLarge(name)
+            : strings.log.plate.missing(name),
+        )
         return
+      }
       case 'failed':
         setProblem(text.failed)
         return
@@ -329,8 +340,15 @@ export const LogPicker = ({
 
   // Closing would drop the plate, so it asks first.
   const close = () => {
-    if (plate.length > 0) setConfirmClose(true)
-    else onClose()
+    if (plate.length === 0) {
+      onClose()
+      return
+    }
+    // From any view: the question shows on the list, beside the plate.
+    setEditing(null)
+    setAmountFor(null)
+    setPanel(null)
+    setConfirmClose(true)
   }
 
   // After a scan or a label logs a new food, the picker closes, unless a plate is waiting.
@@ -370,11 +388,15 @@ export const LogPicker = ({
   }
 
   const amountText = ({ row, servings: amount }: PlateEntry): string => {
-    // Grams for a food measured by weight; servings for one counted in pieces.
-    const portion = row.weighed?.portion
-    return portion
-      ? strings.log.amount.weight(formatAmount(amount * portion.amount, locale), portion.unit)
-      : servingsText(amount)
+    // Grams for a food measured by weight; servings, and their weight when a serving has one,
+    // for a food counted in pieces, matching the fields Change shows.
+    const { portion } = row
+    if (!portion) return servingsText(amount)
+    const weight = strings.log.amount.weight(
+      formatAmount(amount * portion.amount, locale),
+      portion.unit,
+    )
+    return row.weighed ? weight : `${servingsText(amount)} · ${weight}`
   }
   const plateNutrients = sumNutrients(
     plate.flatMap(({ row, servings: amount }) =>

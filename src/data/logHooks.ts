@@ -76,8 +76,12 @@ export const useMealCount = (date: string, meal: Meal): number | undefined => {
 
 type Slot = { date: string; meal: Meal }
 
-// How logging a plate ended, for the picker's message (phase 15).
-export type PlateOutcome = 'logged' | 'too_large' | 'failed'
+// How logging a plate ended, for the picker's message (phase 15): which item stopped it, by
+// its place on the plate, or a failure to write.
+export type PlateOutcome =
+  | { kind: 'logged' }
+  | { kind: 'too_large' | 'not_found'; index: number }
+  | { kind: 'failed' }
 
 export type LogActions = {
   logPlate: (slot: Slot, items: PlateItem[]) => Promise<PlateOutcome>
@@ -104,7 +108,7 @@ export const useLogActions = (): LogActions => {
     return {
       logPlate: async (slot, items) => {
         const result = await synced(logPlate(ctx.db, ctx.clock, userId, slot, items))
-        return result.ok ? 'logged' : result.reason === 'too_large' ? 'too_large' : 'failed'
+        return result.ok ? { kind: 'logged' } : { kind: result.reason, index: result.index }
       },
       log: async (slot, source, servings) =>
         (await synced(logSource(ctx.db, ctx.clock, userId, { ...slot, source, servings }))).ok,

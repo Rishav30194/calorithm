@@ -74,6 +74,8 @@ export const strings = {
       logAll: 'Log all',
       tooLarge: (name: string) =>
         `${name} is more than one entry can hold. Change its amount, or remove it.`,
+      missing: (name: string) =>
+        `${name} is no longer in your foods or recipes. Remove it from the plate, then log the rest.`,
       discardPrompt: 'Close and throw away the plate? Nothing on it is logged yet.',
       keep: 'Keep the plate',
       discard: 'Throw it away',

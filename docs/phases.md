@@ -961,6 +961,9 @@ phases 15 to 20.
   the entry dialog does; it lists grams only for foods measured by weight.
 - Picker tests match row buttons by the start of their name (`/^Oats/`), since each row's add
   button also contains the food's name.
+- After `/code-review`: a built-in item you already copied is logged with your copy's values;
+  a failed **Log all** names the item that stopped it; the plate can't change while it's
+  being logged; Close asks from any view; a meal's list breaks ties by the current name.
 
 ## Phase 16 — Quick add, and recipes logged as ingredients
 

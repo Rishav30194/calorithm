@@ -424,7 +424,9 @@ describe('LogPicker', () => {
 // Phase 15: a meal built up on the plate, then logged at once.
 describe('LogPicker plate', () => {
   const roti: FoodView = { ...oats, id: 'f9', name: 'Roti', servingSize: 1, servingUnit: 'roti' }
-  const renderPlate = (onLogPlate = vi.fn(async (): Promise<PlateOutcome> => 'logged')) => {
+  const renderPlate = (
+    onLogPlate = vi.fn(async (): Promise<PlateOutcome> => ({ kind: 'logged' })),
+  ) => {
     const onClose = vi.fn()
     const onPick = vi.fn(async () => true)
     render(
@@ -514,8 +516,31 @@ describe('LogPicker plate', () => {
     expect(onClose).toHaveBeenCalled()
   })
 
+  it('names the item that stopped the plate', async () => {
+    const { add } = renderPlate(
+      vi.fn(async (): Promise<PlateOutcome> => ({ kind: 'not_found', index: 1 })),
+    )
+    await add('Oats')
+    await add('Roti')
+    await userEvent.click(screen.getByRole('button', { name: text.plate.logAll }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(text.plate.missing('Roti'))
+  })
+
+  it('asks before closing even while an amount is being changed', async () => {
+    const { onClose, add } = renderPlate()
+    await add('Oats')
+    await userEvent.click(screen.getByRole('button', { name: text.plate.edit('Oats') }))
+    await userEvent.click(screen.getByRole('button', { name: text.picker.close }))
+
+    expect(onClose).not.toHaveBeenCalled()
+    expect(screen.getByText(text.plate.discardPrompt)).toBeInTheDocument()
+  })
+
   it('stays open and says so when the plate fails to log', async () => {
-    const { onClose, add } = renderPlate(vi.fn(async (): Promise<PlateOutcome> => 'failed'))
+    const { onClose, add } = renderPlate(
+      vi.fn(async (): Promise<PlateOutcome> => ({ kind: 'failed' })),
+    )
     await add('Oats')
     await userEvent.click(screen.getByRole('button', { name: text.plate.logAll }))
 

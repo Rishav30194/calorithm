@@ -443,8 +443,11 @@ export const quickPicks = async (db: LocalDb, today: string): Promise<QuickPicks
       return name === undefined ? [] : [{ ...pick, name }]
     })
   const scores = new Map([...useScores(entries, today)].filter(([key]) => names.has(key)))
+  // Ties are broken again by the current names, which available() puts in.
   const usual = (meal: Meal): QuickPick[] =>
-    available(usualForMeal(entries, meal, today, Number.POSITIVE_INFINITY)).slice(0, PICK_LIMIT)
+    available(usualForMeal(entries, meal, today, Number.POSITIVE_INFINITY))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+      .slice(0, PICK_LIMIT)
   return {
     recent: available(recentPicks(entries, Number.POSITIVE_INFINITY)).slice(0, PICK_LIMIT),
     mostUsed: available(mostUsed(entries, today, Number.POSITIVE_INFINITY)).slice(0, PICK_LIMIT),
@@ -503,13 +506,26 @@ export const logPlate = (
         let next: Resolved | null = null
         if (item.kind === 'builtIn') {
           const { item: food } = item
-          next = {
-            name: food.name,
-            perServing: food,
-            servings,
-            serving: { size: food.servingSize, unit: food.servingUnit },
-            source: { item: food },
-          }
+          // A copy you already have is logged with its values, as a single tap logs it;
+          // copyCatalogFood returns that copy when the writes start.
+          const copy = (await db.rows('foods').where('catalog_id').equals(food.id).toArray())
+            .map((raw) => foodsSpec.parse(raw))
+            .find((row) => row !== null && row.deleted_at === null)
+          next = copy
+            ? {
+                name: copy.name,
+                perServing: foodNutrients(copy),
+                servings,
+                serving: { size: copy.serving_size, unit: copy.serving_unit },
+                source: { item: food },
+              }
+            : {
+                name: food.name,
+                perServing: food,
+                servings,
+                serving: { size: food.servingSize, unit: food.servingUnit },
+                source: { item: food },
+              }
         } else if (item.source.kind === 'food') {
           const food = foodsSpec.parse(await db.rows('foods').get(item.source.id))
           if (food && food.deleted_at === null) {
