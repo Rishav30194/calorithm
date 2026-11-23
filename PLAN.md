@@ -207,6 +207,14 @@ Each phase's scope, acceptance criteria, status, and implementation notes are in
 10. A built-in list of common Indian home foods and gym staples, loaded on demand.
 11. Barcode scanning, with lookup in your foods and then Open Food Facts.
 12. A review against a month of MacroFactor, which becomes the next phases.
+13. Nutrition labels, read from pasted text or a photo on the device.
+14. Logging by weight, and built-in foods in recipes and on the Foods screen.
+15. A plate for logging a meal at once, foods usual for each meal, and grouped search.
+16. Quick add, and recipes logged as their ingredients.
+17. A week strip, eaten and left, selecting entries, and copying a day.
+18. A goal weight with a projected date, and maintenance mode.
+19. Higher-calorie days.
+20. Progress views: the week, intake against targets and maintenance, habits, and weight ranges.
 
 ## Related documents
 
@@ -268,4 +276,6 @@ tests, iOS fixes, free-plan safeguards, and the day complete flag added; then bu
 with one local database per user, schema versions in sync, database checks, safety limits,
 account deletion, accessibility checks, and the growth checklists. Development guardrails
 (Claude Code hooks), `CLAUDE.md`, `README.md`, `HANDOVER.md`, and `docs/` added the same day.
-Waiting for approval before step 1.
+Phases 1 to 11 and 14 were built from 2026-11-20 to 2026-11-22; phases 15 to 20 were added on
+2026-11-22 from a first look at MacroFactor. Each phase's status is in
+[the phase plan](docs/phases.md).
