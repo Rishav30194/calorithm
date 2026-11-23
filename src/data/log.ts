@@ -180,12 +180,12 @@ export const logRecipe = async (
 const toEntry = (row: LogEntryRow): LoggedEntry | null => {
   // A meal this version doesn't know, from a newer app version, is left out rather than guessed.
   if (!isMeal(row.meal)) return null
+  // Neither a food nor a recipe is a quick add (phase 16), shown by its own name and values.
   const source = row.food_id
     ? ({ kind: 'food', id: row.food_id } as const)
     : row.recipe_id
       ? ({ kind: 'recipe', id: row.recipe_id } as const)
       : null
-  if (!source) return null
   return {
     id: row.id,
     date: row.date,

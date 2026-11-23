@@ -157,11 +157,11 @@ select throws_ok(
   'an entry with both a food and a recipe is rejected'
 );
 
-select throws_ok(
+-- Since phase 16 (quick add), an entry may have neither; log_entries_without_source.test.sql
+-- covers it.
+select lives_ok(
   $$ update public.log_entries set food_id = null, client_updated_at = '2026-11-20 00:00+00' $$,
-  '23514',
-  null,
-  'an entry with neither a food nor a recipe is rejected'
+  'an entry with neither a food nor a recipe is accepted'
 );
 
 select throws_ok(

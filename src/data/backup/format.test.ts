@@ -113,6 +113,23 @@ describe('parseExport', () => {
     }
   })
 
+  // Phase 16: a quick add has neither a food nor a recipe; an entry still can't have both.
+  it('accepts a log entry with neither a food nor a recipe, and refuses one with both', () => {
+    const quick = edited((file) => {
+      const entry = first(file, 'log_entries')
+      entry.food_id = null
+      entry.recipe_id = null
+    })
+    expect(parseExport(quick, context).ok).toBe(true)
+
+    const both = edited((file) => {
+      const entry = first(file, 'log_entries')
+      entry.food_id = first(file, 'foods').id
+      entry.recipe_id = first(file, 'recipes').id
+    })
+    expect(parseExport(both, context)).toEqual({ ok: false, reason: 'invalid' })
+  })
+
   it('refuses a file from a newer format version', () => {
     const text = edited((file) => Object.assign(file, { version: 2, tables: 'anything' }))
     expect(parseExport(text, context)).toEqual({ ok: false, reason: 'newer_version' })

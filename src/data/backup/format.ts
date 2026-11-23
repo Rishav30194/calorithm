@@ -191,7 +191,8 @@ const fitsDatabase = (context: ParseContext) => ({
   log_entries: (row: LogEntryRow) =>
     dayFits(row.date) &&
     isOneOf(meals, row.meal) &&
-    (row.food_id === null) !== (row.recipe_id === null) &&
+    // A quick add (phase 16) has neither; no entry has both.
+    (row.food_id === null || row.recipe_id === null) &&
     positiveUpTo(row.servings, 1000) &&
     hasDecimals(row.servings, 2) &&
     textFits(row.name, 100) &&

@@ -988,8 +988,8 @@ meal without editing the recipe.
 **Acceptance criteria:**
 - [ ] A quick add of 450 kcal and 30 g protein counts in the day and meal totals, syncs, and
   survives export and import.
-- [ ] The database refuses an entry with both a food and a recipe, and accepts one with
-  neither (pgTAP).
+- [x] The database refuses an entry with both a food and a recipe, and accepts one with
+  neither (pgTAP). (`supabase/tests/log_entries_without_source.test.sql`)
 - [ ] A quick add never appears in search, **Recent**, or the meal list.
 - [x] Half a recipe of 4 servings logged as ingredients puts each ingredient on the plate at
   one eighth of its recipe amount. (`ingredientServings` in `src/domain/nutrition.test.ts`,
@@ -1012,6 +1012,11 @@ meal without editing the recipe.
   replaces the plan's separate **Log as ingredients** action in the picker: the plate is
   where amounts change, so the swap lives there. An ingredient never drops below 0.01
   servings.
+- PR 2: migration `20261122070000_log_entries_without_source.sql` replaces
+  `log_entries_one_source` with `log_entries_at_most_one_source`; `Entry.source` is nullable,
+  and such entries count in totals, show, change servings, copy, export, and import, but are
+  never suggested. `log_entries.test.sql`'s "neither is rejected" case now expects it to be
+  accepted, since the rule changed on purpose.
 
 ## Phase 17 — Moving around and editing the log
 

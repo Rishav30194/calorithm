@@ -601,3 +601,22 @@ describe('ingredientServings', () => {
     )
   })
 })
+
+// Phase 16: a quick add has no food or recipe; it counts in totals but is never suggested.
+describe('entries without a source', () => {
+  const quick = entry({ source: null, name: 'Thali', kcal: 850, proteinG: 30 })
+
+  it('count in the day’s totals', () => {
+    expect(sumNutrients([entry(), quick]).kcal).toBe(1000)
+  })
+
+  it('are never scored, recent, most used, or usual for a meal', () => {
+    const logs = [quick, entry({ date: today })]
+    expect([...useScores(logs, today).keys()]).toEqual(['food:oats'])
+    expect(recentPicks(logs, 10).map((pick) => pick.name)).toEqual(['Oats'])
+    expect(mostUsed(logs, today, 10).map((pick) => pick.name)).toEqual(['Oats'])
+    expect(
+      usualForMeal([{ ...quick, date: today }], 'breakfast', today, 10).map((pick) => pick.name),
+    ).toEqual([])
+  })
+})
