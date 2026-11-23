@@ -21,3 +21,6 @@ export const daysBetween = (from: string, to: string): number =>
 // A real calendar day in YYYY-MM-DD form; 2027-02-29 is not one.
 export const isDay = (value: string): boolean =>
   /^\d{4}-\d{2}-\d{2}$/.test(value) && fromUtc(toUtc(value)) === value
+
+// The day of the week, from Monday as 0 to Sunday as 6.
+export const weekdayOf = (day: string): number => (new Date(toUtc(day)).getUTCDay() + 6) % 7

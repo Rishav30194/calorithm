@@ -1,7 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 
-import { addDays, daysBetween, EARLIEST_DAY, isDay } from './dates'
+import { addDays, daysBetween, EARLIEST_DAY, isDay, weekdayOf } from './dates'
 
 const day = fc
   .integer({ min: Date.UTC(2000, 0, 1), max: Date.UTC(2100, 0, 1) })
@@ -69,6 +69,25 @@ describe('daysBetween', () => {
     fc.assert(
       fc.property(day, fc.integer({ min: -400, max: 400 }), (start, days) => {
         expect(daysBetween(start, addDays(start, days))).toBe(days)
+      }),
+    )
+  })
+})
+
+describe('weekdayOf', () => {
+  it('counts from Monday as 0 to Sunday as 6', () => {
+    // 2026-11-23 is a Monday.
+    expect(weekdayOf('2026-11-23')).toBe(0)
+    expect(weekdayOf('2026-11-28')).toBe(5)
+    expect(weekdayOf('2026-11-29')).toBe(6)
+    expect(weekdayOf('2000-01-01')).toBe(5)
+  })
+
+  it('moves on by one each day', () => {
+    fc.assert(
+      fc.property(fc.integer({ min: 0, max: 20_000 }), (offset) => {
+        const day = addDays(EARLIEST_DAY, offset)
+        expect(weekdayOf(addDays(day, 1))).toBe((weekdayOf(day) + 1) % 7)
       }),
     )
   })
