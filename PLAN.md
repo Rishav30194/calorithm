@@ -96,7 +96,7 @@ shape. To handle that:
 | `profile` | Height, birth date, sex, activity level, units, goal rate, protein g per kg, calorie floor, and higher-calorie days (decision 0033). |
 | `foods` | Name, serving size and unit, kcal and protein per serving, archived flag. |
 | `recipes` and `recipe_items` | A recipe's name and serving count, and the foods and amounts in it. |
-| `log_entries` | Date, meal, a food or recipe, servings, and kcal and protein copied at log time. |
+| `log_entries` | Date, meal, a food or recipe (or neither, for a quick add: decision 0034), servings, and kcal and protein copied at log time. |
 | `days` | Date and a **day complete** flag, set when you've logged everything you ate that day. |
 | `weights` | Date and weight in kg, one row per day. |
 | `checkins` | Week start, maintenance estimate, the kcal and protein targets set, and the inputs used. |

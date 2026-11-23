@@ -261,9 +261,9 @@ export const copyMealTo = (
   { from, to }: { from: Target; to: Target },
 ): Promise<LogEntryRow[]> =>
   db.transaction('rw', db.rows('log_entries'), db.outbox, async () => {
-    // The same rows the day's view and the copy preview count: a row with no food or recipe,
-    // or a meal this version doesn't know, is never copied. Nor is one stored past the
-    // database's limits before the log checked them: it can never sync, and nor could a copy.
+    // The same rows the day's view and the copy preview count: a meal this version doesn't
+    // know is never copied, while a quick add is. Nor is a row stored past the database's
+    // limits before the log checked them: it can never sync, and nor could a copy.
     const sources = (await liveRowsOn(db, from.date)).filter(
       (row) =>
         row.meal === from.meal &&

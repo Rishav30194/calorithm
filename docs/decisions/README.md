@@ -53,3 +53,4 @@ change a decision, write a new record that supersedes the old one.
 | [0031](0031-amount-step-for-weighed-foods.md) | An amount step for foods measured by weight | Accepted |
 | [0032](0032-built-in-items-beyond-usda.md) | Built-in items beyond USDA: CoFID values and labelled estimates | Accepted |
 | [0033](0033-higher-calorie-days.md) | Higher-calorie days as a fixed extra, worked out when shown | Accepted |
+| [0034](0034-quick-add-entries-without-a-source.md) | Quick adds as log entries with no food or recipe | Accepted |
