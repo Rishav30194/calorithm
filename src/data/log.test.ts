@@ -12,6 +12,7 @@ import {
   logCatalogFood,
   logFood,
   logNewFood,
+  logPlate,
   logRecipe,
   logScannedFood,
   logSource,
@@ -552,6 +553,48 @@ describe('quickPicks', () => {
     expect(picks.byMeal.snacks).toEqual([])
   })
 
+  it('breaks ties in a meal’s list by the food’s current name', async () => {
+    const zucchini = await createFood(db, time.clock, userId, {
+      name: 'Zucchini',
+      servingSize: 40,
+      servingUnit: 'g',
+      kcal: 150,
+      proteinG: 5,
+      carbsG: 20,
+      fatG: 3,
+    })
+    const rice = await createFood(db, time.clock, userId, {
+      name: 'Rice',
+      servingSize: 75,
+      servingUnit: 'g',
+      kcal: 270,
+      proteinG: 5.3,
+      carbsG: 20,
+      fatG: 3,
+    })
+    for (const food of [zucchini, rice]) {
+      await logFood(db, time.clock, userId, {
+        date: '2026-11-20',
+        meal: 'dinner',
+        food,
+        servings: 1,
+      })
+    }
+    // Logged as "Zucchini", now named "Courgette": it sorts as Courgette, before Rice.
+    await updateFood(db, time.clock, zucchini.id, {
+      name: 'Courgette',
+      servingSize: 40,
+      servingUnit: 'g',
+      kcal: 150,
+      proteinG: 5,
+      carbsG: 20,
+      fatG: 3,
+    })
+
+    const picks = await quickPicks(db, '2026-11-21')
+    expect(picks.byMeal.dinner.map((pick) => pick.name)).toEqual(['Courgette', 'Rice'])
+  })
+
   it('leaves out entries more than 180 days before the day', async () => {
     const oats = await addOats()
     await logFood(db, time.clock, userId, {
@@ -889,5 +932,99 @@ describe('logCatalogFood servings (phase 14)', () => {
       0.5,
     )
     expect(entry).toMatchObject({ servings: 0.5, kcal: 20, serving_size: 100, serving_unit: 'g' })
+  })
+})
+
+// Phase 15: a plate of foods, recipes, and built-in items logged in one go.
+describe('logPlate', () => {
+  const at = { date: '2026-11-22', meal: 'lunch' } as const
+  const onion = {
+    id: 'onion',
+    name: 'Onion',
+    aliases: ['pyaz'],
+    category: 'vegetables',
+    servingSize: 100,
+    servingUnit: 'g',
+    kcal: 40,
+    proteinG: 1.1,
+    carbsG: 9.3,
+    fatG: 0.1,
+    source: { dataset: 'SR Legacy', fdcId: 170000 },
+  }
+
+  it('logs every item in order, with its values, in one go', async () => {
+    const oats = await addOats()
+    const recipe = await createRecipe(db, time.clock, userId, {
+      name: 'Porridge',
+      servings: 2,
+      items: [{ foodId: oats.id, servings: 2 }],
+    })
+
+    const result = await logPlate(db, time.clock, userId, at, [
+      { kind: 'saved', source: { kind: 'food', id: oats.id }, servings: 1.5 },
+      { kind: 'saved', source: { kind: 'recipe', id: recipe.id }, servings: 1 },
+      { kind: 'builtIn', item: onion, servings: 1.5 },
+    ])
+
+    expect(result.ok).toBe(true)
+    const entries = await entriesOn(db, at.date)
+    expect(entries.map((entry) => [entry.name, entry.servings, entry.kcal])).toEqual([
+      ['Oats', 1.5, 225],
+      ['Porridge', 1, 150],
+      ['Onion', 1.5, 60],
+    ])
+    expect(entries.every((entry) => entry.meal === 'lunch')).toBe(true)
+  })
+
+  it('logs a built-in item you already copied with your copy’s values', async () => {
+    const [copy] = (
+      await logPlate(db, time.clock, userId, at, [{ kind: 'builtIn', item: onion, servings: 1 }])
+    ).ok
+      ? await db.rows('foods').toArray()
+      : []
+    if (!copy) throw new Error('no copy')
+    await updateFood(db, time.clock, copy.id, {
+      name: 'Red onion',
+      servingSize: 100,
+      servingUnit: 'g',
+      kcal: 44,
+      proteinG: 1.1,
+      carbsG: 9.3,
+      fatG: 0.1,
+    })
+
+    await logPlate(db, time.clock, userId, { ...at, meal: 'dinner' }, [
+      { kind: 'builtIn', item: onion, servings: 1 },
+    ])
+
+    const dinner = (await entriesOn(db, at.date)).filter((entry) => entry.meal === 'dinner')
+    expect(dinner.map((entry) => [entry.name, entry.kcal])).toEqual([['Red onion', 44]])
+  })
+
+  it('logs nothing when one item is past the database’s limits', async () => {
+    const oats = await addOats()
+    // 600 servings of 20 g carbs is 12000 g, past the 10000 g an entry holds.
+    expect(
+      await logPlate(db, time.clock, userId, at, [
+        { kind: 'saved', source: { kind: 'food', id: oats.id }, servings: 1 },
+        { kind: 'saved', source: { kind: 'food', id: oats.id }, servings: 600 },
+      ]),
+    ).toEqual({ ok: false, reason: 'too_large', index: 1 })
+    expect(await entriesOn(db, at.date)).toEqual([])
+  })
+
+  it('logs nothing when an item is no longer stored, and copies no built-in item', async () => {
+    expect(
+      await logPlate(db, time.clock, userId, at, [
+        { kind: 'builtIn', item: onion, servings: 1 },
+        {
+          kind: 'saved',
+          source: { kind: 'food', id: 'b0000000-0000-4000-8000-0000000000ff' },
+          servings: 1,
+        },
+      ]),
+    ).toEqual({ ok: false, reason: 'not_found', index: 1 })
+    expect(await entriesOn(db, at.date)).toEqual([])
+    expect(await db.rows('foods').count()).toBe(0)
   })
 })

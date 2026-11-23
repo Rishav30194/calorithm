@@ -21,8 +21,10 @@ import {
   type LoggedEntry,
   logCatalogFood,
   logNewFood,
+  logPlate,
   logScannedFood,
   logSource,
+  type PlateItem,
   type QuickPicks,
   quickPicks,
   removeEntry,
@@ -74,7 +76,15 @@ export const useMealCount = (date: string, meal: Meal): number | undefined => {
 
 type Slot = { date: string; meal: Meal }
 
+// How logging a plate ended, for the picker's message (phase 15): which item stopped it, by
+// its place on the plate, or a failure to write.
+export type PlateOutcome =
+  | { kind: 'logged' }
+  | { kind: 'too_large' | 'not_found'; index: number }
+  | { kind: 'failed' }
+
 export type LogActions = {
+  logPlate: (slot: Slot, items: PlateItem[]) => Promise<PlateOutcome>
   log: (slot: Slot, source: Source, servings: number) => Promise<boolean>
   logCatalog: (slot: Slot, item: CatalogFood, servings?: number) => Promise<boolean>
   // A barcode scan's results: a saved food, or a new one saved from the form.
@@ -96,6 +106,10 @@ export const useLogActions = (): LogActions => {
       return result
     }
     return {
+      logPlate: async (slot, items) => {
+        const result = await synced(logPlate(ctx.db, ctx.clock, userId, slot, items))
+        return result.ok ? { kind: 'logged' } : { kind: result.reason, index: result.index }
+      },
       log: async (slot, source, servings) =>
         (await synced(logSource(ctx.db, ctx.clock, userId, { ...slot, source, servings }))).ok,
       logCatalog: async (slot, item, servings) => {
