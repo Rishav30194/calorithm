@@ -8,21 +8,13 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 Where things stand (session ended 2026-11-22): the app is live at
 `https://rishav30194.github.io/calorithm/` as **0.12.0** (tag `v0.12.0`). Phases 1 to 11 are
-done; phase 13 is parked; phase 14 is deployed with one check left; phase 12 waits for the
-user's MacroFactor subscription. The hosted project has migrations through
+done; phase 14 is done (the user's iPhone check passed, 2026-11-22); phase 13 is parked; phase 12
+waits for the user's MacroFactor subscription. Foods from a barcode scan or a nutrition
+label log one serving without the amount step (decision 0031); the user is fine with that,
+since editing the entry's amount recalculates the totals. The hosted project has migrations through
 `20261122050000`, and `min_app_version` is 0.3.0. No PR is open.
 
-1. **Close phase 14.** All three PRs are deployed: logging by weight (0.10.0, #45), built-in
-   foods in recipes and on the Foods screen (0.11.0, #46), and spices from CoFID plus
-   labelled estimates (0.12.0, #47, decision 0032). Left: the user tries logging by weight
-   on the iPhone (a gram-based food opens the amount step; editing an entry shows grams).
-   Then tick nothing more (every criterion is met) and set phase 14 to Done in
-   `docs/phases.md`. Each device's first sync on 0.10.0 or later rereads its log entries
-   once (Dexie version 9).
-2. **Follow-up from phase 14:** foods saved and logged from a barcode scan or a nutrition
-   label log one serving without the amount step (decision 0031). Route them through it,
-   if the user wants, as a small PR.
-3. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
+1. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
    iPhone but needs a close photo and sometimes misses fat, carbs, protein, or the serving
    size. Plan when resumed: the user puts 5 to 10 failing photos in `~/Downloads/labels`
    (used locally only, never committed); measure each change on them and keep what helps:
@@ -32,11 +24,13 @@ user's MacroFactor subscription. The hosted project has migrations through
    read separately, "g" read as "9"), show the read text beside the form with **Fix the
    text**, and maybe a crop step. Workaround meanwhile: crop to the table in Photos first.
    The first photo downloads about 4.5 MB (checked on the live site).
-4. On a real iPhone, check that **Export changes** in the sign-out warning and **Export
-   data** in settings save the file from the installed app, and that **Import data** opens
-   the Files picker.
-5. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
-6. **Phase 12** (review against MacroFactor) starts when the user has the subscription.
+2. Optional iPhone check: **Export changes** in the sign-out warning. It shows only when
+   signing out with changes that haven't synced (for example, log an entry offline, then
+   sign out). **Export data** in settings and **Import data** passed on the user's iPhone
+   (2026-11-22).
+3. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+4. **Phase 12** (review against MacroFactor) stays on hold until the user has the
+   subscription.
 
 How the user works: macros only (kcal, protein, carbs, fat), no AI logging, no bulk food
 database, Indian foods with no beef or pork. The user asks for push, PR, and merge
