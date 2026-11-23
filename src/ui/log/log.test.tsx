@@ -528,6 +528,7 @@ describe('LogPicker plate', () => {
         onLogScanned={vi.fn()}
         onLogNew={vi.fn()}
         onLogPlate={vi.fn()}
+        onQuickAdd={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,

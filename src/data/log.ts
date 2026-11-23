@@ -81,8 +81,9 @@ const newEntry = (
     loggedAt?: string
   },
 ): Promise<LogEntryRow> => {
-  // Callers check entryFits first: the log screens, logSource, changeServings, and
-  // copyMealTo. One serving of a saved or built-in food always fits, so reaching this is a bug.
+  // Callers check entryFits first: the log screens, logSource, changeServings, copyMealTo, and
+  // logPlate. One serving of a saved or built-in food always fits, and a quick add is held to a
+  // food serving's ranges by its form, so reaching this is a bug.
   if (!entryFits(fields.perServing, fields.servings)) {
     return Promise.reject(new Error('newEntry: the entry is past the database’s limits'))
   }
