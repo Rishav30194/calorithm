@@ -967,7 +967,7 @@ phases 15 to 20.
 
 ## Phase 16 — Quick add, and recipes logged as ingredients
 
-**Status:** In progress
+**Status:** Done (2026-11-23): deployed in 0.18.0, and the user's iPhone check passed
 
 **Goal:** log a one-off meal by its numbers, and adjust a recipe's ingredients for one
 meal without editing the recipe.
