@@ -23,6 +23,8 @@ const newProfile = (userId: string): ProfileRow => ({
   goal_rate_kg_per_week: 0,
   protein_g_per_kg: 1.8,
   calorie_floor_kcal: 1200,
+  higher_kcal_days: null,
+  higher_kcal_extra: null,
   updated_at: '',
   client_updated_at: '',
   deleted_at: null,

@@ -32,10 +32,12 @@ const profile: ProfileRow = {
   goal_rate_kg_per_week: 0,
   protein_g_per_kg: 1.8,
   calorie_floor_kcal: 1200,
+  higher_kcal_days: 96,
+  higher_kcal_extra: 400,
   updated_at: '2026-11-20T10:00:00.000001+00:00',
   client_updated_at: '2026-11-20T10:00:00.000Z',
   deleted_at: null,
-  schema_version: 1,
+  schema_version: 2,
 }
 
 describe('profileSpec', () => {
@@ -56,6 +58,28 @@ describe('profileSpec', () => {
 
   it('drops columns the table does not have', () => {
     expect(profileSpec.parse({ ...profile, extra: true })).toEqual(profile)
+  })
+  // Higher-calorie days (phase 19): the database's ranges, set together, not set when absent.
+  it('reads a profile saved before higher-calorie days as not set', () => {
+    const { higher_kcal_days: _, higher_kcal_extra: __, ...older } = profile
+    expect(profileSpec.parse(older)).toEqual({
+      ...profile,
+      higher_kcal_days: null,
+      higher_kcal_extra: null,
+    })
+  })
+
+  it('rejects higher-calorie days outside the database’s ranges or set alone', () => {
+    expect(profileSpec.parse({ ...profile, higher_kcal_days: 127 })).toBeNull()
+    expect(profileSpec.parse({ ...profile, higher_kcal_days: -1 })).toBeNull()
+    expect(profileSpec.parse({ ...profile, higher_kcal_days: 1.5 })).toBeNull()
+    expect(profileSpec.parse({ ...profile, higher_kcal_extra: 5001 })).toBeNull()
+    expect(profileSpec.parse({ ...profile, higher_kcal_extra: null })).toBeNull()
+  })
+
+  it('declares the columns version 2 added, so older outbox entries leave them out', () => {
+    expect(profileSpec.schemaVersion).toBe(2)
+    expect(profileSpec.addedColumns).toEqual({ 2: ['higher_kcal_days', 'higher_kcal_extra'] })
   })
 })
 

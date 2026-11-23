@@ -23,6 +23,8 @@ const serverProfile = (overrides: Partial<ProfileRow> = {}): ProfileRow => ({
   goal_rate_kg_per_week: -0.5,
   protein_g_per_kg: 2,
   calorie_floor_kcal: 1500,
+  higher_kcal_days: null,
+  higher_kcal_extra: null,
   ...overrides,
 })
 

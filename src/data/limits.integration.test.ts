@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { beforeAll, describe, expect, it } from 'vitest'
 
+import { MAX_HIGHER_DAYS_MASK, MAX_HIGHER_KCAL_EXTRA } from '@/domain/calorieDays'
 import { limits } from '@/domain/limits'
 import type { Database, TablesInsert } from './database.types'
 
@@ -178,5 +179,24 @@ describe('limits match the database', () => {
       limits.food.servingSize,
       0.01,
     )
+  })
+
+  it('higher-calorie days on the profile', async () => {
+    // The profile's id is the user's, so each check updates the one row.
+    const profileCode = async (days: number, extra: number): Promise<string | null> => {
+      const { error } = await client.from('profile').upsert({
+        id: userId,
+        user_id: userId,
+        higher_kcal_days: days,
+        higher_kcal_extra: extra,
+        client_updated_at: new Date().toISOString(),
+        schema_version: 2,
+      })
+      return error ? error.code : null
+    }
+    expect(await profileCode(MAX_HIGHER_DAYS_MASK, 0)).toBeNull()
+    expect(await profileCode(MAX_HIGHER_DAYS_MASK + 1, 0)).toBe('23514')
+    expect(await profileCode(0, MAX_HIGHER_KCAL_EXTRA)).toBeNull()
+    expect(await profileCode(0, MAX_HIGHER_KCAL_EXTRA + 1)).toBe('23514')
   })
 })

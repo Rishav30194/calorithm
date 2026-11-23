@@ -6,6 +6,8 @@ import {
   higherDayCount,
   kcalTargetOn,
   MAX_HIGHER_DAYS,
+  MAX_HIGHER_DAYS_MASK,
+  MAX_HIGHER_KCAL_EXTRA,
   maxExtraKcal,
   weekTargets,
 } from './calorieDays'
@@ -107,5 +109,17 @@ describe('trimming at the floor', () => {
       extraKcal: 0,
       trimmed: true,
     })
+  })
+})
+
+describe('the stored setting’s ranges', () => {
+  it('allows any six days but never all seven', () => {
+    expect(higherDayCount(MAX_HIGHER_DAYS_MASK)).toBe(MAX_HIGHER_DAYS)
+    expect(higherDayCount(MAX_HIGHER_DAYS_MASK + 1)).toBe(7)
+    // Every mask of six days is within the range.
+    for (let left = 0; left < 7; left += 1) {
+      expect(127 - (1 << left)).toBeLessThanOrEqual(MAX_HIGHER_DAYS_MASK)
+    }
+    expect(MAX_HIGHER_KCAL_EXTRA).toBe(5000)
   })
 })

@@ -1,5 +1,6 @@
 import { z } from 'zod/mini'
 
+import { MAX_HIGHER_DAYS_MASK, MAX_HIGHER_KCAL_EXTRA } from '@/domain/calorieDays'
 import { EARLIEST_DAY } from '@/domain/dates'
 import { limits } from '@/domain/limits'
 
@@ -76,21 +77,30 @@ const dayDate = z.iso.date().check(z.refine((date) => date >= EARLIEST_DAY))
 
 export type ProfileRow = Tables<'profile'>
 
-const profileSchema = z.object({
-  ...syncColumns,
-  height_cm: z.nullable(z.number()),
-  birth_date: z.nullable(z.string()),
-  sex: z.nullable(z.string()),
-  activity_level: z.nullable(z.string()),
-  units: z.string(),
-  goal_rate_kg_per_week: z.number(),
-  protein_g_per_kg: z.number(),
-  calorie_floor_kcal: z.number(),
-})
+// Higher-calorie days (decision 0033): not set (null) on profiles saved before them, and a
+// profile without the columns reads as not set.
+const optionalInt = (max: number) => z._default(z.nullable(z.int().check(...between(0, max))), null)
+
+const profileSchema = z
+  .object({
+    ...syncColumns,
+    height_cm: z.nullable(z.number()),
+    birth_date: z.nullable(z.string()),
+    sex: z.nullable(z.string()),
+    activity_level: z.nullable(z.string()),
+    units: z.string(),
+    goal_rate_kg_per_week: z.number(),
+    protein_g_per_kg: z.number(),
+    calorie_floor_kcal: z.number(),
+    higher_kcal_days: optionalInt(MAX_HIGHER_DAYS_MASK),
+    higher_kcal_extra: optionalInt(MAX_HIGHER_KCAL_EXTRA),
+  })
+  .check(z.refine((row) => (row.higher_kcal_days === null) === (row.higher_kcal_extra === null)))
 
 export const profileSpec: TableSpec<ProfileRow> = {
   name: 'profile',
-  schemaVersion: 1,
+  schemaVersion: 2,
+  addedColumns: { 2: ['higher_kcal_days', 'higher_kcal_extra'] },
   parse: parser(profileSchema),
 }
 

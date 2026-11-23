@@ -107,14 +107,14 @@ isOneToOne: false
                   ]
                 },"profile": {
                   Row: {
-                    "activity_level": string | null,"birth_date": string | null,"calorie_floor_kcal": number,"client_updated_at": string,"deleted_at": string | null,"goal_rate_kg_per_week": number,"height_cm": number | null,"id": string,"protein_g_per_kg": number,"schema_version": number,"sex": string | null,"units": string,"updated_at": string,"user_id": string
+                    "activity_level": string | null,"birth_date": string | null,"calorie_floor_kcal": number,"client_updated_at": string,"deleted_at": string | null,"goal_rate_kg_per_week": number,"height_cm": number | null,"higher_kcal_days": number | null,"higher_kcal_extra": number | null,"id": string,"protein_g_per_kg": number,"schema_version": number,"sex": string | null,"units": string,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "activity_level"?: string | null,"birth_date"?: string | null,"calorie_floor_kcal"?: number,"client_updated_at": string,"deleted_at"?: string | null,"goal_rate_kg_per_week"?: number,"height_cm"?: number | null,"id": string,"protein_g_per_kg"?: number,"schema_version": number,"sex"?: string | null,"units"?: string,"updated_at"?: string,"user_id"?: string
+                    "activity_level"?: string | null,"birth_date"?: string | null,"calorie_floor_kcal"?: number,"client_updated_at": string,"deleted_at"?: string | null,"goal_rate_kg_per_week"?: number,"height_cm"?: number | null,"higher_kcal_days"?: number | null,"higher_kcal_extra"?: number | null,"id": string,"protein_g_per_kg"?: number,"schema_version": number,"sex"?: string | null,"units"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "activity_level"?: string | null,"birth_date"?: string | null,"calorie_floor_kcal"?: number,"client_updated_at"?: string,"deleted_at"?: string | null,"goal_rate_kg_per_week"?: number,"height_cm"?: number | null,"id"?: string,"protein_g_per_kg"?: number,"schema_version"?: number,"sex"?: string | null,"units"?: string,"updated_at"?: string,"user_id"?: string
+                    "activity_level"?: string | null,"birth_date"?: string | null,"calorie_floor_kcal"?: number,"client_updated_at"?: string,"deleted_at"?: string | null,"goal_rate_kg_per_week"?: number,"height_cm"?: number | null,"higher_kcal_days"?: number | null,"higher_kcal_extra"?: number | null,"id"?: string,"protein_g_per_kg"?: number,"schema_version"?: number,"sex"?: string | null,"units"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     
