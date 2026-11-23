@@ -8,6 +8,7 @@ import type { CatalogState, PlateOutcome } from '@/data/logHooks'
 import { formatAmount, formatKcal, formatProtein } from '@/domain/format'
 import { entryFits } from '@/domain/limits'
 import {
+  ingredientServings,
   type Meal,
   type Nutrients,
   type QuickPick,
@@ -180,24 +181,24 @@ export const LogPicker = ({
       perServing: perServingOf(pick.source),
     }))
 
+  const foodRow = (food: FoodView, prefix: string): Row & { source: Source } => ({
+    key: `${prefix}:food:${food.id}`,
+    source: { kind: 'food' as const, id: food.id },
+    pick: { source: { kind: 'food' as const, id: food.id }, servings: 1 },
+    name: food.name,
+    detail: strings.foods.detail(
+      strings.foods.serving(formatAmount(food.servingSize, locale), food.servingUnit),
+      macroText(food, locale),
+    ),
+    weighed: weighedOf(food.servingSize, food.servingUnit, food),
+    portion: weightPerServing(food.servingSize, food.servingUnit),
+    perServing: food,
+  })
+
   const scoreOf = (source: Source) => picks?.scores.get(sourceKey(source)) ?? 0
   const needle = query.trim().toLocaleLowerCase()
   const saved: (Row & { source: Source })[] = [
-    ...(foods ?? [])
-      .filter((food) => !food.archived)
-      .map((food) => ({
-        key: `all:food:${food.id}`,
-        source: { kind: 'food' as const, id: food.id },
-        pick: { source: { kind: 'food' as const, id: food.id }, servings: 1 },
-        name: food.name,
-        detail: strings.foods.detail(
-          strings.foods.serving(formatAmount(food.servingSize, locale), food.servingUnit),
-          macroText(food, locale),
-        ),
-        weighed: weighedOf(food.servingSize, food.servingUnit, food),
-        portion: weightPerServing(food.servingSize, food.servingUnit),
-        perServing: food,
-      })),
+    ...(foods ?? []).filter((food) => !food.archived).map((food) => foodRow(food, 'all')),
     ...(recipes ?? [])
       .filter((recipe) => !recipe.archived)
       .map((recipe) => ({
@@ -297,6 +298,45 @@ export const LogPicker = ({
     setPlate((current) =>
       current.map((entry) => (entry.id === editing.id ? { ...entry, servings } : entry)),
     )
+    setEditing(null)
+  }
+
+  // Swaps a recipe on the plate for its ingredients, each scaled to the servings typed, so one
+  // meal's amounts can change without editing the recipe (phase 16).
+  const splitRecipe = () => {
+    if (!editing || !('source' in editing.row.pick)) return
+    if (servings === null) {
+      setAmountError(strings.log.amount.error)
+      return
+    }
+    const recipe = recipeById.get(editing.row.pick.source.id)
+    if (!recipe) return
+    const amounts = ingredientServings(recipe.servings, servings, recipe.ingredients)
+    const entries = recipe.ingredients.flatMap((ingredient, index): PlateEntry[] => {
+      const food = foodById.get(ingredient.foodId)
+      if (!food) return []
+      nextPlateId.current += 1
+      return [
+        {
+          id: nextPlateId.current,
+          row: foodRow(food, 'ingredient'),
+          servings: amounts[index] ?? ingredient.servings,
+        },
+      ]
+    })
+    // A recipe whose foods are all gone would leave nothing in its place, so it stays.
+    if (entries.length === 0) {
+      setAmountError(strings.log.plate.noIngredients)
+      return
+    }
+    const tooLarge = entries.find(
+      (entry) => entry.row.perServing && !entryFits(entry.row.perServing, entry.servings),
+    )
+    if (tooLarge) {
+      setAmountError(strings.log.plate.tooLarge(tooLarge.row.name))
+      return
+    }
+    setPlate((current) => current.flatMap((entry) => (entry.id === editing.id ? entries : [entry])))
     setEditing(null)
   }
 
@@ -499,6 +539,15 @@ export const LogPicker = ({
           >
             {strings.log.plate.update}
           </button>
+          {'source' in editing.row.pick && editing.row.pick.source.kind === 'recipe' && (
+            <button
+              type="button"
+              onClick={splitRecipe}
+              className="min-h-11 rounded-lg border border-border px-4 font-medium"
+            >
+              {strings.log.plate.useIngredients}
+            </button>
+          )}
         </form>
       ) : panel === 'label' ? (
         <LabelPanel

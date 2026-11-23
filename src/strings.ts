@@ -69,6 +69,8 @@ export const strings = {
       remove: (name: string) => `Remove ${name} from the plate`,
       removeShort: 'Remove',
       update: 'Update plate',
+      useIngredients: 'Use the ingredients instead',
+      noIngredients: 'This recipe has none of its foods left, so it stays as it is.',
       protein: (amount: string) => `${amount} protein`,
       total: (nutrients: string) => `Total: ${nutrients}`,
       logAll: 'Log all',

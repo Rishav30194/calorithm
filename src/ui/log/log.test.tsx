@@ -45,6 +45,11 @@ const chili: RecipeView = {
   archived: false,
   totals: { kcal: 2000, proteinG: 120, carbsG: null, fatG: null },
   perServing: { kcal: 500, proteinG: 30, carbsG: null, fatG: null },
+  // 4 servings: 8 bowls of oats (40 g each) and 2 rotis.
+  ingredients: [
+    { foodId: 'f1', servings: 8 },
+    { foodId: 'f9', servings: 2 },
+  ],
 }
 const picks: QuickPicks = {
   recent: [{ source: { kind: 'food', id: 'f1' }, name: 'Oats', servings: 2, count: 1 }],
@@ -479,6 +484,74 @@ describe('LogPicker plate', () => {
       { kind: 'saved', source: { kind: 'recipe', id: 'r1' }, servings: 1 },
     ])
     expect(onClose).toHaveBeenCalled()
+  })
+
+  // Phase 16: half a serving of a 4-serving recipe is an eighth of each ingredient.
+  it('swaps a recipe for its ingredients, scaled to the servings typed', async () => {
+    const { onLogPlate, add } = renderPlate()
+    await add('Chili')
+    await userEvent.click(screen.getByRole('button', { name: text.plate.edit('Chili') }))
+    const field = screen.getByLabelText(text.amount.servings)
+    await userEvent.clear(field)
+    await userEvent.type(field, '0.5')
+    await userEvent.click(screen.getByRole('button', { name: text.plate.useIngredients }))
+
+    const plate = screen.getByRole('region', { name: text.plate.title })
+    expect(plate).not.toHaveTextContent('Chili')
+    await userEvent.click(within(plate).getByRole('button', { name: text.plate.logAll }))
+    expect(onLogPlate).toHaveBeenCalledWith([
+      { kind: 'saved', source: { kind: 'food', id: 'f1' }, servings: 1 },
+      { kind: 'saved', source: { kind: 'food', id: 'f9' }, servings: 0.25 },
+    ])
+  })
+
+  it('keeps a recipe whose foods are all gone, and says why', async () => {
+    render(
+      <LogPicker
+        meal="lunch"
+        picks={{ recent: [], mostUsed: [], byMeal: emptyMeals, scores: new Map() }}
+        foods={[]}
+        recipes={[chili]}
+        builtIn={undefined}
+        locale="en-US"
+        onPickBuiltIn={vi.fn()}
+        onSearch={vi.fn()}
+        onRetryBuiltIn={vi.fn()}
+        onLookup={vi.fn()}
+        onLogScanned={vi.fn()}
+        onLogNew={vi.fn()}
+        onLogPlate={vi.fn()}
+        onPick={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+    // Chili's foods are Oats and Roti, and neither is loaded here.
+    await userEvent.click(screen.getByRole('button', { name: text.plate.add('Chili') }))
+    await userEvent.click(screen.getByRole('button', { name: text.plate.edit('Chili') }))
+    await userEvent.click(screen.getByRole('button', { name: text.plate.useIngredients }))
+
+    expect(screen.getByLabelText(text.amount.servings)).toHaveAccessibleDescription(
+      text.plate.noIngredients,
+    )
+  })
+
+  it('says when the servings for the ingredients can’t be read', async () => {
+    const { add } = renderPlate()
+    await add('Chili')
+    await userEvent.click(screen.getByRole('button', { name: text.plate.edit('Chili') }))
+    await userEvent.clear(screen.getByLabelText(text.amount.servings))
+    await userEvent.click(screen.getByRole('button', { name: text.plate.useIngredients }))
+
+    expect(screen.getByLabelText(text.amount.servings)).toHaveAccessibleDescription(
+      text.amount.error,
+    )
+  })
+
+  it('offers the ingredients only for a recipe', async () => {
+    const { add } = renderPlate()
+    await add('Oats')
+    await userEvent.click(screen.getByRole('button', { name: text.plate.edit('Oats') }))
+    expect(screen.queryByRole('button', { name: text.plate.useIngredients })).toBeNull()
   })
 
   it('adds a tapped row to the plate while it has items, instead of logging it', async () => {
