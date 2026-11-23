@@ -60,6 +60,7 @@ const Picker = ({
       locale={locale}
       onPick={(source, servings) => actions.log({ date, meal }, source, servings)}
       onPickBuiltIn={(item, servings) => actions.logCatalog({ date, meal }, item, servings)}
+      onLogPlate={(items) => actions.logPlate({ date, meal }, items)}
       onSearch={() => setSearched(true)}
       onLookup={lookUp}
       onLogScanned={(foodId) => actions.logScanned({ date, meal }, foodId)}

@@ -60,6 +60,24 @@ export const strings = {
     complete: 'I logged everything I ate this day',
     completeHint: 'Only complete days count toward your weekly estimate.',
     completeFailed: 'Couldn’t save that. Try again.',
+    // Phase 15: a meal built up before logging it at once.
+    plate: {
+      title: 'Plate',
+      add: (name: string) => `Add ${name} to the plate`,
+      edit: (name: string) => `Change the amount of ${name}`,
+      editShort: 'Change',
+      remove: (name: string) => `Remove ${name} from the plate`,
+      removeShort: 'Remove',
+      update: 'Update plate',
+      protein: (amount: string) => `${amount} protein`,
+      total: (nutrients: string) => `Total: ${nutrients}`,
+      logAll: 'Log all',
+      tooLarge: (name: string) =>
+        `${name} is more than one entry can hold. Change its amount, or remove it.`,
+      discardPrompt: 'Close and throw away the plate? Nothing on it is logged yet.',
+      keep: 'Keep the plate',
+      discard: 'Throw it away',
+    },
     picker: {
       recent: 'Recent',
       mostUsed: 'Most used',

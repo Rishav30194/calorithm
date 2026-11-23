@@ -43,7 +43,7 @@ const logFromSearch = async (page: Page, mealName: string, food: string) => {
   await page.getByRole('button', { name: `Add to ${mealName}` }).click()
   const picker = page.getByRole('dialog', { name: `Add to ${mealName}` })
   await picker.getByLabel('Search foods and recipes').fill(food)
-  await picker.getByRole('button', { name: new RegExp(food) }).click()
+  await picker.getByRole('button', { name: new RegExp(`^${food}`) }).click()
   await expect(picker).toHaveCount(0)
 }
 
@@ -57,10 +57,10 @@ test('a saved food is logged in two taps from the log screen (phase 3 criterion)
 
   await page.getByRole('button', { name: 'Add to Breakfast' }).click() // Tap 1.
   const picker = page.getByRole('dialog', { name: 'Add to Breakfast' })
-  await picker.getByRole('button', { name: new RegExp(oats) }).click() // Tap 2.
+  await picker.getByRole('button', { name: new RegExp(`^${oats}`) }).click() // Tap 2.
 
   await expect(
-    meal(page, 'Breakfast').getByRole('button', { name: new RegExp(oats) }),
+    meal(page, 'Breakfast').getByRole('button', { name: new RegExp(`^${oats}`) }),
   ).toContainText('1 serving · 150 kcal · 5 g protein')
 })
 
@@ -83,7 +83,7 @@ test('a weighed food is logged and edited by its weight', async ({ page }) => {
   await page.getByRole('button', { name: 'Add to Lunch' }).click()
   const picker = page.getByRole('dialog', { name: 'Add to Lunch' })
   await picker.getByLabel('Search foods and recipes').fill(chicken)
-  await picker.getByRole('button', { name: new RegExp(chicken) }).click()
+  await picker.getByRole('button', { name: new RegExp(`^${chicken}`) }).click()
   await picker.getByLabel('Amount (g)').fill('70')
   await expect(picker.getByLabel('Servings')).toHaveValue('0.7')
   await expect(picker.getByRole('status')).toContainText('116 kcal · 21.7 g protein')
@@ -92,7 +92,7 @@ test('a weighed food is logged and edited by its weight', async ({ page }) => {
   await expect(meal(page, 'Lunch')).toContainText('0.7 servings · 116 kcal')
 
   await meal(page, 'Lunch')
-    .getByRole('button', { name: new RegExp(chicken) })
+    .getByRole('button', { name: new RegExp(`^${chicken}`) })
     .click()
   const entry = page.getByRole('dialog', { name: chicken })
   await expect(entry.getByLabel('Amount (g)')).toHaveValue('70')
@@ -112,7 +112,7 @@ test('yesterday’s food is re-logged in one tap, and editing the food leaves th
   await openDay(page, day)
   await logFromSearch(page, 'Lunch', oats)
   await meal(page, 'Lunch')
-    .getByRole('button', { name: new RegExp(oats) })
+    .getByRole('button', { name: new RegExp(`^${oats}`) })
     .click()
   await page.getByLabel('Servings').fill('2')
   await page.getByRole('button', { name: 'Save' }).click()
@@ -126,7 +126,7 @@ test('yesterday’s food is re-logged in one tap, and editing the food leaves th
 
   await page.goto('./#/log/foods')
   await page.getByLabel('Search foods').fill(oats)
-  await page.getByRole('link', { name: new RegExp(oats) }).click()
+  await page.getByRole('link', { name: new RegExp(`^${oats}`) }).click()
   await page.getByLabel('kcal per serving').fill('400')
   await page.getByRole('button', { name: 'Save' }).click()
   await expect(page.getByRole('heading', { name: 'Foods', level: 2 })).toBeVisible()
@@ -144,7 +144,7 @@ test('the picker offers recent foods with the servings last logged', async ({ pa
   await openDay(page, day)
   await logFromSearch(page, 'Dinner', rice)
   await meal(page, 'Dinner')
-    .getByRole('button', { name: new RegExp(rice) })
+    .getByRole('button', { name: new RegExp(`^${rice}`) })
     .click()
   await page.getByLabel('Servings').fill('1.5')
   await page.getByRole('button', { name: 'Save' }).click()
@@ -157,11 +157,11 @@ test('the picker offers recent foods with the servings last logged', async ({ pa
   const picker = page.getByRole('dialog', { name: 'Add to Dinner' })
   const recent = picker.locator('section', { has: page.getByRole('heading', { name: 'Recent' }) })
   await expect(recent.getByRole('button').first()).toContainText(rice)
-  await recent.getByRole('button', { name: new RegExp(rice) }).click()
+  await recent.getByRole('button', { name: new RegExp(`^${rice}`) }).click()
 
-  await expect(meal(page, 'Dinner').getByRole('button', { name: new RegExp(rice) })).toContainText(
-    '1.5 servings',
-  )
+  await expect(
+    meal(page, 'Dinner').getByRole('button', { name: new RegExp(`^${rice}`) }),
+  ).toContainText('1.5 servings')
 })
 
 test('a meal is copied from an earlier day', async ({ page }) => {
@@ -201,6 +201,36 @@ test('a day is marked complete and stays so after a reload', async ({ page }) =>
   await expect(page.getByLabel('I logged everything I ate this day')).toBeChecked()
 })
 
+// Phase 15 criterion: a meal built on the plate, one item changed to grams, logs at once.
+test('a plate of three foods logs as three entries, one changed to grams', async ({ page }) => {
+  const [first, second, third] = [unique('Plate A'), unique('Plate B'), unique('Plate C')]
+  const day = randomDay()
+  await signIn(page)
+  for (const name of [first, second, third]) await addFood(page, name, '100')
+  await openDay(page, day)
+
+  await page.getByRole('button', { name: 'Add to Lunch' }).click()
+  const picker = page.getByRole('dialog', { name: 'Add to Lunch' })
+  for (const name of [first, second, third]) {
+    await picker.getByLabel('Search foods and recipes').fill(name)
+    await picker.getByRole('button', { name: `Add ${name} to the plate` }).click()
+  }
+  const plate = picker.getByRole('region', { name: 'Plate' })
+  await plate.getByRole('button', { name: `Change the amount of ${second}` }).click()
+  // addFood's serving is 40 bowls of 40 g, 1600 g, so 2400 g is 1.5 servings.
+  await picker.getByLabel('Amount (g)').fill('2400')
+  await picker.getByRole('button', { name: 'Update plate' }).click()
+  await expect(plate).toContainText('Total: 350 kcal')
+  await plate.getByRole('button', { name: 'Log all' }).click()
+  await expect(picker).toHaveCount(0)
+
+  const lunch = meal(page, 'Lunch')
+  for (const name of [first, second, third]) await expect(lunch).toContainText(name)
+  await expect(lunch.getByRole('button', { name: new RegExp(`^${second}`) })).toContainText(
+    '150 kcal',
+  )
+})
+
 test.describe('a log made at 00:30', () => {
   // Half past midnight in India is still the previous evening in UTC.
   test.use({ timezoneId: 'Asia/Kolkata' })
@@ -237,12 +267,22 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await expectNoAxeViolations(page)
 
       await page.getByRole('button', { name: 'Add to Dinner' }).click()
-      await expect(page.getByRole('dialog', { name: 'Add to Dinner' })).toBeVisible()
+      const dinner = page.getByRole('dialog', { name: 'Add to Dinner' })
+      await expect(dinner).toBeVisible()
+      await expectNoAxeViolations(page)
+      // The plate, and the question before closing with it (phase 15).
+      await dinner.getByLabel('Search foods and recipes').fill(food)
+      await dinner.getByRole('button', { name: `Add ${food} to the plate` }).click()
+      await expect(dinner.getByRole('region', { name: 'Plate' })).toBeVisible()
       await expectNoAxeViolations(page)
       await page.keyboard.press('Escape')
+      await expect(dinner.getByRole('button', { name: 'Keep the plate' })).toBeVisible()
+      await expectNoAxeViolations(page)
+      await dinner.getByRole('button', { name: 'Throw it away' }).click()
+      await expect(dinner).toHaveCount(0)
 
       await meal(page, 'Lunch')
-        .getByRole('button', { name: new RegExp(food) })
+        .getByRole('button', { name: new RegExp(`^${food}`) })
         .click()
       await expect(page.getByRole('dialog', { name: food })).toBeVisible()
       await expectNoAxeViolations(page)
@@ -272,7 +312,7 @@ test.describe('built-in foods (phase 10)', () => {
     await picker.getByLabel('Search foods and recipes').fill('haldi')
     const builtIn = picker.getByRole('region', { name: 'Built-in foods' })
     await expect(builtIn).toContainText('USDA FoodData Central')
-    await builtIn.getByRole('button', { name: /Turmeric/ }).click()
+    await builtIn.getByRole('button', { name: /^Turmeric/ }).click()
     await expect(picker).toHaveCount(0)
     await expect(meal(page, 'Lunch')).toContainText('Turmeric')
     await expect(meal(page, 'Lunch')).toContainText('9 kcal')

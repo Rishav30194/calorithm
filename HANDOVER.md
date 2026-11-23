@@ -18,12 +18,16 @@ update its features and status when a phase changes what users get.
 1. **Phase 19 (higher-calorie days) is done:** deployed in 0.13.0 (PRs #53 to #55, decision
    0033), and the user's iPhone check passed on 2026-11-22 (the profile saves the days, and
    the log shows that weekday's target).
-2. **The other phases, 15 to 18 and 20** (added 2026-11-22 from MacroFactor's "Getting Started" video, the user's
-   picks): a plate and meal suggestions, quick add, log navigation and selection, goal weight
-   and maintenance mode, higher-calorie days, and progress views. Kcal and protein stay the
-   only targets. Start with phase 15's plan when the user says so; phases 18 and 19 each
-   begin with a decision record.
-3. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
+2. **Phase 15 (a plate, and smarter suggestions) is built** as two stacked PRs: usual foods
+   for each meal and grouped search (0.14.0), then the plate (0.15.0). No migration. After
+   deploy, the user tries it on the iPhone (build a plate, change one item's grams, log all;
+   close with a plate and see the question), then phase 15 goes to Done.
+3. **The other phases, 16 to 18 and 20** (added 2026-11-22 from MacroFactor's "Getting
+   Started" video, the user's picks): quick add, log navigation and selection, goal weight and
+   maintenance mode (band plus or minus 1.5% of the target weight), and progress views (a
+   Progress tab). Kcal and protein stay the only targets. Phase 18 begins with a decision
+   record.
+4. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
    iPhone but needs a close photo and sometimes misses fat, carbs, protein, or the serving
    size. Plan when resumed: the user puts 5 to 10 failing photos in `~/Downloads/labels`
    (used locally only, never committed); measure each change on them and keep what helps:
@@ -33,12 +37,12 @@ update its features and status when a phase changes what users get.
    read separately, "g" read as "9"), show the read text beside the form with **Fix the
    text**, and maybe a crop step. Workaround meanwhile: crop to the table in Photos first.
    The first photo downloads about 4.5 MB (checked on the live site).
-4. Optional iPhone check: **Export changes** in the sign-out warning. It shows only when
+5. Optional iPhone check: **Export changes** in the sign-out warning. It shows only when
    signing out with changes that haven't synced (for example, log an entry offline, then
    sign out). **Export data** in settings and **Import data** passed on the user's iPhone
    (2026-11-22).
-5. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
-6. **Phase 12** (review against MacroFactor) stays on hold until the user has the
+6. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+7. **Phase 12** (review against MacroFactor) stays on hold until the user has the
    subscription.
 
 How the user works: macros only (kcal, protein, carbs, fat), no AI logging, no bulk food

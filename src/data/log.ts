@@ -457,3 +457,114 @@ export const quickPicks = async (db: LocalDb, today: string): Promise<QuickPicks
     scores,
   }
 }
+
+// One item on the plate (phase 15): a saved food or recipe, or a built-in item, with servings.
+export type PlateItem =
+  | { kind: 'saved'; source: Source; servings: number }
+  | { kind: 'builtIn'; item: CatalogFood; servings: number }
+
+export type LogPlateResult =
+  | { ok: true; rows: LogEntryRow[] }
+  // The first item that stopped the plate; nothing was written.
+  | { ok: false; reason: 'not_found' | 'too_large'; index: number }
+
+type Resolved = {
+  name: string
+  perServing: Nutrients
+  servings: number
+  serving: Serving | null
+  // A saved food or recipe, or the built-in item to copy first.
+  source: { foodId: string } | { recipeId: string } | { item: CatalogFood }
+}
+
+// Logs every item on the plate into one meal, in order, in one transaction. Every item is read
+// and checked against the database's limits before anything is written, so a plate is logged
+// whole or not at all.
+export const logPlate = (
+  db: LocalDb,
+  clock: Clock,
+  userId: string,
+  target: Target,
+  items: readonly PlateItem[],
+): Promise<LogPlateResult> =>
+  db.transaction(
+    'rw',
+    [
+      db.rows('foods'),
+      db.rows('recipes'),
+      db.rows('recipe_items'),
+      db.rows('log_entries'),
+      db.outbox,
+    ],
+    async (): Promise<LogPlateResult> => {
+      const resolved: Resolved[] = []
+      for (const [index, item] of items.entries()) {
+        const servings = roundServings(item.servings)
+        let next: Resolved | null = null
+        if (item.kind === 'builtIn') {
+          const { item: food } = item
+          next = {
+            name: food.name,
+            perServing: food,
+            servings,
+            serving: { size: food.servingSize, unit: food.servingUnit },
+            source: { item: food },
+          }
+        } else if (item.source.kind === 'food') {
+          const food = foodsSpec.parse(await db.rows('foods').get(item.source.id))
+          if (food && food.deleted_at === null) {
+            next = {
+              name: food.name,
+              perServing: foodNutrients(food),
+              servings,
+              serving: { size: food.serving_size, unit: food.serving_unit },
+              source: { foodId: food.id },
+            }
+          }
+        } else {
+          const recipe = recipesSpec.parse(await db.rows('recipes').get(item.source.id))
+          if (recipe && recipe.deleted_at === null) {
+            next = {
+              name: recipe.name,
+              perServing: recipePerServing(await recipeIngredients(db, recipe.id), recipe.servings),
+              servings,
+              serving: null,
+              source: { recipeId: recipe.id },
+            }
+          }
+        }
+        if (!next) return { ok: false, reason: 'not_found', index }
+        if (!entryFits(next.perServing, next.servings)) {
+          return { ok: false, reason: 'too_large', index }
+        }
+        resolved.push(next)
+      }
+
+      // Each entry is logged a millisecond after the one before, so the meal keeps the
+      // plate's order.
+      const start = clock().getTime()
+      const rows: LogEntryRow[] = []
+      for (const [index, item] of resolved.entries()) {
+        const { source } = item
+        const foodId =
+          'item' in source
+            ? (await copyCatalogFood(db, clock, userId, source.item)).id
+            : 'foodId' in source
+              ? source.foodId
+              : null
+        rows.push(
+          await newEntry(db, clock, userId, {
+            ...target,
+            foodId,
+            recipeId: 'recipeId' in source ? source.recipeId : null,
+            name: item.name,
+            servings: item.servings,
+            perServing: item.perServing,
+            serving: item.serving,
+            loggedAt: new Date(start + index).toISOString(),
+          }),
+        )
+      }
+      return { ok: true, rows }
+    },
+  )

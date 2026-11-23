@@ -924,15 +924,18 @@ phases 15 to 20.
   current ranking (most used, then name).
 
 **Acceptance criteria:**
-- [ ] Three foods put on the plate, one changed to 150 g, log as three entries in that meal
-  with the right values, in one transaction (a failed write logs none).
-- [ ] Closing the picker with a non-empty plate asks before discarding it.
+- [x] Three foods put on the plate, one changed to 150 g, log as three entries in that meal
+  with the right values, in one transaction (a failed write logs none). (`logPlate` in
+  `src/data/log.test.ts`, the picker tests, and `e2e/log.spec.ts`)
+- [x] Closing the picker with a non-empty plate asks before discarding it.
+  (`src/ui/log/log.test.tsx`, and `e2e/log.spec.ts` with axe)
 - [x] The meal list ranks by count in that meal, ties by name; property tests cover it.
   (`src/domain/nutrition.test.ts`, `usualForMeal`)
 - [x] Search groups appear in order, and a food never shows in two groups.
   (`src/ui/log/log.test.tsx`; the groups split one list by use score, and built-in items
   you've copied show only as yours)
-- [ ] Browser tests with axe cover the plate at 360 pixels in both themes.
+- [x] Browser tests with axe cover the plate at 360 pixels in both themes.
+  (`e2e/log.spec.ts`, phone and desktop projects)
 
 **Plan** (2026-11-22, the user's "start phase 15"): two PRs.
 
@@ -944,7 +947,20 @@ phases 15 to 20.
    totals, **Log all** in one transaction with `entryFits` checked, and a confirmation before
    closing with items on it.
 
-**Implementation notes:** none yet.
+**Implementation notes:**
+- PR 1: the **Usually for …** list reads `QuickPicks.byMeal` (the last 60 days of each
+  meal, up to 10); search splits your foods by use score into **Logged before** and **Your
+  other foods and recipes**; with no search, **All foods and recipes** stays one list.
+- PR 2: `logPlate` (`src/data/log.ts`) reads and checks every item with `entryFits` before
+  writing any, copies built-in items only then, and logs each a millisecond apart so the meal
+  keeps the plate's order. Each picker row has an add button named "Add … to the plate".
+- Changed from the plan: while the plate has items, tapping a row adds it to the plate rather
+  than logging it alone, since logging closes the picker and would drop the plate. After a
+  scan or a label logs a new food, the picker returns to the list when a plate is waiting.
+- The plate changes amounts in grams for any serving with a weight (a "bowl (40 g)" too), as
+  the entry dialog does; it lists grams only for foods measured by weight.
+- Picker tests match row buttons by the start of their name (`/^Oats/`), since each row's add
+  button also contains the food's name.
 
 ## Phase 16 — Quick add, and recipes logged as ingredients
 

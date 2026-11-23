@@ -57,24 +57,24 @@ test('a food can be created, edited, archived, and restored', async ({ page }) =
   })
 
   await search(page, 'Search foods', name)
-  const row = page.getByRole('link', { name: new RegExp(name) })
+  const row = page.getByRole('link', { name: new RegExp(`^${name}`) })
   await expect(row).toContainText('40 g · 150 kcal · 5 g protein · 27 g carbs · 2.5 g fat')
 
   await row.click()
   await page.getByLabel('kcal per serving').fill('160')
   await page.getByRole('button', { name: 'Save' }).click()
   await search(page, 'Search foods', name)
-  await expect(page.getByRole('link', { name: new RegExp(name) })).toContainText('160 kcal')
+  await expect(page.getByRole('link', { name: new RegExp(`^${name}`) })).toContainText('160 kcal')
 
-  await page.getByRole('link', { name: new RegExp(name) }).click()
+  await page.getByRole('link', { name: new RegExp(`^${name}`) }).click()
   await page.getByRole('button', { name: 'Archive' }).click()
   await expect(page.getByText(/^Archived\./)).toBeVisible()
   await page.getByRole('link', { name: 'Back to foods' }).click()
   await search(page, 'Search foods', name)
-  await expect(page.getByRole('link', { name: new RegExp(name) })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: new RegExp(`^${name}`) })).toHaveCount(0)
 
   await page.getByLabel('Show archived').check()
-  await page.getByRole('link', { name: new RegExp(name) }).click()
+  await page.getByRole('link', { name: new RegExp(`^${name}`) }).click()
   await page.getByRole('button', { name: 'Restore' }).click()
   await expect(page.getByRole('button', { name: 'Archive' })).toBeVisible()
 })
@@ -104,7 +104,7 @@ test('a food keeps a barcode in its stored form, and the server gets it', async 
   await expect.poll(() => serverBarcodeOf(seedUser.id, name)).toBe('0036000291452')
 
   await search(page, 'Search foods', name)
-  await page.getByRole('link', { name: new RegExp(name) }).click()
+  await page.getByRole('link', { name: new RegExp(`^${name}`) }).click()
   await expect(barcode).toHaveValue('0036000291452')
   await barcode.fill('')
   await page.getByRole('button', { name: 'Save' }).click()
@@ -143,7 +143,7 @@ test('a recipe totals its ingredients', async ({ page }) => {
     await page.getByRole('button', { name: 'Add ingredient' }).click()
     const picker = page.getByRole('dialog', { name: 'Add an ingredient' })
     await picker.getByLabel('Search foods').fill(food)
-    await picker.getByRole('button', { name: new RegExp(food) }).click()
+    await picker.getByRole('button', { name: new RegExp(`^${food}`) }).click()
   }
   await page.getByLabel(`Servings of ${oats}`).fill('2')
 
@@ -157,7 +157,7 @@ test('a recipe totals its ingredients', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Save' }).click()
   await search(page, 'Search recipes', porridge)
-  await expect(page.getByRole('link', { name: new RegExp(porridge) })).toContainText(
+  await expect(page.getByRole('link', { name: new RegExp(`^${porridge}`) })).toContainText(
     'Makes 4 · 91 kcal · 3.4 g protein · 14.7 g carbs · 2.2 g fat a serving',
   )
 })
@@ -225,7 +225,7 @@ test.describe('built-in foods wherever a food is picked (phase 14)', () => {
     await page.getByRole('button', { name: 'Save' }).click()
     await expect(page.getByRole('heading', { name: 'Recipes', level: 2 })).toBeVisible()
     await page.getByLabel('Search recipes').fill(recipe)
-    await expect(page.getByRole('link', { name: new RegExp(recipe) })).toBeVisible()
+    await expect(page.getByRole('link', { name: new RegExp(`^${recipe}`) })).toBeVisible()
   })
 
   test('the Foods screen adds a built-in food and opens it for checking', async ({ page }) => {

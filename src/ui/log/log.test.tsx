@@ -4,7 +4,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import type { FoodView, RecipeView } from '@/data/foods'
 import type { LoggedEntry, QuickPicks } from '@/data/log'
-import type { CatalogState, DayView } from '@/data/logHooks'
+import type { CatalogState, DayView, PlateOutcome } from '@/data/logHooks'
 import { strings } from '@/strings'
 
 import { CopyDialog } from './CopyDialog'
@@ -96,6 +96,7 @@ describe('LogPicker', () => {
         onLookup={vi.fn()}
         onLogScanned={vi.fn()}
         onLogNew={vi.fn()}
+        onLogPlate={vi.fn()}
         onPick={onPick}
         onClose={onClose}
       />,
@@ -109,7 +110,7 @@ describe('LogPicker', () => {
     const recent = screen.getByRole('heading', { name: text.picker.recent }).closest('section')
     if (!recent) throw new Error('no recent section')
 
-    await userEvent.click(within(recent).getByRole('button', { name: /Oats/ }))
+    await userEvent.click(within(recent).getByRole('button', { name: /^Oats/ }))
     expect(onPick).not.toHaveBeenCalled()
     const grams = screen.getByLabelText(text.amount.amount('g'))
     expect(grams).toHaveValue('80')
@@ -143,13 +144,14 @@ describe('LogPicker', () => {
         onLookup={vi.fn()}
         onLogScanned={vi.fn()}
         onLogNew={vi.fn()}
+        onLogPlate={vi.fn()}
         onPick={onPick}
         onClose={vi.fn()}
       />,
     )
     const recent = screen.getByRole('heading', { name: text.picker.recent }).closest('section')
     if (!recent) throw new Error('no recent section')
-    await userEvent.click(within(recent).getByRole('button', { name: /Roti/ }))
+    await userEvent.click(within(recent).getByRole('button', { name: /^Roti/ }))
 
     expect(onPick).toHaveBeenCalledWith({ kind: 'food', id: 'f9' }, 2)
     expect(screen.queryByLabelText(/^Amount/)).toBeNull()
@@ -158,7 +160,7 @@ describe('LogPicker', () => {
   it('logs from the amount step with Enter, and clears its error on Back', async () => {
     const { onPick } = renderPicker(vi.fn(async () => false))
     await userEvent.type(screen.getByLabelText(text.picker.search), 'Oats')
-    await userEvent.click(screen.getByRole('button', { name: /Oats/ }))
+    await userEvent.click(screen.getByRole('button', { name: /^Oats/ }))
     expect(screen.getByLabelText(text.amount.amount('g'))).toHaveFocus()
 
     await userEvent.keyboard('{Enter}')
@@ -172,7 +174,7 @@ describe('LogPicker', () => {
   it('refuses an amount whose totals are past what an entry holds', async () => {
     const { onPick } = renderPicker()
     await userEvent.type(screen.getByLabelText(text.picker.search), 'Oats')
-    await userEvent.click(screen.getByRole('button', { name: /Oats/ }))
+    await userEvent.click(screen.getByRole('button', { name: /^Oats/ }))
     const grams = screen.getByLabelText(text.amount.amount('g'))
 
     // 40 g is 150 kcal, so 1000 servings (40000 g) is 150000 kcal, past 100000.
@@ -187,7 +189,7 @@ describe('LogPicker', () => {
   it('goes back from the amount step to the list without logging', async () => {
     const { onPick } = renderPicker()
     await userEvent.type(screen.getByLabelText(text.picker.search), 'Oats')
-    await userEvent.click(screen.getByRole('button', { name: /Oats/ }))
+    await userEvent.click(screen.getByRole('button', { name: /^Oats/ }))
     await userEvent.click(screen.getByRole('button', { name: text.label.back }))
 
     expect(screen.getByLabelText(text.picker.search)).toBeInTheDocument()
@@ -226,6 +228,7 @@ describe('LogPicker', () => {
           onLookup={vi.fn()}
           onLogScanned={vi.fn()}
           onLogNew={vi.fn()}
+          onLogPlate={vi.fn()}
           onClose={vi.fn()}
           {...handlers}
         />,
@@ -240,7 +243,7 @@ describe('LogPicker', () => {
       expect(onSearch).toHaveBeenCalled()
       const section = screen.getByRole('region', { name: text.picker.builtIn })
       expect(section).toHaveTextContent(text.picker.builtInSource)
-      await userEvent.click(within(section).getByRole('button', { name: /Turmeric/ }))
+      await userEvent.click(within(section).getByRole('button', { name: /^Turmeric/ }))
       // A teaspoon is a piece, not a weight, so it logs in one tap.
       expect(onPickBuiltIn).toHaveBeenCalledWith(haldi, 1)
     })
@@ -251,7 +254,9 @@ describe('LogPicker', () => {
 
       const section = screen.getByRole('region', { name: text.picker.builtIn })
       expect(within(section).queryAllByRole('button')).toHaveLength(0)
-      expect(screen.getAllByRole('button', { name: /Turmeric/ })).toHaveLength(1)
+      // One row for it, as your food, with one add button.
+      expect(screen.getAllByRole('button', { name: /^Turmeric/ })).toHaveLength(1)
+      expect(screen.getAllByRole('button', { name: text.plate.add('Turmeric') })).toHaveLength(1)
     })
 
     it('offers a retry when the list fails to load, without saying nothing matches', async () => {
@@ -278,7 +283,7 @@ describe('LogPicker', () => {
     const usual = screen.getByRole('heading', { name: text.picker.usual.breakfast })
     const section = usual.closest('section')
     if (!section) throw new Error('no usual section')
-    expect(within(section).getByRole('button', { name: /Chili/ })).toBeInTheDocument()
+    expect(within(section).getByRole('button', { name: /^Chili/ })).toBeInTheDocument()
     const headings = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
     expect(headings.indexOf(text.picker.usual.breakfast)).toBeLessThan(
       headings.indexOf(text.picker.recent),
@@ -293,7 +298,7 @@ describe('LogPicker', () => {
       .getByRole('heading', { name: text.picker.loggedBefore })
       .closest('section')
     if (!logged) throw new Error('no logged-before section')
-    expect(within(logged).getByRole('button', { name: /Oats/ })).toBeInTheDocument()
+    expect(within(logged).getByRole('button', { name: /^Oats/ })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: text.picker.all })).toBeNull()
   })
 
@@ -302,7 +307,7 @@ describe('LogPicker', () => {
     await userEvent.type(screen.getByLabelText(text.picker.search), 'chi')
 
     expect(screen.queryByRole('button', { name: /Butter/ })).not.toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /Chili/ }))
+    await userEvent.click(screen.getByRole('button', { name: /^Chili/ }))
 
     expect(onPick).toHaveBeenCalledWith({ kind: 'recipe', id: 'r1' }, 1)
   })
@@ -311,7 +316,7 @@ describe('LogPicker', () => {
     const { onClose } = renderPicker(vi.fn(async () => false))
     await userEvent.type(screen.getByLabelText(text.picker.search), 'Oats')
 
-    await userEvent.click(screen.getByRole('button', { name: /Oats/ }))
+    await userEvent.click(screen.getByRole('button', { name: /^Oats/ }))
     await userEvent.click(screen.getByRole('button', { name: text.amount.log }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(text.picker.failed)
@@ -342,6 +347,7 @@ describe('LogPicker', () => {
         onLookup={vi.fn()}
         onLogScanned={vi.fn()}
         onLogNew={vi.fn()}
+        onLogPlate={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -352,8 +358,10 @@ describe('LogPicker', () => {
     const names = (heading: string) => {
       const section = screen.getByRole('heading', { name: heading }).closest('section')
       if (!section) throw new Error(`no ${heading} list`)
+      // The rows, not their add buttons.
       return within(section)
         .getAllByRole('button')
+        .filter((button) => !button.getAttribute('aria-label')?.startsWith('Add '))
         .map((button) => button.textContent)
     }
     expect(names(text.picker.loggedBefore)).toEqual([
@@ -378,6 +386,7 @@ describe('LogPicker', () => {
         onLookup={vi.fn()}
         onLogScanned={vi.fn()}
         onLogNew={vi.fn()}
+        onLogPlate={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -403,11 +412,115 @@ describe('LogPicker', () => {
         onLookup={vi.fn()}
         onLogScanned={vi.fn()}
         onLogNew={vi.fn()}
+        onLogPlate={vi.fn()}
         onPick={vi.fn()}
         onClose={vi.fn()}
       />,
     )
     expect(screen.getByText(text.picker.empty)).toBeInTheDocument()
+  })
+})
+
+// Phase 15: a meal built up on the plate, then logged at once.
+describe('LogPicker plate', () => {
+  const roti: FoodView = { ...oats, id: 'f9', name: 'Roti', servingSize: 1, servingUnit: 'roti' }
+  const renderPlate = (onLogPlate = vi.fn(async (): Promise<PlateOutcome> => 'logged')) => {
+    const onClose = vi.fn()
+    const onPick = vi.fn(async () => true)
+    render(
+      <LogPicker
+        meal="lunch"
+        picks={{ recent: [], mostUsed: [], byMeal: emptyMeals, scores: new Map() }}
+        foods={[oats, roti]}
+        recipes={[chili]}
+        builtIn={undefined}
+        locale="en-US"
+        onPickBuiltIn={vi.fn()}
+        onSearch={vi.fn()}
+        onRetryBuiltIn={vi.fn()}
+        onLookup={vi.fn()}
+        onLogScanned={vi.fn()}
+        onLogNew={vi.fn()}
+        onLogPlate={onLogPlate}
+        onPick={onPick}
+        onClose={onClose}
+      />,
+    )
+    const add = (name: string) =>
+      userEvent.click(screen.getByRole('button', { name: text.plate.add(name) }))
+    return { onLogPlate, onClose, onPick, add }
+  }
+
+  it('builds a plate, changes an amount in grams, totals it, and logs it all', async () => {
+    const { onLogPlate, onClose, add } = renderPlate()
+    await add('Oats')
+    await add('Roti')
+    await add('Chili')
+    const plate = screen.getByRole('region', { name: text.plate.title })
+
+    // 150 g of a 40 g serving is 3.75 servings.
+    await userEvent.click(within(plate).getByRole('button', { name: text.plate.edit('Oats') }))
+    const grams = screen.getByLabelText(text.amount.amount('g'))
+    await userEvent.clear(grams)
+    await userEvent.type(grams, '150')
+    await userEvent.click(screen.getByRole('button', { name: text.plate.update }))
+
+    const updated = screen.getByRole('region', { name: text.plate.title })
+    expect(updated).toHaveTextContent('150 g')
+    // 562.5 + 150 + 500 kcal; 18.75 + 5 + 30 g protein.
+    expect(updated).toHaveTextContent(text.plate.total('1,213 kcal · 53.8 g protein'))
+
+    await userEvent.click(within(updated).getByRole('button', { name: text.plate.logAll }))
+    expect(onLogPlate).toHaveBeenCalledWith([
+      { kind: 'saved', source: { kind: 'food', id: 'f1' }, servings: 3.75 },
+      { kind: 'saved', source: { kind: 'food', id: 'f9' }, servings: 1 },
+      { kind: 'saved', source: { kind: 'recipe', id: 'r1' }, servings: 1 },
+    ])
+    expect(onClose).toHaveBeenCalled()
+  })
+
+  it('adds a tapped row to the plate while it has items, instead of logging it', async () => {
+    const { onPick, add } = renderPlate()
+    await add('Oats')
+    await userEvent.click(screen.getByRole('button', { name: /^Roti/ }))
+
+    expect(onPick).not.toHaveBeenCalled()
+    expect(screen.getByRole('region', { name: text.plate.title })).toHaveTextContent('Roti')
+  })
+
+  it('removes an item', async () => {
+    const { add } = renderPlate()
+    await add('Oats')
+    await add('Roti')
+    await userEvent.click(screen.getByRole('button', { name: text.plate.remove('Oats') }))
+
+    const plate = screen.getByRole('region', { name: text.plate.title })
+    expect(plate).not.toHaveTextContent('Oats')
+    expect(plate).toHaveTextContent('Roti')
+  })
+
+  it('asks before closing with a plate, and keeps it unless told to throw it away', async () => {
+    const { onClose, add } = renderPlate()
+    await add('Oats')
+    await userEvent.click(screen.getByRole('button', { name: text.picker.close }))
+
+    expect(onClose).not.toHaveBeenCalled()
+    expect(screen.getByText(text.plate.discardPrompt)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: text.plate.keep }))
+    expect(screen.queryByText(text.plate.discardPrompt)).toBeNull()
+
+    await userEvent.click(screen.getByRole('button', { name: text.picker.close }))
+    await userEvent.click(screen.getByRole('button', { name: text.plate.discard }))
+    expect(onClose).toHaveBeenCalled()
+  })
+
+  it('stays open and says so when the plate fails to log', async () => {
+    const { onClose, add } = renderPlate(vi.fn(async (): Promise<PlateOutcome> => 'failed'))
+    await add('Oats')
+    await userEvent.click(screen.getByRole('button', { name: text.plate.logAll }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(text.picker.failed)
+    expect(onClose).not.toHaveBeenCalled()
   })
 })
 
@@ -554,11 +667,12 @@ describe('EntryDialog', () => {
         onLookup={vi.fn()}
         onLogScanned={vi.fn(async () => true)}
         onLogNew={vi.fn(async () => true)}
+        onLogPlate={vi.fn()}
         onClose={vi.fn()}
       />,
     )
     await userEvent.type(screen.getByLabelText(text.picker.search), 'Chili')
-    await userEvent.click(screen.getByRole('button', { name: /Chili/ }))
+    await userEvent.click(screen.getByRole('button', { name: /^Chili/ }))
 
     expect(onPick).not.toHaveBeenCalled()
     expect(screen.getByRole('alert')).toHaveTextContent(text.amount.tooLarge)
@@ -697,7 +811,7 @@ describe('LogDay', () => {
     expect(within(lunch).getByText(text.emptyMeal)).toBeInTheDocument()
     // Nothing logged: 0 g, not "not set".
     expect(lunch).toHaveTextContent('0 kcal · 0 g protein · 0 g carbs · 0 g fat')
-    expect(screen.getByRole('button', { name: /Oats/ })).toHaveTextContent('2 servings')
+    expect(screen.getByRole('button', { name: /^Oats/ })).toHaveTextContent('2 servings')
     expect(screen.queryByText(text.missingCarbsOrFat)).not.toBeInTheDocument()
   })
 
@@ -724,7 +838,7 @@ describe('LogDay', () => {
     )
     expect(screen.getByText(text.dayTotal).parentElement).toHaveTextContent('54 g carbs · 5 g fat')
     expect(screen.getByText(text.missingCarbsOrFat)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Old toast/ })).toHaveTextContent(
+    expect(screen.getByRole('button', { name: /^Old toast/ })).toHaveTextContent(
       'carbs not set · fat not set',
     )
   })
@@ -796,7 +910,7 @@ describe('LogDay', () => {
     )
     expect(handlers.onCopy).toHaveBeenCalledWith('snacks')
 
-    await userEvent.click(screen.getByRole('button', { name: /Oats/ }))
+    await userEvent.click(screen.getByRole('button', { name: /^Oats/ }))
     expect(handlers.onOpenEntry).toHaveBeenCalledWith(entry())
   })
 
