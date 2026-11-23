@@ -6,6 +6,7 @@ import type { CatalogCopy, FoodInput, FoodView, RecipeView } from '@/data/foods'
 import type { QuickPicks } from '@/data/log'
 import type { CatalogState } from '@/data/logHooks'
 import { formatAmount } from '@/domain/format'
+import { entryFits } from '@/domain/limits'
 import {
   type Meal,
   type Nutrients,
@@ -221,6 +222,10 @@ export const LogPicker = ({
     if (!amountFor) return
     if (servings === null) {
       setAmountError(strings.log.amount.error)
+      return
+    }
+    if (!entryFits(amountFor.weighed.perServing, servings)) {
+      setAmountError(strings.log.amount.tooLarge)
       return
     }
     void log(amountFor, servings)

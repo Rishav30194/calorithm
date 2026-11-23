@@ -177,6 +177,48 @@ describe('changeServings', () => {
   })
 })
 
+// A total past the database's range would save here and fail on sync, so it's refused up front.
+describe('entries past the database’s limits', () => {
+  const addRice = () =>
+    createFood(db, time.clock, userId, {
+      name: 'Rice',
+      servingSize: 100,
+      servingUnit: 'g',
+      kcal: 130,
+      proteinG: 2.7,
+      carbsG: 80,
+      fatG: 0.3,
+    })
+
+  it('refuses to log one, and stores nothing', async () => {
+    const food = await addRice()
+
+    await expect(
+      logFood(db, time.clock, userId, { date: '2026-11-20', meal: 'lunch', food, servings: 200 }),
+    ).rejects.toThrow()
+
+    expect(await entriesOn(db, '2026-11-20')).toEqual([])
+  })
+
+  it('refuses to change the servings to one, and keeps the entry as it was', async () => {
+    const food = await addRice()
+    const entry = await logFood(db, time.clock, userId, {
+      date: '2026-11-20',
+      meal: 'lunch',
+      food,
+      servings: 2,
+    })
+
+    expect(await changeServings(db, time.clock, entry.id, 200)).toEqual({
+      ok: false,
+      reason: 'too_large',
+    })
+
+    const [kept] = await entriesOn(db, '2026-11-20')
+    expect(kept).toMatchObject({ servings: 2, carbsG: 160 })
+  })
+})
+
 describe('changeServings precision', () => {
   it('rescales from the exact per-serving values, not the rounded totals', async () => {
     const tiny = await createFood(db, time.clock, userId, {

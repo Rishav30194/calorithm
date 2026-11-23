@@ -2,6 +2,7 @@ import { z } from 'zod/mini'
 
 import type { FoodInput, RecipeInput } from '@/data/foods'
 import { parseBarcode } from '@/domain/barcode'
+import { limits } from '@/domain/limits'
 import { strings } from '@/strings'
 
 // Form fields hold text as typed. One decimal mark, a point or a comma, may follow with up to
@@ -23,13 +24,13 @@ export const editableNumber = (value: number, locale: string): string => {
   return Number.isNaN(toNumber(text)) ? String(value) : text
 }
 
-const name = z.string().check(z.trim(), z.minLength(1), z.maxLength(100))
-const unit = z.string().check(z.trim(), z.minLength(1), z.maxLength(20))
+const name = z.string().check(z.trim(), z.minLength(1), z.maxLength(limits.nameLength))
+const unit = z.string().check(z.trim(), z.minLength(1), z.maxLength(limits.unitLength))
 // Two decimals are stored, so anything below 0.01 would round to zero.
 const servings = (max: number) => z.number().check(z.gte(0.01), z.lte(max))
-const kcal = z.int().check(z.gte(0), z.lte(10_000))
+const kcal = z.int().check(z.gte(0), z.lte(limits.food.kcal))
 // Protein, carbs, and fat per serving, in grams.
-const grams = z.number().check(z.gte(0), z.lte(1_000))
+const grams = z.number().check(z.gte(0), z.lte(limits.food.grams))
 
 type Errors<Field extends string> = Partial<Record<Field, string>>
 
@@ -94,7 +95,7 @@ export const parseFoodForm = (
     servingSize: field(
       errors,
       'servingSize',
-      servings(10_000),
+      servings(limits.food.servingSize),
       toNumber(values.servingSize),
       messages.servingSize,
     ),
@@ -143,7 +144,7 @@ export const parseRecipeForm = (values: RecipeFormValues): RecipeFormResult => {
   const parsedServings = field(
     errors,
     'servings',
-    servings(1_000),
+    servings(limits.servings),
     toNumber(values.servings),
     messages.servings,
   )
@@ -152,7 +153,7 @@ export const parseRecipeForm = (values: RecipeFormValues): RecipeFormResult => {
   const itemErrors: Record<string, string> = {}
   const items: RecipeInput['items'] = []
   for (const item of values.items) {
-    const parsed = servings(1_000).safeParse(toNumber(item.servings))
+    const parsed = servings(limits.servings).safeParse(toNumber(item.servings))
     if (parsed.success) items.push({ foodId: item.foodId, servings: parsed.data })
     else itemErrors[item.foodId] = messages.itemServings
   }

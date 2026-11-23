@@ -1,4 +1,5 @@
 import { addDays } from '@/domain/dates'
+import { entryFits } from '@/domain/limits'
 import {
   type Entry,
   isMeal,
@@ -79,6 +80,10 @@ const newEntry = (
     loggedAt?: string
   },
 ): Promise<LogEntryRow> => {
+  // The log screens check entryFits first, so reaching this is a bug.
+  if (!entryFits(fields.perServing, fields.servings)) {
+    return Promise.reject(new Error('newEntry: the entry is past the database’s limits'))
+  }
   const nutrients = scaleNutrients(fields.perServing, fields.servings)
   return writeRow(
     db,
@@ -220,10 +225,11 @@ export const changeServings = async (
   clock: Clock,
   id: string,
   servings: number,
-): Promise<{ ok: true } | { ok: false; reason: 'not_found' }> => {
+): Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'too_large' }> => {
   const row = logEntriesSpec.parse(await db.rows('log_entries').get(id))
   if (!row || row.deleted_at !== null) return { ok: false, reason: 'not_found' }
   const rounded = roundServings(servings)
+  if (!entryFits(perServingOf(row), rounded)) return { ok: false, reason: 'too_large' }
   const nutrients = scaleNutrients(perServingOf(row), rounded)
   await writeRow(
     db,

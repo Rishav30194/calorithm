@@ -162,6 +162,21 @@ describe('LogPicker', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
+  it('refuses an amount whose totals are past what an entry holds', async () => {
+    const { onPick } = renderPicker()
+    await userEvent.type(screen.getByLabelText(text.picker.search), 'Oats')
+    await userEvent.click(screen.getByRole('button', { name: /Oats/ }))
+    const grams = screen.getByLabelText(text.amount.amount('g'))
+
+    // 40 g is 150 kcal, so 1000 servings (40000 g) is 150000 kcal, past 100000.
+    await userEvent.clear(grams)
+    await userEvent.type(grams, '40000')
+    await userEvent.click(screen.getByRole('button', { name: text.amount.log }))
+
+    expect(onPick).not.toHaveBeenCalled()
+    expect(grams).toHaveAccessibleDescription(text.amount.tooLarge)
+  })
+
   it('goes back from the amount step to the list without logging', async () => {
     const { onPick } = renderPicker()
     await userEvent.type(screen.getByLabelText(text.picker.search), 'Oats')
@@ -431,6 +446,32 @@ describe('EntryDialog', () => {
     await userEvent.type(grams, '70')
     await userEvent.click(screen.getByRole('button', { name: text.entry.save }))
     expect(onSave).toHaveBeenCalledWith(0.7)
+  })
+
+  // 200 servings of 27 g carbs is 5400 g; 400 is 10800 g, past the 10000 g an entry holds.
+  it('refuses servings whose totals are past what an entry holds', async () => {
+    const onSave = vi.fn(async () => true)
+    render(
+      <EntryDialog
+        entry={entry()}
+        locale="en-US"
+        onSave={onSave}
+        onRemove={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+    const field = screen.getByLabelText(text.entry.servings)
+
+    await userEvent.clear(field)
+    await userEvent.type(field, '400')
+    await userEvent.click(screen.getByRole('button', { name: text.entry.save }))
+    expect(onSave).not.toHaveBeenCalled()
+    expect(field).toHaveAccessibleDescription(text.amount.tooLarge)
+
+    await userEvent.clear(field)
+    await userEvent.type(field, '200')
+    await userEvent.click(screen.getByRole('button', { name: text.entry.save }))
+    expect(onSave).toHaveBeenCalledWith(200)
   })
 
   it('offers servings only for an entry without a weight', () => {

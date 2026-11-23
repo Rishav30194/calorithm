@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react'
 
 import type { LoggedEntry } from '@/data/log'
+import { entryFits } from '@/domain/limits'
 import { strings } from '@/strings'
 import { Modal } from '../Modal'
 import { AmountFields } from './AmountFields'
@@ -39,6 +40,10 @@ export const EntryDialog = ({ entry, locale, onSave, onRemove, onClose }: Props)
     if (servings === null) {
       // Without a weight there's no amount field to mention.
       setError(entry.portion ? strings.log.amount.error : strings.recipes.errors.itemServings)
+      return
+    }
+    if (!entryFits(entry.perServing, servings)) {
+      setError(strings.log.amount.tooLarge)
       return
     }
     setError(undefined)
