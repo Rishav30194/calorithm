@@ -339,7 +339,11 @@ describe('importData', () => {
     expect(await db.outbox.count()).toBe(0)
   })
 
-  it('restores any set of foods, log entries, and weigh-ins exactly', async () => {
+  // 25 runs, each opening and filling two IndexedDB databases, take about 2 seconds with
+  // coverage on and timed out once at the default 5 under a full check's load.
+  it('restores any set of foods, log entries, and weigh-ins exactly', {
+    timeout: 20_000,
+  }, async () => {
     const food = fc.record({
       name: fc.string({ minLength: 1, maxLength: 30 }).filter((name) => name.trim().length > 0),
       servingSize: fc.integer({ min: 1, max: 1000 }),
