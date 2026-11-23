@@ -4,6 +4,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 import { addDays } from './dates'
 import {
   type Entry,
+  ingredientServings,
   isMeal,
   meals,
   missingCarbsOrFat,
@@ -553,6 +554,47 @@ describe('usualForMeal', () => {
           expect(new Set(keys).size).toBe(keys.length)
           for (let i = 1; i < picks.length; i += 1) {
             expect(picks[i]?.count ?? 0).toBeLessThanOrEqual(picks[i - 1]?.count ?? 0)
+          }
+        },
+      ),
+    )
+  })
+})
+
+// Phase 16: a recipe logged as its ingredients.
+describe('ingredientServings', () => {
+  it('scales each ingredient to the share of the recipe logged', () => {
+    // Half a serving of a 4-serving recipe is an eighth of each ingredient.
+    expect(ingredientServings(4, 0.5, [{ servings: 2 }, { servings: 1 }, { servings: 8 }])).toEqual(
+      [0.25, 0.13, 1],
+    )
+  })
+
+  it('never gives less than 0.01 servings, the least an entry holds', () => {
+    expect(ingredientServings(100, 0.01, [{ servings: 0.5 }])).toEqual([0.01])
+  })
+
+  it('keeps every ingredient, to two decimals, for any recipe and servings', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 100_000 }).map((hundredths) => hundredths / 100),
+        fc.integer({ min: 1, max: 100_000 }).map((hundredths) => hundredths / 100),
+        fc.array(
+          fc.integer({ min: 1, max: 100_000 }).map((hundredths) => hundredths / 100),
+          {
+            maxLength: 10,
+          },
+        ),
+        (recipeServings, logged, amounts) => {
+          const result = ingredientServings(
+            recipeServings,
+            logged,
+            amounts.map((servings) => ({ servings })),
+          )
+          expect(result).toHaveLength(amounts.length)
+          for (const servings of result) {
+            expect(servings).toBeGreaterThanOrEqual(0.01)
+            expect(decimalsOf(servings)).toBeLessThanOrEqual(2)
           }
         },
       ),

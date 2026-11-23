@@ -308,6 +308,8 @@ export type RecipeView = {
   archived: boolean
   totals: Nutrients
   perServing: Nutrients
+  // Each ingredient food and its servings, for logging the recipe as them (phase 16).
+  ingredients: { foodId: string; servings: number }[]
 }
 
 export type RecipeDetail = RecipeView & { items: RecipeItemView[] }
@@ -389,6 +391,7 @@ const recipeView = async (
     archived: recipe.archived_at !== null,
     totals: recipeTotals(items),
     perServing: scaleNutrients(recipePerServing(items, recipe.servings), 1),
+    ingredients: items.map(({ foodId, servings }) => ({ foodId, servings })),
     items,
   }
 }

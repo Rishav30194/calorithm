@@ -217,6 +217,7 @@ test('a plate of three foods logs as three entries, one changed to grams', async
   }
   const plate = picker.getByRole('region', { name: 'Plate' })
   await plate.getByRole('button', { name: `Change the amount of ${second}` }).click()
+  await expectNoAxeViolations(page)
   // addFood's serving is 40 bowls of 40 g, 1600 g, so 2400 g is 1.5 servings.
   await picker.getByLabel('Amount (g)').fill('2400')
   await picker.getByRole('button', { name: 'Update plate' }).click()

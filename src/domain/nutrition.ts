@@ -232,3 +232,13 @@ export const usualForMeal = (
     .slice(0, Math.max(0, limit))
     .map(toPick)
 }
+
+// Each ingredient's servings when `logged` servings of a recipe that makes `recipeServings`
+// are logged as its ingredients (phase 16), to two decimals, and never below 0.01, the least
+// an entry holds.
+export const ingredientServings = (
+  recipeServings: number,
+  logged: number,
+  items: readonly { servings: number }[],
+): number[] =>
+  items.map((item) => Math.max(0.01, roundServings((item.servings * logged) / recipeServings)))

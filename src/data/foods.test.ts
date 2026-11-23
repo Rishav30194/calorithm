@@ -307,6 +307,8 @@ describe('reading foods and recipes for the screens', () => {
         archived: false,
         totals: { kcal: 450, proteinG: 15, carbsG: 60, fatG: 9 },
         perServing: { kcal: 113, proteinG: 3.8, carbsG: 15, fatG: 2.3 },
+        // Phase 16: the ingredients, for logging the recipe as them.
+        ingredients: [{ foodId: food.id, servings: 3 }],
       }),
     ])
   })

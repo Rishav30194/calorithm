@@ -21,12 +21,16 @@ update its features and status when a phase changes what users get.
 2. **Phase 15 (a plate, and smarter suggestions) is done:** deployed in 0.15.0 (PRs #57 and
    #58), and the user's iPhone check passed on 2026-11-22 (usual foods for the meal, grouped
    search, a plate logged with one item in grams, and the question before closing).
-3. **The other phases, 16 to 18 and 20** (added 2026-11-22 from MacroFactor's "Getting
-   Started" video, the user's picks): quick add, log navigation and selection, goal weight and
+3. **Phase 16 (quick add, and recipes as ingredients) is in progress:** PR 1 (recipes as
+   ingredients, 0.16.0) is built. PRs 2 and 3 each carry a migration the user applies: the
+   first before PR 2 merges, the second (raising `min_app_version` to 0.17.0) only once 0.17.0
+   is live. See the plan in `docs/phases.md`.
+4. **The other phases, 17, 18, and 20** (added 2026-11-22 from MacroFactor's "Getting
+   Started" video, the user's picks): log navigation and selection, goal weight and
    maintenance mode (band plus or minus 1.5% of the target weight), and progress views (a
    Progress tab). Kcal and protein stay the only targets. Phase 18 begins with a decision
    record.
-4. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
+5. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
    iPhone but needs a close photo and sometimes misses fat, carbs, protein, or the serving
    size. Plan when resumed: the user puts 5 to 10 failing photos in `~/Downloads/labels`
    (used locally only, never committed); measure each change on them and keep what helps:
@@ -36,12 +40,12 @@ update its features and status when a phase changes what users get.
    read separately, "g" read as "9"), show the read text beside the form with **Fix the
    text**, and maybe a crop step. Workaround meanwhile: crop to the table in Photos first.
    The first photo downloads about 4.5 MB (checked on the live site).
-5. Optional iPhone check: **Export changes** in the sign-out warning. It shows only when
+6. Optional iPhone check: **Export changes** in the sign-out warning. It shows only when
    signing out with changes that haven't synced (for example, log an entry offline, then
    sign out). **Export data** in settings and **Import data** passed on the user's iPhone
    (2026-11-22).
-6. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
-7. **Phase 12** (review against MacroFactor) stays on hold until the user has the
+7. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+8. **Phase 12** (review against MacroFactor) stays on hold until the user has the
    subscription.
 
 How the user works: macros only (kcal, protein, carbs, fat), no AI logging, no bulk food

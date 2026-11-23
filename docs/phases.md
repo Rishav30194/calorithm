@@ -967,7 +967,7 @@ phases 15 to 20.
 
 ## Phase 16 — Quick add, and recipes logged as ingredients
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** log a one-off meal by its numbers, and adjust a recipe's ingredients for one
 meal without editing the recipe.
@@ -991,10 +991,27 @@ meal without editing the recipe.
 - [ ] The database refuses an entry with both a food and a recipe, and accepts one with
   neither (pgTAP).
 - [ ] A quick add never appears in search, **Recent**, or the meal list.
-- [ ] Half a recipe of 4 servings logged as ingredients puts each ingredient on the plate at
-  one eighth of its recipe amount.
+- [x] Half a recipe of 4 servings logged as ingredients puts each ingredient on the plate at
+  one eighth of its recipe amount. (`ingredientServings` in `src/domain/nutrition.test.ts`,
+  and the plate tests in `src/ui/log/log.test.tsx`)
 
-**Implementation notes:** none yet.
+**Plan** (2026-11-22, the user's "start phase 16"): three PRs.
+
+1. **Recipes as ingredients** (0.16.0, no migration): `ingredientServings` in
+   `src/domain/nutrition.ts`, `RecipeView.ingredients`, and **Use the ingredients instead**
+   on a recipe's amount form on the plate.
+2. **Entries without a food or recipe** (0.17.0): a migration replacing
+   `log_entries_one_source` with "never both", pgTAP tests, and entries without a source read,
+   shown, edited, copied, exported, and imported. The user applies the migration first.
+3. **Quick add** (0.18.0): the picker panel, and a migration raising `min_app_version` to
+   0.17.0, which the user applies once 0.17.0 is live, since older versions hide such entries.
+
+**Implementation notes:**
+- PR 1: a recipe goes on the plate like any row; **Change** on it offers **Use the
+  ingredients instead**, which swaps it for its foods scaled to the servings typed. This
+  replaces the plan's separate **Log as ingredients** action in the picker: the plate is
+  where amounts change, so the swap lives there. An ingredient never drops below 0.01
+  servings.
 
 ## Phase 17 — Moving around and editing the log
 
