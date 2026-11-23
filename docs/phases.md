@@ -1030,7 +1030,7 @@ meal without editing the recipe.
 
 ## Phase 19 — Higher-calorie days
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** eat more on the days you choose, with the same weekly total.
 
@@ -1042,15 +1042,27 @@ meal without editing the recipe.
   target; the check-in shows the week's targets day by day.
 - The calorie floor applies to every day: when a lower day would go below it, the app shows
   how much extra it can give the higher days, and limits the setting to that.
-- **Schema change:** the chosen days and the extra amount on `profile`, with pgTAP tests, in two
-  releases. The split is computed in `src/domain/`, so the database stores the choice, not
-  each day's target. Decision record at the phase's start.
+- **Schema change:** the chosen days and the extra amount on `profile`, with pgTAP tests. Both
+  columns have defaults and older apps never send them, so one release is enough. The split
+  is computed in `src/domain/`, so the database stores the choice, not each day's target
+  (decision 0033).
 
 **Acceptance criteria:**
 - [ ] For any choice of days and amount, the seven day targets add up to seven times the
   weekly daily target, within rounding to whole kcal (property test).
 - [ ] No day goes below the calorie floor (property test).
 - [ ] With no days chosen, every day's target equals today's single target.
+
+**Plan** (approved 2026-11-22): three PRs.
+
+1. **Calculation:** decision 0033, `weekdayOf` in `src/domain/dates.ts`, and
+   `src/domain/calorieDays.ts` with property tests.
+2. **Schema:** `higher_kcal_days` (0 to 127, at most 6 days) and `higher_kcal_extra` (whole
+   kcal, default 0) on `profile`, pgTAP tests, generated types, profile schema version 2 with
+   `addedColumns`, and export and import. Merged only after the user applies the migration to
+   the hosted project.
+3. **Screens:** the profile form (day checkboxes, the extra, and a week preview), today's own
+   target on the log screen, and the week's targets on the check-in. Version 0.13.0.
 
 **Implementation notes:** none yet.
 
