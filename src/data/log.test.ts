@@ -177,6 +177,84 @@ describe('changeServings', () => {
   })
 })
 
+// A total past the database's range would save here and fail on sync, so it's refused up front.
+describe('entries past the database’s limits', () => {
+  const addRice = () =>
+    createFood(db, time.clock, userId, {
+      name: 'Rice',
+      servingSize: 100,
+      servingUnit: 'g',
+      kcal: 130,
+      proteinG: 2.7,
+      carbsG: 80,
+      fatG: 0.3,
+    })
+
+  it('refuses to log one, and stores nothing', async () => {
+    const food = await addRice()
+
+    await expect(
+      logFood(db, time.clock, userId, { date: '2026-11-20', meal: 'lunch', food, servings: 200 }),
+    ).rejects.toThrow(/past the database’s limits/)
+
+    expect(await entriesOn(db, '2026-11-20')).toEqual([])
+  })
+
+  it('reports a pick by id that is past them, and stores nothing', async () => {
+    const food = await addRice()
+
+    expect(
+      await logSource(db, time.clock, userId, {
+        date: '2026-11-20',
+        meal: 'lunch',
+        source: { kind: 'food', id: food.id },
+        servings: 200,
+      }),
+    ).toEqual({ ok: false, reason: 'too_large' })
+    expect(await entriesOn(db, '2026-11-20')).toEqual([])
+  })
+
+  // An entry stored before the check can never sync, so a copy of it would fail the same way.
+  it('copies a meal without an entry stored past them before the check', async () => {
+    const food = await addRice()
+    await logFood(db, time.clock, userId, { date: '2026-11-20', meal: 'lunch', food, servings: 1 })
+    const stored = await logFood(db, time.clock, userId, {
+      date: '2026-11-20',
+      meal: 'lunch',
+      food,
+      servings: 2,
+    })
+    const pastLimits: LogEntryRow = { ...stored, servings: 200, carbs_g: 16_000 }
+    await db.rows('log_entries').put(pastLimits)
+
+    const copies = await copyMealTo(db, time.clock, userId, {
+      from: { date: '2026-11-20', meal: 'lunch' },
+      to: { date: '2026-11-21', meal: 'lunch' },
+    })
+
+    expect(copies).toHaveLength(1)
+    expect(await entriesOn(db, '2026-11-21')).toMatchObject([{ servings: 1, carbsG: 80 }])
+  })
+
+  it('refuses to change the servings to one, and keeps the entry as it was', async () => {
+    const food = await addRice()
+    const entry = await logFood(db, time.clock, userId, {
+      date: '2026-11-20',
+      meal: 'lunch',
+      food,
+      servings: 2,
+    })
+
+    expect(await changeServings(db, time.clock, entry.id, 200)).toEqual({
+      ok: false,
+      reason: 'too_large',
+    })
+
+    const [kept] = await entriesOn(db, '2026-11-20')
+    expect(kept).toMatchObject({ servings: 2, carbsG: 160 })
+  })
+})
+
 describe('changeServings precision', () => {
   it('rescales from the exact per-serving values, not the rounded totals', async () => {
     const tiny = await createFood(db, time.clock, userId, {

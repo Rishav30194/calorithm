@@ -12,7 +12,7 @@ done; phase 14 is done (the user's iPhone check passed, 2026-11-22); phase 13 is
 waits for the user's MacroFactor subscription. Foods from a barcode scan or a nutrition
 label log one serving without the amount step (decision 0031); the user is fine with that,
 since editing the entry's amount recalculates the totals. The hosted project has migrations through
-`20261122050000`, and `min_app_version` is 0.3.0. No PR is open.
+`20261122050000`, and `min_app_version` is 0.3.0.
 
 1. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
    iPhone but needs a close photo and sometimes misses fat, carbs, protein, or the serving
@@ -70,9 +70,6 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 
 ## Watch out for
 
-- A logged total past the database's range (for example 200 servings of an 80 g-carbs food:
-  16000 g, over 10000) saves locally, then fails on sync as a refused change. This was
-  already so for kcal and protein; the log picker could refuse such servings instead.
 - CI is paused (2026-11-21, the user's request, to speed up feature work): `ci.yml` runs only
   by hand, and `deploy.yml` deploys every push to `main`. `npm run check:full` before each
   PR is the only gate, so never skip it. Turn CI back on when the app moves to maintenance:
@@ -92,7 +89,7 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - Local Supabase runs on ports 55320 to 55329. Start it with `npm run db:start` before
   `npm run dev`, `check:full`, or the e2e tests.
 - The app and preview live under `/calorithm/`, also locally.
-- First-load JavaScript is 187.7 kB of the 200 kB budget (0.12.0, 2026-11-22); the log,
+- First-load JavaScript is 188.0 kB of the 200 kB budget (0.12.1, 2026-11-22); the log,
   food, and backup screens and the built-in food list load on demand. A new screen of any
   size, and the barcode scanner, should too.
 - The built-in food list is rebuilt from USDA CSV downloads that aren't committed;
@@ -109,20 +106,26 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
   at `localhost:4173/` can take over the page; use incognito or unregister it in DevTools.
 - The phase 3 log browser tests use a "bowl (40 g)" unit, a piece with a weight, so they
   still log in one tap; a food with a g or ml unit opens the amount step (decision 0031).
+- Two browser tests fail now and then: `e2e/weight.spec.ts` "switch without changing
+  stored values" and `e2e/log.spec.ts` "a day is marked complete and stays so after a
+  reload" (the third, in `sync.spec.ts`, is fixed; see its note). None failed in three full runs of the suite on 2026-11-22 (402
+  passed each time). Local runs now keep a trace of every failure in `test-results/`
+  (`playwright.config.ts`); when one recurs, open it with `npx playwright show-trace` and fix
+  the cause from it, without weakening what the test asserts. Notes on each follow.
 - `e2e/weight.spec.ts` "switch without changing stored values" failed once in a full local
-  run (2026-11-22) and passed on its own and in later full runs; read its trace if it
-  recurs.
+  run (2026-11-22) and passed on its own and in later full runs.
 - `e2e/log.spec.ts` "a day is marked complete and stays so after a reload" failed once in a
   full run (2026-11-22, desktop): the bottom navigation intercepted the click while the page
-  scrolled, and the checkbox didn't change. It passed 16 of 16 on its own. If it recurs, make
-  the check wait for the box to be stable and in view, without weakening what it asserts.
+  scrolled, and the checkbox didn't change. It passed 16 of 16, then 30 of 30, on its own.
 - End-to-end tests that write food or log rows use unique names and random far-future days,
   because the local database keeps rows between runs and both projects share users.
 - The sign-out end-to-end tests change `second.user@calorithm.test`'s profile and skip the
   phone project, as `sync.spec.ts` does for the seed user.
-- `e2e/sync.spec.ts:52` (an offline change reaches the server, desktop) failed once and passed
-  on retry in CI on PRs #11 to #15. It predates phase 4, and the `useOutbox` loading fix
-  (PR #15) didn't stop it. Read the trace CI records on the first retry before changing it.
+- `e2e/sync.spec.ts` "a change made offline reaches the server" failed now and then since
+  PR #11. Its first local trace (2026-11-22) showed the cause: the test read the units before
+  the first pull reached the screen, so the unit it picked was already the server's and the
+  check changed nothing. It now waits for "Everything is synced" first. If it fails again,
+  read the new trace.
 - An editor formatter reformatted the Markdown tables in `docs/architecture.md` outside
   any edit during PR 1; check `git diff` for unrelated doc changes before committing.
 - Every new table needs explicit grants in its migration: neither local (since

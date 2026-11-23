@@ -135,6 +135,10 @@ export const strings = {
       weight: (amount: string, unit: string) => `${amount} ${unit}`,
       preview: (nutrients: string) => `That’s ${nutrients}`,
       error: 'Enter servings from 0.01 to 1000, or an amount that comes to that.',
+      tooLarge: 'That’s more than one entry can hold. Enter less, or log it as two entries.',
+      // An entry saved before the app checked the limits, whose one serving is already past them.
+      cannotKeep:
+        'This entry holds more than the server accepts, so it can’t sync. Remove it and log it again.',
       log: 'Log',
     },
     entry: {

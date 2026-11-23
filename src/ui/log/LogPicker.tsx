@@ -6,6 +6,7 @@ import type { CatalogCopy, FoodInput, FoodView, RecipeView } from '@/data/foods'
 import type { QuickPicks } from '@/data/log'
 import type { CatalogState } from '@/data/logHooks'
 import { formatAmount } from '@/domain/format'
+import { entryFits } from '@/domain/limits'
 import {
   type Meal,
   type Nutrients,
@@ -48,6 +49,9 @@ type Row = {
   detail: string
   // A food measured by weight opens the amount step instead of logging at once (phase 14).
   weighed: Weighed | null
+  // One serving's values, to refuse servings past what an entry holds before logging; null
+  // for a built-in item, whose one serving always fits.
+  perServing: Nutrients | null
 }
 
 type Weighed = { portion: Portion; perServing: Nutrients }
@@ -112,7 +116,8 @@ export const LogPicker = ({
   const [panel, setPanel] = useState<'scan' | 'enter' | 'label' | null>(null)
   const [query, setQuery] = useState('')
   const [busy, setBusy] = useState(false)
-  const [failed, setFailed] = useState(false)
+  // The alert shown after a pick wasn't logged.
+  const [problem, setProblem] = useState<string | null>(null)
   // The weighed food whose amount is being set, and the servings typed for it.
   const [amountFor, setAmountFor] = useState<(Row & { weighed: Weighed }) | null>(null)
   const [servings, setServings] = useState<number | null>(null)
@@ -123,6 +128,10 @@ export const LogPicker = ({
     const food = source.kind === 'food' ? foodById.get(source.id) : undefined
     return food ? weighedOf(food.servingSize, food.servingUnit, food) : null
   }
+  const recipeById = new Map((recipes ?? []).map((recipe) => [recipe.id, recipe]))
+  const perServingOf = (source: Source): Nutrients | null =>
+    (source.kind === 'food' ? foodById.get(source.id) : recipeById.get(source.id)?.perServing) ??
+    null
 
   const servingsText = (servings: number) =>
     strings.log.servings(formatAmount(servings, locale), servings === 1)
@@ -134,6 +143,7 @@ export const LogPicker = ({
       name: pick.name,
       detail: servingsText(pick.servings),
       weighed: weighedFood(pick.source),
+      perServing: perServingOf(pick.source),
     }))
 
   const scoreOf = (source: Source) => picks?.scores.get(sourceKey(source)) ?? 0
@@ -151,6 +161,7 @@ export const LogPicker = ({
           macroText(food, locale),
         ),
         weighed: weighedOf(food.servingSize, food.servingUnit, food),
+        perServing: food,
       })),
     ...(recipes ?? [])
       .filter((recipe) => !recipe.archived)
@@ -161,6 +172,7 @@ export const LogPicker = ({
         name: recipe.name,
         detail: text.recipeDetail(macroText(recipe.perServing, locale)),
         weighed: null,
+        perServing: recipe.perServing,
       })),
   ]
     .filter((row) => row.name.toLocaleLowerCase().includes(needle))
@@ -185,6 +197,7 @@ export const LogPicker = ({
           macroText(item, locale),
         ),
         weighed: weighedOf(item.servingSize, item.servingUnit, item),
+        perServing: null,
       }))
     : []
 
@@ -195,15 +208,19 @@ export const LogPicker = ({
 
   const log = async (row: Row, amount: number) => {
     if (busy) return
+    if (row.perServing && !entryFits(row.perServing, amount)) {
+      setProblem(strings.log.amount.tooLarge)
+      return
+    }
     setBusy(true)
-    setFailed(false)
+    setProblem(null)
     const ok = await ('builtIn' in row.pick
       ? onPickBuiltIn(row.pick.builtIn, amount)
       : onPick(row.pick.source, amount)
     ).catch(() => false)
     setBusy(false)
     if (ok) onClose()
-    else setFailed(true)
+    else setProblem(text.failed)
   }
 
   const pick = (row: Row) => {
@@ -214,13 +231,17 @@ export const LogPicker = ({
     setAmountFor({ ...row, weighed: row.weighed })
     setServings(servingsOf(row))
     setAmountError(undefined)
-    setFailed(false)
+    setProblem(null)
   }
 
   const logAmount = () => {
     if (!amountFor) return
     if (servings === null) {
       setAmountError(strings.log.amount.error)
+      return
+    }
+    if (!entryFits(amountFor.weighed.perServing, servings)) {
+      setAmountError(strings.log.amount.tooLarge)
       return
     }
     void log(amountFor, servings)
@@ -252,7 +273,7 @@ export const LogPicker = ({
             type="button"
             onClick={() => {
               setAmountFor(null)
-              setFailed(false)
+              setProblem(null)
               setAmountError(undefined)
             }}
             className="inline-flex min-h-11 items-center self-start text-accent"
@@ -260,9 +281,9 @@ export const LogPicker = ({
             {strings.log.label.back}
           </button>
           <h3 className="font-semibold">{amountFor.name}</h3>
-          {failed && (
+          {problem && (
             <p role="alert" className="text-danger">
-              {text.failed}
+              {problem}
             </p>
           )}
           <AmountFields
@@ -304,9 +325,9 @@ export const LogPicker = ({
         />
       ) : (
         <>
-          {failed && (
+          {problem && (
             <p role="alert" className="text-danger">
-              {text.failed}
+              {problem}
             </p>
           )}
           <div className="grid grid-cols-2 gap-2">

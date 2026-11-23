@@ -1,4 +1,5 @@
 import { addDays } from '@/domain/dates'
+import { entryFits } from '@/domain/limits'
 import {
   type Entry,
   isMeal,
@@ -79,6 +80,11 @@ const newEntry = (
     loggedAt?: string
   },
 ): Promise<LogEntryRow> => {
+  // Callers check entryFits first: the log screens, logSource, changeServings, and
+  // copyMealTo. One serving of a saved or built-in food always fits, so reaching this is a bug.
+  if (!entryFits(fields.perServing, fields.servings)) {
+    return Promise.reject(new Error('newEntry: the entry is past the database’s limits'))
+  }
   const nutrients = scaleNutrients(fields.perServing, fields.servings)
   return writeRow(
     db,
@@ -220,10 +226,11 @@ export const changeServings = async (
   clock: Clock,
   id: string,
   servings: number,
-): Promise<{ ok: true } | { ok: false; reason: 'not_found' }> => {
+): Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'too_large' }> => {
   const row = logEntriesSpec.parse(await db.rows('log_entries').get(id))
   if (!row || row.deleted_at !== null) return { ok: false, reason: 'not_found' }
   const rounded = roundServings(servings)
+  if (!entryFits(perServingOf(row), rounded)) return { ok: false, reason: 'too_large' }
   const nutrients = scaleNutrients(perServingOf(row), rounded)
   await writeRow(
     db,
@@ -254,9 +261,13 @@ export const copyMealTo = (
 ): Promise<LogEntryRow[]> =>
   db.transaction('rw', db.rows('log_entries'), db.outbox, async () => {
     // The same rows the day's view and the copy preview count: a row with no food or recipe,
-    // or a meal this version doesn't know, is never copied.
+    // or a meal this version doesn't know, is never copied. Nor is one stored past the
+    // database's limits before the log checked them: it can never sync, and nor could a copy.
     const sources = (await liveRowsOn(db, from.date)).filter(
-      (row) => row.meal === from.meal && toEntry(row) !== null,
+      (row) =>
+        row.meal === from.meal &&
+        toEntry(row) !== null &&
+        entryFits(perServingOf(row), row.servings),
     )
     const start = clock().getTime()
     const written: LogEntryRow[] = []
@@ -313,7 +324,9 @@ export const dayComplete = async (db: LocalDb, userId: string, date: string): Pr
   return day !== null && day.deleted_at === null && day.complete
 }
 
-export type LogSourceResult = { ok: true; row: LogEntryRow } | { ok: false; reason: 'not_found' }
+export type LogSourceResult =
+  | { ok: true; row: LogEntryRow }
+  | { ok: false; reason: 'not_found' | 'too_large' }
 
 // Logs a food or recipe by id with its current values, as the picker does.
 export const logSource = async (
@@ -325,10 +338,15 @@ export const logSource = async (
   if (source.kind === 'food') {
     const food = foodsSpec.parse(await db.rows('foods').get(source.id))
     if (!food || food.deleted_at !== null) return { ok: false, reason: 'not_found' }
+    if (!entryFits(foodNutrients(food), roundServings(servings))) {
+      return { ok: false, reason: 'too_large' }
+    }
     return { ok: true, row: await logFood(db, clock, userId, { date, meal, food, servings }) }
   }
   const recipe = recipesSpec.parse(await db.rows('recipes').get(source.id))
   if (!recipe || recipe.deleted_at !== null) return { ok: false, reason: 'not_found' }
+  const perServing = recipePerServing(await recipeIngredients(db, recipe.id), recipe.servings)
+  if (!entryFits(perServing, roundServings(servings))) return { ok: false, reason: 'too_large' }
   return { ok: true, row: await logRecipe(db, clock, userId, { date, meal, recipe, servings }) }
 }
 

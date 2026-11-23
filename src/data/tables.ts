@@ -1,6 +1,7 @@
 import { z } from 'zod/mini'
 
 import { EARLIEST_DAY } from '@/domain/dates'
+import { limits } from '@/domain/limits'
 
 import type { Tables } from './database.types'
 
@@ -65,7 +66,8 @@ const grams = (places: number, max: number) =>
   z._default(z.nullable(z.number().check(...between(0, max), decimals(places))), null)
 
 // A log entry's grams are servings times a food's, so like its protein they're checked only
-// for precision here; the database's range check refuses an impossible total on sync.
+// for precision here. The log refuses a total past the database's range before writing it
+// (entryFits in src/domain/limits.ts); a row stored before that check still reads back.
 const loggedGrams = (places: number) =>
   z._default(z.nullable(z.number().check(z.gte(0), decimals(places))), null)
 
@@ -106,8 +108,8 @@ export const foodsSpec: TableSpec<FoodRow> = {
       serving_unit: z.string(),
       kcal: z.int(),
       protein_g: z.number(),
-      carbs_g: grams(1, 1000),
-      fat_g: grams(1, 1000),
+      carbs_g: grams(1, limits.food.grams),
+      fat_g: grams(1, limits.food.grams),
       // The built-in item a food was copied from (decision 0027); null for foods typed in.
       catalog_id: z._default(z.nullable(z.string().check(z.minLength(1), z.maxLength(60))), null),
       // A pack's barcode in its stored form (src/domain/barcode.ts); null when not set.
@@ -186,7 +188,7 @@ export const logEntriesSpec: TableSpec<LogEntryRow> = {
         logged_at: z.string(),
         // The food's serving when logged (phase 14); null for recipes and older entries.
         serving_size: z._default(
-          z.nullable(z.number().check(z.gt(0), z.lte(10_000), decimals(2))),
+          z.nullable(z.number().check(z.gt(0), z.lte(limits.food.servingSize), decimals(2))),
           null,
         ),
         serving_unit: z._default(
@@ -195,7 +197,7 @@ export const logEntriesSpec: TableSpec<LogEntryRow> = {
             z.string().check(
               z.refine((unit) => {
                 const length = [...unit.trim()].length
-                return length >= 1 && length <= 20
+                return length >= 1 && length <= limits.unitLength
               }),
             ),
           ),
