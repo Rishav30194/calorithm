@@ -7,12 +7,12 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 ## Next
 
 Where things stand (session ended 2026-11-22): the app is live at
-`https://rishav30194.github.io/calorithm/` as **0.15.0** (tag `v0.15.0`). Phases 1 to 11 are
+`https://rishav30194.github.io/calorithm/` as **0.18.0** (tag `v0.18.0`). Phases 1 to 11 are
 done; phases 14, 15, and 19 are done (the user's iPhone checks passed, 2026-11-22); phase 13 is parked; phase 12
 waits for the user's MacroFactor subscription. Foods from a barcode scan or a nutrition
 label log one serving without the amount step (decision 0031); the user is fine with that,
 since editing the entry's amount recalculates the totals. The hosted project has migrations through
-`20261122060000`, and `min_app_version` is 0.3.0. The README matches 0.15.0 (2026-11-22);
+`20261122080000`, and `min_app_version` is 0.17.0. The README matches 0.15.0 (2026-11-22);
 update its features and status when a phase changes what users get.
 
 1. **Phase 19 (higher-calorie days) is done:** deployed in 0.13.0 (PRs #53 to #55, decision
@@ -21,16 +21,11 @@ update its features and status when a phase changes what users get.
 2. **Phase 15 (a plate, and smarter suggestions) is done:** deployed in 0.15.0 (PRs #57 and
    #58), and the user's iPhone check passed on 2026-11-22 (usual foods for the meal, grouped
    search, a plate logged with one item in grams, and the question before closing).
-3. **Phase 16 (quick add, and recipes as ingredients) is in progress:** PR 1 (recipes as
-   ingredients, 0.16.0) and PR 2 (entries without a food or recipe, 0.17.0, migration
-   `20261122070000_log_entries_without_source.sql`) are built. The user applies that migration
-   before PR 2 merges. PR 3 (quick add, 0.18.0) is built too, with migration
-   `20261122080000_min_app_version_0_17_0.sql`, which the user applies only once 0.17.0 is
-   live on every device, and before PR 3 merges. See the plan in `docs/phases.md` and decision
-   0034. `/code-review` found 7 issues: the 4 code ones are fixed (the ingredients swap keeps a
-   recipe whose foods are gone, says when servings can't be read, and checks the limits), the
-   docs and decision record are added, and the three PRs ship as separate releases in order.
-   `/security-review` found nothing.
+3. **Phase 16 (quick add, and recipes as ingredients) is deployed in 0.18.0** (PRs #60 to
+   #62, decision 0034). The user applied both migrations on 2026-11-23: entries may have no
+   food or recipe (`20261122070000`), and `min_app_version` is 0.17.0 (`20261122080000`,
+   read back through the public API). Left: the user's iPhone check (quick add a meal; swap a
+   recipe on the plate for its ingredients), then phase 16 goes to Done.
 4. **The other phases, 17, 18, and 20** (added 2026-11-22 from MacroFactor's "Getting
    Started" video, the user's picks): log navigation and selection, goal weight and
    maintenance mode (band plus or minus 1.5% of the target weight), and progress views (a
