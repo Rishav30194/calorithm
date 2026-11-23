@@ -901,7 +901,7 @@ wherever you pick a food.
 
 ## Phase 15 — A plate, and smarter suggestions
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** log a whole meal in one go, with the foods you usually eat for it on top.
 
@@ -927,9 +927,22 @@ phases 15 to 20.
 - [ ] Three foods put on the plate, one changed to 150 g, log as three entries in that meal
   with the right values, in one transaction (a failed write logs none).
 - [ ] Closing the picker with a non-empty plate asks before discarding it.
-- [ ] The meal list ranks by count in that meal, ties by name; property tests cover it.
-- [ ] Search groups appear in order, and a food never shows in two groups.
+- [x] The meal list ranks by count in that meal, ties by name; property tests cover it.
+  (`src/domain/nutrition.test.ts`, `usualForMeal`)
+- [x] Search groups appear in order, and a food never shows in two groups.
+  (`src/ui/log/log.test.tsx`; the groups split one list by use score, and built-in items
+  you've copied show only as yours)
 - [ ] Browser tests with axe cover the plate at 360 pixels in both themes.
+
+**Plan** (2026-11-22, the user's "start phase 15"): two PRs.
+
+1. **Meal suggestions and grouped search** (0.14.0): `usualForMeal` in
+   `src/domain/nutrition.ts`, `QuickPicks.byMeal`, the **Usually for …** list above
+   **Recent**, and search results grouped as **Logged before** (a use score in the last 180
+   days) and **Your other foods and recipes**, with built-in foods after.
+2. **The plate** (0.15.0): an add button on each row, the plate with editable amounts and
+   totals, **Log all** in one transaction with `entryFits` checked, and a confirmation before
+   closing with items on it.
 
 **Implementation notes:** none yet.
 

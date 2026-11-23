@@ -211,3 +211,24 @@ export const recentPicks = (entries: readonly Entry[], limit: number): QuickPick
     .sort((a, b) => b.latest.date.localeCompare(a.latest.date) || b.order - a.order)
     .slice(0, Math.max(0, limit))
     .map(toPick)
+
+// How far back the meal list looks (phase 15).
+const USUAL_DAYS = 60
+
+// The foods and recipes logged most often in one meal over the last 60 days, by count, then
+// by name, each with the servings last logged in that meal.
+export const usualForMeal = (
+  entries: readonly Entry[],
+  meal: Meal,
+  today: string,
+  limit: number,
+): QuickPick[] => {
+  const inMeal = entries.filter((entry) => {
+    const age = daysBetween(entry.date, today)
+    return entry.meal === meal && age >= 0 && age < USUAL_DAYS
+  })
+  return [...bySource(inMeal).values()]
+    .sort((a, b) => b.count - a.count || a.latest.name.localeCompare(b.latest.name))
+    .slice(0, Math.max(0, limit))
+    .map(toPick)
+}

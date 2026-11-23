@@ -22,6 +22,7 @@ import {
   sumNutrients,
   totalsByMeal,
   useScores,
+  usualForMeal,
 } from './nutrition'
 
 const decimalsOf = (value: number): number => {
@@ -485,5 +486,76 @@ describe('isMeal', () => {
   it('accepts the four meals only', () => {
     expect(meals.every(isMeal)).toBe(true)
     expect(isMeal('brunch')).toBe(false)
+  })
+})
+
+// Phase 15: the foods you usually log in the meal you're adding to.
+describe('usualForMeal', () => {
+  const food = (id: string) => ({ kind: 'food', id }) as const
+
+  it('ranks by how often each was logged in that meal, then by name', () => {
+    const logs = [
+      entry({ meal: 'lunch', source: food('dal'), name: 'Dal', date: addDays(today, -1) }),
+      entry({ meal: 'lunch', source: food('dal'), name: 'Dal', date: addDays(today, -2) }),
+      entry({ meal: 'lunch', source: food('roti'), name: 'Roti', date: addDays(today, -1) }),
+      entry({ meal: 'lunch', source: food('rice'), name: 'Rice', date: addDays(today, -3) }),
+      entry({ meal: 'breakfast', source: food('oats'), name: 'Oats', date: today }),
+      entry({ meal: 'breakfast', source: food('oats'), name: 'Oats', date: addDays(today, -1) }),
+    ]
+    expect(usualForMeal(logs, 'lunch', today, 10).map((pick) => [pick.name, pick.count])).toEqual([
+      ['Dal', 2],
+      ['Rice', 1],
+      ['Roti', 1],
+    ])
+  })
+
+  it('counts only the last 60 days, and nothing after today', () => {
+    const logs = [
+      entry({ meal: 'dinner', source: food('old'), name: 'Old', date: addDays(today, -60) }),
+      entry({ meal: 'dinner', source: food('kept'), name: 'Kept', date: addDays(today, -59) }),
+      entry({ meal: 'dinner', source: food('later'), name: 'Later', date: addDays(today, 1) }),
+    ]
+    expect(usualForMeal(logs, 'dinner', today, 10).map((pick) => pick.name)).toEqual(['Kept'])
+  })
+
+  it('offers the servings last logged in that meal', () => {
+    const logs = [
+      entry({ meal: 'lunch', source: food('rice'), servings: 1, date: addDays(today, -2) }),
+      entry({ meal: 'lunch', source: food('rice'), servings: 1.5, date: addDays(today, -1) }),
+      entry({ meal: 'dinner', source: food('rice'), servings: 3, date: today }),
+    ]
+    expect(usualForMeal(logs, 'lunch', today, 10)[0]?.servings).toBe(1.5)
+  })
+
+  it('returns at most the limit, each source once, counts never rising down the list', () => {
+    fc.assert(
+      fc.property(
+        fc.array(
+          fc.record({
+            id: fc.constantFrom('a', 'b', 'c', 'd'),
+            meal: fc.constantFrom(...meals),
+            age: fc.integer({ min: -5, max: 90 }),
+          }),
+          { maxLength: 40 },
+        ),
+        fc.integer({ min: 0, max: 5 }),
+        (logs, limit) => {
+          const picks = usualForMeal(
+            logs.map(({ id, meal, age }) =>
+              entry({ meal, source: food(id), name: id, date: addDays(today, -age) }),
+            ),
+            'lunch',
+            today,
+            limit,
+          )
+          expect(picks.length).toBeLessThanOrEqual(limit)
+          const keys = picks.map((pick) => sourceKey(pick.source))
+          expect(new Set(keys).size).toBe(keys.length)
+          for (let i = 1; i < picks.length; i += 1) {
+            expect(picks[i]?.count ?? 0).toBeLessThanOrEqual(picks[i - 1]?.count ?? 0)
+          }
+        },
+      ),
+    )
   })
 })
