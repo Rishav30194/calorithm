@@ -1043,9 +1043,9 @@ meal without editing the recipe.
 - The calorie floor applies to every day: when a lower day would go below it, the app shows
   how much extra it can give the higher days, and limits the setting to that.
 - **Schema change:** the chosen days and the extra amount on `profile`, with pgTAP tests. Both
-  columns have defaults and older apps never send them, so one release is enough. The split
-  is computed in `src/domain/`, so the database stores the choice, not each day's target
-  (decision 0033).
+  are nullable (not set) and listed in `addedColumns`, so older apps never clear them and one
+  release is enough. The split is computed in `src/domain/`, so the database stores the
+  choice, not each day's target (decision 0033).
 
 **Acceptance criteria:**
 - [ ] For any choice of days and amount, the seven day targets add up to seven times the
@@ -1057,8 +1057,8 @@ meal without editing the recipe.
 
 1. **Calculation:** decision 0033, `weekdayOf` in `src/domain/dates.ts`, and
    `src/domain/calorieDays.ts` with property tests.
-2. **Schema:** `higher_kcal_days` (0 to 127, at most 6 days) and `higher_kcal_extra` (whole
-   kcal, default 0) on `profile`, pgTAP tests, generated types, profile schema version 2 with
+2. **Schema:** `higher_kcal_days` (0 to 126: any weekdays but all seven) and
+   `higher_kcal_extra` (0 to 5000 kcal), nullable and set together, on `profile`, pgTAP tests, generated types, profile schema version 2 with
    `addedColumns`, and export and import. Merged only after the user applies the migration to
    the hosted project.
 3. **Screens:** the profile form (day checkboxes, the extra, and a week preview), today's own

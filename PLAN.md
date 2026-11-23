@@ -93,7 +93,7 @@ shape. To handle that:
 
 | Table | Holds |
 |---|---|
-| `profile` | Height, birth date, sex, activity level, units, goal rate, protein g per kg, calorie floor. |
+| `profile` | Height, birth date, sex, activity level, units, goal rate, protein g per kg, calorie floor, and higher-calorie days (decision 0033). |
 | `foods` | Name, serving size and unit, kcal and protein per serving, archived flag. |
 | `recipes` and `recipe_items` | A recipe's name and serving count, and the foods and amounts in it. |
 | `log_entries` | Date, meal, a food or recipe, servings, and kcal and protein copied at log time. |

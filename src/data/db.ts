@@ -148,6 +148,23 @@ export const schemaVersions: readonly SchemaVersion[] = [
       await tx.table('sync_state').update('log_entries', { cursor: null })
     },
   },
+  {
+    // Higher-calorie days on the profile (phase 19): not set on the stored profile.
+    version: 10,
+    stores: {},
+    upgrade: async (tx) => {
+      await tx
+        .table('profile')
+        .toCollection()
+        .modify((row: Record<string, unknown>) => {
+          row.higher_kcal_days ??= null
+          row.higher_kcal_extra ??= null
+        })
+      // Older versions dropped the columns from the profile they pulled, so it's read again
+      // from the start; only the cursor goes, not a resync.
+      await tx.table('sync_state').update('profile', { cursor: null })
+    },
+  },
 ]
 
 export const dbNameFor = (userId: string): string => `calorithm-${userId}`

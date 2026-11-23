@@ -7,6 +7,9 @@ export type CalorieDays = { days: number; extraKcal: number }
 
 // At least one day must give, so all seven can't be higher.
 export const MAX_HIGHER_DAYS = 6
+// The database's ranges: any mask but all seven days (127), and up to 5000 kcal extra.
+export const MAX_HIGHER_DAYS_MASK = 126
+export const MAX_HIGHER_KCAL_EXTRA = 5000
 
 const WEEK = [0, 1, 2, 3, 4, 5, 6] as const
 

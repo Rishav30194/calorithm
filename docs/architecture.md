@@ -251,6 +251,7 @@ All in `src/domain/`, as pure functions:
 | `maintenance.ts` | Days' intake, weigh-ins, previous estimate, profile, today | New estimate, or a reason it was skipped or blocked |
 | `targets.ts` | Maintenance, goal rate, trend weight, protein setting, calorie floor | kcal and protein targets, and any safety limit applied |
 | `checkin.ts` | The above, the previous check-in, and the profile's settings | Whether a check-in is due, and the values to store |
+| `calorieDays.ts` | The daily kcal target, the calorie floor, the higher-calorie days setting | Each weekday's kcal target, and any trimming the floor needed (decision 0033) |
 | `dates.ts` | Date strings | Calendar-day arithmetic, with no time zones |
 
 The check-in screen calls `runCheckin` with data from Dexie and today's local date, then stores

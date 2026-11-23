@@ -21,6 +21,8 @@ const draft = (overrides: Partial<ProfileRow> = {}): ProfileRow => ({
   goal_rate_kg_per_week: 0,
   protein_g_per_kg: 1.8,
   calorie_floor_kcal: 1200,
+  higher_kcal_days: null,
+  higher_kcal_extra: null,
   updated_at: '',
   client_updated_at: '',
   deleted_at: null,
@@ -43,7 +45,10 @@ describe('writeRow', () => {
     await writeRow(db, profileSpec, draft(), clock)
 
     const row = await db.table('profile').get(userId)
-    expect(row).toMatchObject({ client_updated_at: '2026-11-20T10:00:00.000Z', schema_version: 1 })
+    expect(row).toMatchObject({
+      client_updated_at: '2026-11-20T10:00:00.000Z',
+      schema_version: profileSpec.schemaVersion,
+    })
     const entries = await db.outbox.toArray()
     expect(entries).toHaveLength(1)
     expect(entries[0]).toMatchObject({

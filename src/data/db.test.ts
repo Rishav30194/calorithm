@@ -87,7 +87,13 @@ describe('LocalDb', () => {
     before.close()
 
     const after = open('calorithm-test-upgrade-v2')
-    expect(await after.table('profile').get('p1')).toEqual({ id: 'p1', units: 'imperial' })
+    // Version 10 gives the profile no higher-calorie days.
+    expect(await after.table('profile').get('p1')).toEqual({
+      id: 'p1',
+      units: 'imperial',
+      higher_kcal_days: null,
+      higher_kcal_extra: null,
+    })
     expect(await after.outbox.count()).toBe(1)
     await after.table('log_entries').put({ id: 'l1', date: '2026-11-20' })
     expect(await after.table('log_entries').where('date').equals('2026-11-20').count()).toBe(1)
@@ -112,7 +118,13 @@ describe('LocalDb', () => {
     before.close()
 
     const after = open('calorithm-test-upgrade-v3')
-    expect(await after.table('profile').get('p1')).toEqual({ id: 'p1', units: 'imperial' })
+    // Version 10 gives the profile no higher-calorie days.
+    expect(await after.table('profile').get('p1')).toEqual({
+      id: 'p1',
+      units: 'imperial',
+      higher_kcal_days: null,
+      higher_kcal_extra: null,
+    })
     // Later versions add fields to log entries; this case checks only that its data survived.
     expect(await after.table('log_entries').get('l1')).toMatchObject({
       id: 'l1',
@@ -271,6 +283,31 @@ describe('LocalDb', () => {
     })
     // An older version dropped the serving from entries it pulled, so they're read again.
     expect(await after.sync_state.get('log_entries')).toMatchObject({ cursor: null })
+    expect(await after.sync_state.get('foods')).toMatchObject({ cursor })
+  })
+
+  it('gives the profile no higher-calorie days, and pulls it again, when upgraded to version 10', async () => {
+    const [v1, v2, v3, v4, v5, v6, v7, v8, v9] = schemaVersions
+    if (!v1 || !v2 || !v3 || !v4 || !v5 || !v6 || !v7 || !v8 || !v9)
+      throw new Error('missing schema versions')
+    const before = open('calorithm-test-upgrade-v10', [v1, v2, v3, v4, v5, v6, v7, v8, v9])
+    await before.table('profile').put({ id: 'u1', units: 'metric' })
+    const cursor = { updatedAt: '2026-11-22T10:00:00.000000+00:00', id: 'u1' }
+    await before.table('sync_state').bulkPut([
+      { table: 'profile', cursor, lastPullAt: 1, unreadable: [] },
+      { table: 'foods', cursor, lastPullAt: 1, unreadable: [] },
+    ])
+    before.close()
+
+    const after = open('calorithm-test-upgrade-v10')
+    expect(await after.table('profile').get('u1')).toEqual({
+      id: 'u1',
+      units: 'metric',
+      higher_kcal_days: null,
+      higher_kcal_extra: null,
+    })
+    // An older version dropped the columns from the profile it pulled, so it's read again.
+    expect(await after.sync_state.get('profile')).toMatchObject({ cursor: null })
     expect(await after.sync_state.get('foods')).toMatchObject({ cursor })
   })
 
