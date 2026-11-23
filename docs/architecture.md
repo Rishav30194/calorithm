@@ -253,6 +253,8 @@ All in `src/domain/`, as pure functions:
 | `checkin.ts` | The above, the previous check-in, and the profile's settings | Whether a check-in is due, and the values to store |
 | `calorieDays.ts` | The daily kcal target, the calorie floor, the higher-calorie days setting | Each weekday's kcal target, and any trimming the floor needed (decision 0033) |
 | `dates.ts` | Date strings | Calendar-day arithmetic, with no time zones |
+| `nutrition.ts` | Entries, foods, recipes, servings | Totals, scaling and rounding, use scores, recent, most used, and usual for a meal, and a recipe's ingredients scaled to the servings logged |
+| `limits.ts` | One serving's values and the servings | Whether an entry fits the database's range checks; the limits themselves, checked against the database by `src/data/limits.integration.test.ts` |
 
 The check-in screen calls `runCheckin` with data from Dexie and today's local date, then stores
 the result in `checkins` when you save it. Decision 0021 holds the rules.
@@ -331,6 +333,22 @@ photo read on the device by `tesseract.js` (`src/ui/log/labelReader.ts`), and fi
 form for checking. The reader's worker, core, and English data load on first use from the
 app and are cached by the service worker (`label-reader`), not precached; `vite.config.ts`
 serves the language data at `tessdata/eng-VERSION/`. Nothing leaves the device.
+
+## The plate and quick add
+
+Phases 15 and 16, decision 0034.
+
+- **Suggestions:** `quickPicks` (`src/data/log.ts`) gives the picker **Recent**, **Most used**,
+  and each meal's **Usually for …** list (`usualForMeal`, the last 60 days), and the use scores
+  that group search into **Logged before** and **Your other foods and recipes**.
+- **The plate** lives in the picker's state only. `logPlate` reads every item and checks it
+  with `entryFits` before writing any, copies built-in items only then, and logs each a
+  millisecond apart in one Dexie transaction, so the meal keeps the plate's order and a plate
+  logs whole or not at all. A recipe on the plate can be swapped for its ingredients.
+- **Quick add** is a log entry with neither `food_id` nor `recipe_id`
+  (`log_entries_at_most_one_source`); `Entry.source` is null for it, so it counts in totals
+  and copies with its meal but is never suggested. `min_app_version` is 0.17.0, the first
+  version that shows such entries.
 
 ## Hosting and environments
 

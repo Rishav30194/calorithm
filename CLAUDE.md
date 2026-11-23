@@ -1,8 +1,8 @@
 # Calorithm
 
-A calorie and protein tracker with a weekly maintenance estimate. One person uses it now, but
-it's built to production standards so friends, and later paying customers, can use it without
-a rewrite. It holds health data, so correctness and privacy come before speed of delivery.
+A calorie and macro tracker (kcal and protein targets; carbs and fat as totals) with a weekly
+maintenance estimate. One person uses it now, but it's built to production standards so
+friends, and later paying customers, can use it without a rewrite. It holds health data, so correctness and privacy come before speed of delivery.
 
 ## Read first
 

@@ -5,7 +5,7 @@ works offline. Every week it estimates your maintenance calories from what you a
 your weight trended, then sets your kcal and protein targets for the next week.
 
 **Status:** live at [rishav30194.github.io/calorithm](https://rishav30194.github.io/calorithm/)
-for invited accounts; sign-ups are off. Phases 1 to 11, 14, 15, and 19 are done, phase 13 (reading
+for invited accounts; sign-ups are off. Phases 1 to 11, 14 to 16, and 19 are done, phase 13 (reading
 label photos) is parked, and phase 12 (a review against MacroFactor) is on hold; see
 [the phase plan](docs/phases.md).
 
@@ -15,6 +15,8 @@ label photos) is parked, and phase 12 (a review against MacroFactor) is on hold;
   weight. Re-log recent and frequent foods with one tap, and copy meals from earlier days.
 - **Meals at once:** put several foods on a plate, adjust each amount, and log them together;
   the picker offers what you usually eat for that meal.
+- **Quick add:** log a one-off meal by its kcal and protein without saving a food, or swap a
+  recipe on the plate for its ingredients to adjust them for one meal.
 - **Built-in foods:** common Indian home foods, gym staples, groceries, and spices, ready to
   pick without typing numbers. Values come from USDA FoodData Central and CoFID, and the
   few estimates are labelled.

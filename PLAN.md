@@ -1,7 +1,9 @@
 # Calorithm plan
 
-Calorithm is a personal calorie and protein tracker. It logs food and weight, and it estimates
-maintenance calories each week from your intake and weight trend, then adjusts your targets.
+Calorithm is a personal calorie and macro tracker (kcal, protein, carbs, and fat). It logs
+food and weight, and it estimates maintenance calories each week from your intake and weight
+trend, then adjusts your kcal and protein targets. Carbs and fat are totals, not targets
+(decision 0025).
 
 It starts with one user, but it's built so friends, and later paying customers, can use it
 without a rewrite. The work that's cheap now and hard to add later is in this plan's build
@@ -94,16 +96,16 @@ shape. To handle that:
 | Table | Holds |
 |---|---|
 | `profile` | Height, birth date, sex, activity level, units, goal rate, protein g per kg, calorie floor, and higher-calorie days (decision 0033). |
-| `foods` | Name, serving size and unit, kcal and protein per serving, archived flag. |
+| `foods` | Name, serving size and unit, kcal, protein, carbs, and fat per serving, archived flag, and the built-in item (`catalog_id`) or barcode it came from. |
 | `recipes` and `recipe_items` | A recipe's name and serving count, and the foods and amounts in it. |
-| `log_entries` | Date, meal, a food or recipe (or neither, for a quick add: decision 0034), servings, and kcal and protein copied at log time. |
+| `log_entries` | Date, meal, a food or recipe (or neither, for a quick add: decision 0034), servings, the food's serving, and kcal, protein, carbs, and fat copied at log time. |
 | `days` | Date and a **day complete** flag, set when you've logged everything you ate that day. |
 | `weights` | Date and weight in kg, one row per day. |
 | `checkins` | Week start, maintenance estimate, the kcal and protein targets set, and the inputs used. |
 | `app_config` | The minimum supported app version. Readable by everyone, written only by migrations. |
 
-Log entries copy kcal and protein when you log them, so editing a food later doesn't rewrite
-past days.
+Log entries copy their values when you log them, so editing a food later doesn't rewrite past
+days.
 
 Rules every user table follows:
 
@@ -129,10 +131,11 @@ they don't match the migrations.
 
 | Area | What it does |
 |---|---|
-| Food log | Add foods by kcal and protein per serving. Re-log with one tap from today's, yesterday's, and your most-used entries. Copy a whole meal from an earlier day. Mark a day complete. |
-| Recipes | Build a recipe from foods and set how many servings it makes. Log a fraction of it. Totals come from the ingredients. |
+| Food log | Add foods with kcal, protein, carbs, and fat per serving, and log them by serving or by weight. Re-log from **Recent**, **Most used**, and what you usually eat for the meal. Build a meal on a plate and log it at once, or quick add a one-off meal by its numbers. Copy a whole meal from an earlier day. Mark a day complete. |
+| Finding foods | A built-in list of Indian home foods, gym staples, groceries, and spices (USDA FoodData Central and CoFID). Barcode scanning with Open Food Facts. Nutrition labels read from pasted text or a photo, on the device. |
+| Recipes | Build a recipe from foods and set how many servings it makes. Log a fraction of it, or swap it on the plate for its ingredients. Totals come from the ingredients. |
 | Weight | One weigh-in per day. The chart shows raw weigh-ins and a smoothed trend line. |
-| Targets | Daily kcal and protein targets with progress bars. You set a goal rate, for example −0.5 kg a week, within the safety limits. |
+| Targets | Daily kcal and protein targets with progress bars. You set a goal rate, for example −0.5 kg a week, within the safety limits. Higher-calorie days give chosen weekdays more kcal, with the same weekly total (decision 0033). |
 | Weekly check-in | Every 7 days the app estimates maintenance calories, shows how the estimate changed, and updates your targets. Shows a reminder when the last export is more than 30 days old. |
 | Export and import | Download all your data as JSON, as a backup that doesn't depend on Supabase, and restore it from that file. The file carries a format version, and a Zod schema checks it on import. |
 | Delete account | Deletes every row you own, your local database, and your sign-in account, after you enter your password to confirm. GDPR and Apple's App Store both require this. |
@@ -276,6 +279,6 @@ tests, iOS fixes, free-plan safeguards, and the day complete flag added; then bu
 with one local database per user, schema versions in sync, database checks, safety limits,
 account deletion, accessibility checks, and the growth checklists. Development guardrails
 (Claude Code hooks), `CLAUDE.md`, `README.md`, `HANDOVER.md`, and `docs/` added the same day.
-Phases 1 to 11 and 14 were built from 2026-11-20 to 2026-11-22; phases 15 to 20 were added on
-2026-11-22 from a first look at MacroFactor. Each phase's status is in
-[the phase plan](docs/phases.md).
+Phases 1 to 11, 14 to 16, and 19 were built from 2026-11-20 to 2026-11-23; phases 15 to 20 were
+added on 2026-11-22 from a first look at MacroFactor, and 17, 18, and 20 are next. Each phase's
+status is in [the phase plan](docs/phases.md).

@@ -6,32 +6,29 @@ aren't recorded here: the session-start hook prints them live. Phase status is i
 
 ## Next
 
-Where things stand (session ended 2026-11-22): the app is live at
-`https://rishav30194.github.io/calorithm/` as **0.18.0** (tag `v0.18.0`). Phases 1 to 11 are
-done; phases 14, 15, and 19 are done (the user's iPhone checks passed, 2026-11-22); phase 13 is parked; phase 12
-waits for the user's MacroFactor subscription. Foods from a barcode scan or a nutrition
-label log one serving without the amount step (decision 0031); the user is fine with that,
-since editing the entry's amount recalculates the totals. The hosted project has migrations through
-`20261122080000`, and `min_app_version` is 0.17.0. The README matches 0.15.0 (2026-11-22);
-update its features and status when a phase changes what users get.
+Where things stand (session ended 2026-11-23): the app is live at
+`https://rishav30194.github.io/calorithm/` as **0.18.0** (tag `v0.18.0`). Phases 1 to 11, 14
+to 16, and 19 are done, each with the user's iPhone check; phase 13 is parked; phase 12 waits
+for the user's MacroFactor subscription. The hosted project has migrations through
+`20261122080000`, and `min_app_version` is 0.17.0. The README, `PLAN.md`, and
+`docs/architecture.md` match 0.18.0 (2026-11-23); update them when a phase changes what users
+get. Foods from a barcode scan or a nutrition label log one serving without the amount step
+(decision 0031); the user is fine with that.
 
-1. **Phase 19 (higher-calorie days) is done:** deployed in 0.13.0 (PRs #53 to #55, decision
-   0033), and the user's iPhone check passed on 2026-11-22 (the profile saves the days, and
-   the log shows that weekday's target).
-2. **Phase 15 (a plate, and smarter suggestions) is done:** deployed in 0.15.0 (PRs #57 and
-   #58), and the user's iPhone check passed on 2026-11-22 (usual foods for the meal, grouped
-   search, a plate logged with one item in grams, and the question before closing).
-3. **Phase 16 (quick add, and recipes as ingredients) is deployed in 0.18.0** (PRs #60 to
-   #62, decision 0034). The user applied both migrations on 2026-11-23: entries may have no
-   food or recipe (`20261122070000`), and `min_app_version` is 0.17.0 (`20261122080000`,
-   read back through the public API). Left: the user's iPhone check (quick add a meal; swap a
-   recipe on the plate for its ingredients), then phase 16 goes to Done.
-4. **The other phases, 17, 18, and 20** (added 2026-11-22 from MacroFactor's "Getting
-   Started" video, the user's picks): log navigation and selection, goal weight and
-   maintenance mode (band plus or minus 1.5% of the target weight), and progress views (a
-   Progress tab). Kcal and protein stay the only targets. Phase 18 begins with a decision
-   record.
-5. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
+1. **Next phase: 18 (goal weight and maintenance mode)** is the recommendation, then 17 (log
+   navigation and selection), then 20 (progress views, on a new **Progress** tab). All three
+   are written in `docs/phases.md`; kcal and protein stay the only targets. Phase 18 starts
+   with a decision record: the maintenance band is plus or minus 1.5% of the target weight
+   (the user's choice); settle the minimum width and the slow rate (proposal: at least 1 kg,
+   0.25% of trend weight a week). It adds `profile.target_weight_kg` and a check-in mode, so
+   plan its migration the way phase 19's went (nullable columns in `addedColumns`, a Dexie
+   version that rereads the profile, the user applying the migration before the PR merges).
+   The user's "start phase N" approves that phase's written scope; write the PR plan into
+   the phase first.
+2. Phases done this session, for reference: 19 (higher-calorie days, 0.13.0, decision 0033),
+   15 (the plate and meal suggestions, 0.15.0), and 16 (quick add and recipes as ingredients,
+   0.18.0, decision 0034). Their implementation notes in `docs/phases.md` hold the details.
+3. **Phase 13 (nutrition label photos) is parked** at the user's request. It works on the
    iPhone but needs a close photo and sometimes misses fat, carbs, protein, or the serving
    size. Plan when resumed: the user puts 5 to 10 failing photos in `~/Downloads/labels`
    (used locally only, never committed); measure each change on them and keep what helps:
@@ -41,12 +38,12 @@ update its features and status when a phase changes what users get.
    read separately, "g" read as "9"), show the read text beside the form with **Fix the
    text**, and maybe a crop step. Workaround meanwhile: crop to the table in Photos first.
    The first photo downloads about 4.5 MB (checked on the live site).
-6. Optional iPhone check: **Export changes** in the sign-out warning. It shows only when
+4. Optional iPhone check: **Export changes** in the sign-out warning. It shows only when
    signing out with changes that haven't synced (for example, log an entry offline, then
    sign out). **Export data** in settings and **Import data** passed on the user's iPhone
    (2026-11-22).
-7. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
-8. **Phase 12** (review against MacroFactor) stays on hold until the user has the
+5. On or after 2026-11-26, recheck the held-back package versions under "Watch out for".
+6. **Phase 12** (review against MacroFactor) stays on hold until the user has the
    subscription.
 
 How the user works: macros only (kcal, protein, carbs, fat), no AI logging, no bulk food
@@ -54,6 +51,16 @@ database, Indian foods with no beef or pork. The user asks for push, PR, and mer
 explicitly each time (usually "push, open the PR, and merge" in one message); the
 permission check blocks a push they haven't asked for. Plans need approval before code; the
 user usually picks the recommended option in a question.
+
+How stacked PRs go (phases 16 and 19): build each PR on its own branch on top of the last,
+open and merge them in order, and after each squash merge rebase the next branch with
+`git rebase --onto main <last commit of the merged branch> <next branch>`; `gh pr merge
+--delete-branch` also deletes the local branch, so use its commit hash. Run `npm run
+db:reset` on each branch before `gh pr create`, since `check:full` compares the generated
+types and the pgTAP tests with that branch's migrations. After a merge, the newest deploy run
+in `gh run list` can still be the previous one; wait for the run titled with the merged PR.
+A migration that only changes a constraint can't be confirmed through the public API, so rely
+on the user's `migration list --remote`; a changed value or column can be read back.
 
 How releases go: bump the version for each user-facing release (`docs/development.md`,
 "Versions and tags"). A PR with a migration waits until the user applies it to the hosted
@@ -121,6 +128,10 @@ Pushes and fetches use `git -c credential.helper= -c 'credential.helper=!gh auth
 - The browser tests run a production build, so React's development double-run isn't covered.
   After changing `DataProvider`, also check `npm run dev` for console errors. Another project's service worker
   at `localhost:4173/` can take over the page; use incognito or unregister it in DevTools.
+- Each picker row has a **+** button named "Add … to the plate" (phase 15), so tests find a
+  row by the start of its name (`/^Oats/` or `` new RegExp(`^${name}`) ``), not a bare match.
+  `e2e/log.spec.ts`'s `addFood` saves a serving of 40 bowls of 40 g (1600 g), which matters
+  when a test types grams.
 - The phase 3 log browser tests use a "bowl (40 g)" unit, a piece with a weight, so they
   still log in one tap; a food with a g or ml unit opens the amount step (decision 0031).
 - Two browser tests fail now and then: `e2e/weight.spec.ts` "switch without changing
